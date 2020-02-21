@@ -1,4 +1,4 @@
-+
+
 
 // functions
 FILE* getStream(FILE *fp);

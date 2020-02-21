@@ -9,7 +9,7 @@
  */
 
 #include<string.h> 
-#i nclude <stdio.h>
+#include <stdio.h>
 #include <stdbool.h>
 #include "lexer.h"
 #include "lexerDef.h"

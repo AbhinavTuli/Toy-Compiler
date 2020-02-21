@@ -10,7 +10,7 @@
 //     }
 
 
-ComputeFirstAndFollow(grammar G,FirstanfFollow F)
+ComputeFirstAndFollow(grammar G,FirstandFollow F)
 {
                             // if first is terminal, return first, else recursively go through non terminals
 
