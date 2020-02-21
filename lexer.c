@@ -9,9 +9,17 @@
  */
 
 #include<string.h> 
-#include <stdio.h>
+#i nclude <stdio.h>
+#include <stdbool.h>
 #include "lexer.h"
 #include "lexerDef.h"
+#include <errno.h>
+
+#define report_error(s, e) {
+    errno=(e); 
+    perror((s)); 
+    exit((e)); 
+}
 
 #define BUFFER_MAX 100
 #define MAX_IDENTIFIER_LENGTH 20
@@ -230,65 +238,151 @@ void getNextToken()
         case ',':   return retToken(",",COMMA);          
                     break;
                     
-        default:    // Check for identifier(max_size = 20)
-                    // First character should be [a-z][A-Z]
-                    char identifier[MAX_IDENTIFIER_LENGTH];
+        default:            
+                    if(('a'<=curr && curr<'z') || ('A'<=curr && curr<='Z'))    // First character should be [a-z][A-Z]
+                    {
+                        char identifier[MAX_IDENTIFIER_LENGTH];      // Check for identifier(max_size = 20)
+                        identifier[0] = curr;
 
-                    if(('a'<curr && curr<'z') || ('A'<curr && curr<'Z'))
-                    identifier[0] = curr;
-
-                    curr = buff[++buffPtr];
-                    int len = 1;
-                    while (('a'<curr && curr<'z') || ('A'<curr && curr<'Z')){
-                        identifier[len++] = curr;
                         curr = buff[++buffPtr];
+                        int len = 1;
 
-                        if(len==MAX_IDENTIFIER_LENGTH-1)
-                        // add to table
+                        // Identifier : [a-z|A-Z][a-z|A-Z|0-9|_]*
+
+                        while (('a'<=curr && curr<='z') || ('A'<=curr && curr<='Z') || ('0'<=curr && curr<='9') || (curr=='_') ){
+
+                            if(len==MAX_IDENTIFIER_LENGTH){
+                                // Report lexical error 
+                                report_error("Lexical Error : Exceeding identifier's maximum length\n",1); // Assign error codes for lexical,syntax.. error. Here lexical error code=1!
+                            }
+
+                            identifier[len++] = curr;
+                            curr = buff[++buffPtr];
+                            // add to table?
+                        }
+
+                        return  retToken(identifier,"ID");         // identifier code ends
                     }
-                    char identifier[MAX_IDENTIFIER_LENGTH];
+                    else if('0'<=curr && curr<='9'){
 
-                    if(('a'<curr && curr<'z') || ('A'<curr && curr<'Z'))
-                    identifier[0] = curr;
-
-                    curr = buff[++buffPtr];
-                    int len = 1;
-                    while (('a'<curr && curr<'z') || ('A'<curr && curr<'Z')){
-                        identifier[len++] = curr;
-                        curr = buff[++buffPtr];
-
-                        if(len==MAX_IDENTIFIER_LENGTH-1)
-                        // add to table
                     }
-                    char identifier[MAX_IDENTIFIER_LENGTH];
 
-                    if(('a'<curr && curr<'z') || ('A'<curr && curr<'Z'))
-                    identifier[0] = curr;
-
-                    curr = buff[++buffPtr];
-                    int len = 1;
-                    while (('a'<curr && curr<'z') || ('A'<curr && curr<'Z')){
-                        identifier[len++] = curr;
-                        curr = buff[++buffPtr];
-
-                        if(len==MAX_IDENTIFIER_LENGTH-1)
-                        // add to table
-                    }
+                    
 
     }
-    buffptr=0;
+    buffptr=0; // What's this?
 }
 
-token* retToken(value v,term t)
+token* retTokenALL(char* value,term t,int choice)
 {   
-    token* n = (token*)malloc(sizeof(token));
-    n->val=v;
-    n->tokterm=t;   
-    n->prev = prevToken;
-    n->next = NULL;
-    n->lineno = lineNumber;
-    if(prevToken!=NULL){
-        prevToken->next=n;
+    token* newToken = (token*)malloc(sizeof(token));
+
+    switch (choice)
+    {
+    case 1: // string value
+        strcpy(newToken->val.s, value);    // n->val=v;
+        break;
+    case 2: // Integer value
+        // convert to Integer first
+        int temp = 1;
+        for()
+        break;
+    case 3: // REAL value
+        // convert to REAL first
+        break;
+    case 4: // Boolean value
+        if(strcmp(value,"true")==0)
+        newToken->val.b = true;
+        else
+        newToken->val.b = false;
+        break;
+    default:
+        break;
     }
-    prevToken=n;
+
+    newToken->tokterm=t;   
+    newToken->prev = prevToken;
+    newToken->next = NULL;
+    newToken->lineno = lineNumber;
+
+    if(prevToken!=NULL){
+        prevToken->next = newToken;
+    }
+    prevToken=newToken;
+    
+    return newToken;
 }
+
+
+token* retToken(char* value,term t)
+{   
+    token* newToken = (token*)malloc(sizeof(token));
+
+    strcpy(newToken->val.s, value);    // n->val=v;
+    newToken->tokterm=t;   
+    newToken->prev = prevToken;
+    newToken->next = NULL;
+    newToken->lineno = lineNumber;
+
+    if(prevToken!=NULL){
+        prevToken->next = newToken;
+    }
+    prevToken=newToken;
+    
+    return newToken;
+}
+
+token* retTokenINT(int value,term t)
+{   
+    token* newToken = (token*)malloc(sizeof(token));
+
+    newToken->val.i = value;
+    newToken->tokterm=t;   
+    newToken->prev = prevToken;
+    newToken->next = NULL;
+    newToken->lineno = lineNumber;
+
+    if(prevToken!=NULL){
+        prevToken->next = newToken;
+    }
+    prevToken=newToken;
+    
+    return newToken;
+}
+
+token* retTokenREAL(float value,term t)
+{   
+    token* newToken = (token*)malloc(sizeof(token));
+
+    newToken->val.f = value;
+    newToken->tokterm=t;   
+    newToken->prev = prevToken;
+    newToken->next = NULL;
+    newToken->lineno = lineNumber;
+
+    if(prevToken!=NULL){
+        prevToken->next = newToken;
+    }
+    prevToken=newToken;
+    
+    return newToken;
+}
+
+token* retTokenBOOL(bool value,term t)
+{   
+    token* newToken = (token*)malloc(sizeof(token));
+
+    newToken->val.b = value;
+    newToken->tokterm=t;   
+    newToken->prev = prevToken;
+    newToken->next = NULL;
+    newToken->lineno = lineNumber;
+
+    if(prevToken!=NULL){
+        prevToken->next = newToken;
+    }
+    prevToken=newToken;
+    
+    return newToken;
+}
+

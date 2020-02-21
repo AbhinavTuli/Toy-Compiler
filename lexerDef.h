@@ -24,12 +24,6 @@ typedef struct
 	term tokterm; 
 
 	value val;
-
-	//lineno = line number
-	int lineno;
-    //int df; Shall probably be required later	- df = cnt for constant int/real number
-
-	token *next;
 	token *prev;
 }  token;
 
