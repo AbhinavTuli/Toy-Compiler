@@ -11,6 +11,9 @@
 
 char buffer[BUFF_SIZE];
 
+char nonTerminals[NON_TERMINALS][NTSIZE];
+char terminals[TERMINALS][TSIZE];
+
 struct ruleToken{
     int tag; // Non-terminal(0) or terminal(1)
     char tnt[30];
@@ -30,7 +33,7 @@ struct ntfirstFollow{
     int numFirsts;
 
     char* follows[TSIZE]; // follows consists only of terminals
-    int numRules;
+    int numFollows;
 };
 
 struct ntRules grammar[NON_TERMINALS];
