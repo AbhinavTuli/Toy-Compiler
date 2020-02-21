@@ -13,7 +13,7 @@
 <driverModule> -->  DRIVERDEF DRIVER PROGRAM DRIVERENDDEF <moduleDef>
 
 <module> -->  DEF MODULE ID ENDDEF TAKES INPUT SQBO <input_plist> SQBC SEMICOL <ret><moduleDef>
-l
+
 <ret>  -->  RETURNS SQBO <output_plist> SQBC SEMICOL
 
 <ret>  -->  ε
