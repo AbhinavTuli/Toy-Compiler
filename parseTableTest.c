@@ -7,13 +7,13 @@
 #define NTSIZE 	10
 #define TSIZE	10
 #define BUFF_SIZE 150
-#define MAX_NON_TERMINALS 1
-#define MAX_TERMINALS 4
-#define MAX_FIRST 4
-#define MAX_FOLLOW 4
+#define MAX_NON_TERMINALS 2
+#define MAX_TERMINALS 5
+#define MAX_FIRST 5
+#define MAX_FOLLOW 5
 
 //#include "parser.h"
-char nonterminals[MAX_NON_TERMINALS][NTSIZE] = {""};
+char nonterminals[MAX_NON_TERMINALS][NTSIZE];
 char terminals[MAX_TERMINALS][TSIZE];
 
 struct ruleToken{
@@ -161,13 +161,14 @@ void main()
 {
     //setting the nonterminals and terminals
     strcpy(nonterminals[0],"S");
+    strcpy(nonterminals[1], "F");
 
 
     strcpy(terminals[0],"(");
-    strcpy(terminals[1],")");
-    strcpy(terminals[2],"$");
-    strcpy(terminals[3],"ε");
-
+    strcpy(terminals[1],"+");
+    strcpy(terminals[2],")");
+    strcpy(terminals[3],"a");
+    strcpy(terminals[4],"ε");
 
     //setting up grammar rules 
     struct ntRules grammar[MAX_NON_TERMINALS];
@@ -175,39 +176,71 @@ void main()
 
     strcpy(grammar[0].nt, "S");
     grammar[0].numRules = 2;
-    grammar[0].heads[0].tag = 1;
-    strcpy(grammar[0].heads[0].tnt, "(");
+    grammar[0].heads[0].tag = 0;
+    strcpy(grammar[0].heads[0].tnt, "F");
 
     struct ruleToken* temp,*node;
+    
+    grammar[0].heads[0].next = NULL;
+
+    strcpy(grammar[0].heads[1].tnt, "(");
+    grammar[0].heads[1].tag = 1;
     temp = createNode();
     node = temp;
-
-    grammar[0].heads[0].next = node;
-
+    grammar[0].heads[1].next = node;
     node->tag = 0;
     strcpy(node->tnt, "S");
 
     temp = createNode();
     node->next = temp;
+    node = temp;
+    node->tag = 1; //t
+    strcpy(node->tnt, "+");
+
+    temp = createNode();
+    node->next = temp;
+    node = temp;
+    node->tag = 0;
+    strcpy(node->tnt, "F");
+    
+    temp = createNode();
+    node->next = temp;
+    node = temp;
     node->tag = 1;
     strcpy(node->tnt, ")");
+
     node->next = NULL;
 
-    grammar[0].heads[1].tag = 1;
-    strcpy(grammar[0].heads[1].tnt, "ε");
-    grammar[0].heads[0].next = NULL;
+    strcpy(grammar[1].nt, "F");
+    grammar[1].numRules = 1;
+    grammar[1].heads[0].tag = 1;
+    strcpy(grammar[1].heads[0].tnt, "a");
+    grammar[1].heads[0].next = NULL;
 
     //setting up First Follow Sets
     struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS];
     strcpy(firstFollowSets[0].nt, "S");
 
-    strcpy(firstFollowSets[0].firsts[0], "(");
-    strcpy(firstFollowSets[0].firsts[1], "ε");
+    strcpy(firstFollowSets[0].firsts[0], "a");
+    strcpy(firstFollowSets[0].firsts[1], "(");
     firstFollowSets[0].numFirsts = 2;
 
     strcpy(firstFollowSets[0].follows[0], "$");
-    strcpy(firstFollowSets[0].follows[1], ")");
+    strcpy(firstFollowSets[0].follows[1], "+");
     firstFollowSets[0].numFollows = 2;
+
+    strcpy(firstFollowSets[1].nt, "F");
+
+    strcpy(firstFollowSets[1].firsts[0], "a");
+    firstFollowSets[1].numFirsts = 1;
+
+    strcpy(firstFollowSets[1].follows[0], "$");
+    strcpy(firstFollowSets[1].follows[1], "+");
+    strcpy(firstFollowSets[1].follows[2], ")");
+    firstFollowSets[1].numFollows = 3;
+
+
+
 
     createParseTable(firstFollowSets, grammar);
 
