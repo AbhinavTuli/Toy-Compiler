@@ -30,19 +30,22 @@ void createParseTable(struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS], s
 
     //populating the table now
     
-    for(int i=0; i<<MAX_NON_TERMINALS; i++)       //for each production
+    int whichRule = 0;
+    
+    for(int i=0; i<MAX_NON_TERMINALS; i++)       //for each production
     {
         //rule from NT n
         
+        
         struct ntRules rule = grammar[i];
         
-        char heads[rule.numRules][max(NTSIZE, TSIZE)];     //rule for each NT can have multiple heads too
+        char heads[rule.numRules][NTSIZE];     //rule for each NT can have multiple heads too
         int tag[rule.numRules];                            //whether terminal or non terminal
         
         for(int k=0; k<rule.numRules; k++)                  //update the names of the heads and their tags 
         {
-            strcpy(heads[k], rule.heads->tnt);
-            tag[k] = rule.heads->tag; 
+            strcpy(heads[k], rule.heads[k].tnt);
+            tag[k] = rule.heads[k].tag; 
         }
         
         char nonT[NTSIZE];
@@ -54,6 +57,10 @@ void createParseTable(struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS], s
         {
             int indexNT = getIndexOfNonTerminal(nonT);
             int headIndex;
+
+            //DEBUG stmt printf("\n%d\n",whichRule+k);
+
+
             if(tag[k] == 0)              //non terminal
             {
                 headIndex = getIndexOfNonTerminal(heads[k]);
@@ -61,8 +68,10 @@ void createParseTable(struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS], s
                 //for every terminal in first(alpha)
                 for(int j=0; j<firstFollowSets[headIndex].numFirsts; j++)
                 {
-                    int indexT = getIndexofTerminal(firstFollowSets[headIndex].firsts[j]);
-                    Table[indexNT][indexT] = i;
+                    int indexT = getIndexOfTerminal(firstFollowSets[headIndex].firsts[j]);
+                    Table[indexNT][indexT] = whichRule + k;
+
+                    
                 }
             }
             else                          //terminal
@@ -73,7 +82,7 @@ void createParseTable(struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS], s
                     for(int j=0; j<firstFollowSets[headIndex].numFollows; j++)
                     {
                         int indexT = getIndexOfTerminal(firstFollowSets[headIndex].follows[j]);
-                        Table[indexNT][indexT] = i;
+                        Table[indexNT][indexT] = whichRule + k;
                     }
 
 
@@ -81,11 +90,13 @@ void createParseTable(struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS], s
                 else
                 {
                     headIndex = getIndexOfTerminal(heads[k]);
-                    Table[indexNT][headIndex] = i;        //only one terminal in FIRST() because it itself is a terminal
+                    Table[indexNT][headIndex] = whichRule + k;        //only one terminal in FIRST() because it itself is a terminal
                 }     
             } 
             
         }
+
+        whichRule += rule.numRules;
     }
  }
 
