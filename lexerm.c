@@ -40,13 +40,11 @@ token* head;
 
 FILE *getStream(FILE *fp)
 {
-    printf("In getStream\n");
     char ch;
     int count=0;
     
     if(buffPtr > BUFFER_MAX - 20)
     {   
-        printf("In getStream if \n");
         char temp[20];
         int i = 0;
 
@@ -58,28 +56,24 @@ FILE *getStream(FILE *fp)
         }           
 
         memset(buff,' ',sizeof(char)*BUFFER_MAX);
-
+        int j=0;
         while(count<i)
         {
-            buff[count] = temp[i];
+            buff[count] = temp[j];
             count++;
+            j++;
         }
     }
     else{
-        printf("In getStream else\n");
         memset(buff,' ',sizeof(char)*BUFFER_MAX);
     }
     printf("After if\n");
-    //printf("%d\n",count);
-    while (count<BUFFER_MAX )
+    while (count<100 && ch!=EOF)
     {   
-        printf("before\n");
+        //printf("before\n");
         ch = fgetc(fp);
         printf("%c",ch);
-        // if(ch==EOF){
-        //     break;
-        // }
-        //printf("In while\n");
+
         if(ch=='\n')
             lineNumber++;
         buff[count] = ch;
@@ -485,13 +479,14 @@ void getNextToken()
 
                     else if(isDigit(curr))
                     {
+                        int numct=0;
                         char num1[21];
                         memset(num1,'\0',21*sizeof(char));
                         
                         int count = 0;
                         num1[count] = curr;
 
-                        buffPtr++;
+                        //buffPtr++;
                         char tempchar = buff[buffPtr];
 
                         while(isDigit(tempchar))
@@ -514,7 +509,7 @@ void getNextToken()
                             if(tempchar == '.')
                             {
                                 buffPtr--;
-                                buffPtr--;
+                                //buffPtr--;
 
                                 num1[count] = '\0';
 
@@ -525,6 +520,7 @@ void getNextToken()
 
                             while(isDigit(tempchar))
                             {
+                                numct++;
                                 count++;
                                 num1[count] = tempchar;
 
@@ -558,7 +554,7 @@ void getNextToken()
                                     tempchar = buff[buffPtr];
                                 }
 
-                                float fRet = 0;
+                                double fRet = 0;
                                 char num2[21];
                                 memset(num2,'\0',21*sizeof(char));
 
@@ -568,9 +564,9 @@ void getNextToken()
                                     num2[trav] = num1[trav];
                                     trav++;
                                 }
-
+                                //printf("bc %s\n",num1);
                                 fRet = fRet + atoi(num2);
-
+                                //printf("bh %lf",fRet);
                                 trav++;
                                 int j = 0;
                                 memset(num2,'\0',21*sizeof(char));
@@ -592,12 +588,11 @@ void getNextToken()
 
                                 if(num1[trav] == '+' || num1[trav] == '-')
                                 {
-                                    trav++;
-
                                     if(num1[trav] == '-')
                                         plus = false;
+                                    trav++;
                                 }
-
+                                memset(num2,'\0',21*sizeof(char));
                                 while(num1[trav] != '\0')
                                 {
                                     num2[j] = num1[trav];
@@ -612,7 +607,6 @@ void getNextToken()
                                     raise = 0 - atoi(num2);
 
                                 fRet = fRet*pow(10,raise);
-
                                 currentToken = retTokenREAL(fRet,REAL);
                                 tokenGet = true;
                                 break;
@@ -675,37 +669,19 @@ int main(){
     getNextToken();
     getNextToken();
     getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
-    getNextToken();
     
-    getNextToken();
-    
-
     token* trav = head;
 
     while(trav!=NULL)
     {
-        printf("%d  %s\n",trav->tokterm,trav->val.s);
+        if(trav->tag == 1)
+            printf("%d  %d\n",trav->tokterm,trav->val.i);
+        if(trav->tag == 2)
+            printf("%d  %f\n",trav->tokterm,trav->val.f);
+        if(trav->tag == 3)
+            printf("%d  %d\n",trav->tokterm,trav->val.b);
+        if(trav->tag == 4)
+            printf("%d  %s\n",trav->tokterm,trav->val.s);
         trav = trav->next;
     }
 
