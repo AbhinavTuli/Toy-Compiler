@@ -74,7 +74,7 @@ const char* GetLexeme(term t)
       case RANGEOP : return "RANGEOP";
       case SEMICOL : return "SEMICOL";
       case COMMA : return "COMMA";
-      case ASSIGOP : return "ASSIGNOP";
+      case ASSIGNOP : return "ASSIGNOP";
       case SQBO : return "SQBO";
       case SQBC : return "SQBC";
       case BO : return "BO";
