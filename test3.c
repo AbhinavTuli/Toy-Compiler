@@ -59,9 +59,29 @@ void computeRecursiveFollow(int index,char* nt,struct ruleToken* CurrentRuleToke
 
 }
 
-int getIndexOfNonTerminal(char* nt){
+void findRuleNumbersForRHS_NonTerminals(char* nt){
     for(int i=0;i<grammarLength;i++){
-        if(strcmp(grammar[i].nt,nt)==0){
+        struct ntRules* currentNtRules = &grammar[i];
+        for(int j=0;j<currentNtRules->numRules;j++){
+            struct ruleToken* head = &currentNtRules->heads[j];
+            printf("Check1\n");
+            while(head!=NULL){
+                printf("Check4 : %s\n",head->tnt);
+                if(strcmp(head->tnt,nt)==0){
+                    printf("Check3\n");
+                    rhsNT[rhsNTSize++] = i;
+                    break;
+                }
+                head = head->next;
+            }
+            printf("Check2\n");
+        }
+    }
+}
+
+int getIndexOfNonTerminal(char* nt){
+    for(int i=0;i<numNT;i++){
+        if(strcmp(nonterminals[i],nt)==0){
             // Non-Terminal Found
             return i;
         }
@@ -115,8 +135,10 @@ void addRuleToGrammer(char* rule){
 
         if(!got_nt){
             // printf("Check1\n");
-            // If reading non-terminal is still left
+
+            // If reading L.H.S non-terminal is still left
             got_nt =true;
+
             if(rule[i]=='<'){
                 i++;
                 j=0;
@@ -140,8 +162,8 @@ void addRuleToGrammer(char* rule){
                     // printf("Check4\n");
                     ntRulePointer = &grammar[index];
                 }
-
-                tempRuleToken = &ntRulePointer->heads[ntRulePointer->numRules++]; // Got this rule's position!
+                
+                tempRuleToken = &(ntRulePointer->heads[ntRulePointer->numRules++]); // Got this rule's position!
                 // printf("Addding Rule Number : %d\n",ntRulePointer->numRules);
             }
             memset( bufferToken, '\0', sizeof(char)*50); // empty the bufferToken
@@ -154,6 +176,10 @@ void addRuleToGrammer(char* rule){
                 // printf("Check5_5\n");
                 i=i+4;
                 continue;
+            }
+
+            while(rule[i]==' '){
+                i++;
             }
 
             if(rule[i]=='<'){
@@ -176,12 +202,12 @@ void addRuleToGrammer(char* rule){
                     tempRuleToken->next = NULL;
                     strcpy(tempRuleToken->tnt,bufferToken);
                 }else{
-                    struct ruleToken newToken;
-                    newToken.tag=0;
-                    newToken.next=NULL;
-                    strcpy(newToken.tnt,bufferToken);
-                    prevToken->next = &newToken;
-                    prevToken = &newToken;
+                    struct ruleToken* newToken = (struct ruleToken*)malloc(sizeof(struct ruleToken));
+                    newToken->tag=0;
+                    newToken->next=NULL;
+                    strcpy(newToken->tnt,bufferToken);
+                    prevToken->next = newToken;
+                    prevToken = newToken;
                 }
 
                 memset( bufferToken, '\0', sizeof(char)*50); // empty the bufferToken
@@ -215,12 +241,12 @@ void addRuleToGrammer(char* rule){
                     strcpy(tempRuleToken->tnt,bufferToken);
                 }else{
                     // printf("Check9\n");
-                    struct ruleToken newToken;
-                    newToken.tag=1;
-                    newToken.next=NULL;
-                    strcpy(newToken.tnt,bufferToken);
-                    prevToken->next = &newToken;
-                    prevToken = &newToken;
+                    struct ruleToken* newToken = (struct ruleToken*)malloc(sizeof(struct ruleToken));
+                    newToken->tag=1;
+                    newToken->next=NULL;
+                    strcpy(newToken->tnt,bufferToken);
+                    prevToken->next = newToken;
+                    prevToken = newToken;
                 }
 
                 memset( bufferToken, '\0', sizeof(char)*50); // empty the bufferToken
@@ -229,7 +255,8 @@ void addRuleToGrammer(char* rule){
         }
 
     }
-    // printf("Adding Rule : \t %s\n", rule);
+    printf("Adding Rule : \t %s\n", rule);
+    printRuleGrammarStruct(grammarLength-1);
 }
 
 void printAllNonTerminals(){
@@ -256,7 +283,16 @@ void printAllFirstSets(){
 }
 
 void printRuleGrammarStruct(int i){
-    
+    printf("NT : %s\n",grammar[i].nt);
+    for(int j=0;j<grammar[i].numRules;j++){
+        printf("Rule %d : \n",j+1);
+        struct ruleToken* head = &grammar[i].heads[j];
+        while(head!=NULL){
+            printf("Token  : %s\n",head->tnt);
+            head = head->next;
+        }
+        printf("\n");
+    }
 }
 
 
@@ -286,10 +322,16 @@ int main(){
         }
     }
 
-    ComputeFirstAndFollow();
+    // ComputeFirstAndFollow();
     // printAllFirstSets();
     // printAllNonTerminals();
     // printAllTerminals();
+    
+    // findRuleNumbersForRHS_NonTerminals("moduleDeclaration");
 
+    // for(int i=0;i<rhsNTSize;i++){
+    //     printf("%d\n",rhsNT[i]);
+    // }
 
+    // printRuleGrammarStruct(1);
 }
