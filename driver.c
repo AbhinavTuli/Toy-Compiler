@@ -4,6 +4,7 @@
 #include lexer.h
 #include parser.h
 #include lexerDef.h
+
 #define FILELEN 10000
 
 int main(char* testfile, char* parsefile){
@@ -20,6 +21,7 @@ int main(char* testfile, char* parsefile){
     while((ch = fgetc(ptr)) != EOF)
     {
         teststring[i] = ch;
+
         i++;
     }
 
@@ -71,7 +73,7 @@ int main(char* testfile, char* parsefile){
                         }
                         else 
                         {
-                            printf("\n Total time taken by the lexer is :%d",total_CPU_time_in_seconds_lexer);
+                            printf("\n CPU time:%d\t CPU time in seconds:%d\n",total_CPU_time_lexer, total_CPU_time_in_seconds_lexer);
                         }
                         if(total_CPU_time_in_seconds_parser==0)
                         {
@@ -79,7 +81,7 @@ int main(char* testfile, char* parsefile){
                         }
                         else 
                         {
-                            printf("\n Total time taken by the parser is :%d",total_CPU_time_in_seconds_lexer);
+                            printf("\n CPU time:%d\t CPU time in seconds:%d\n",total_CPU_time_lexer,total_CPU_time_in_seconds_lexer);
                         }
         }
         printf("Enter Choice again");

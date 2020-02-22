@@ -2,6 +2,9 @@
 #include <limits.h> 
 #include <stdio.h> 
 #include <stdlib.h> 
+#include <string.h>
+#include <stdbool.h>
+#include "parser.h"
 
 // A structure to represent a stack 
 typedef struct StackNode { 
@@ -14,7 +17,7 @@ lex* newNode(int data, char* str)
 { 
 	lex* stackNode = (lex*)malloc(sizeof(lex)); 
 	stackNode->tag = data;
-    stackNode-> tnt = str;
+    strcpy(stackNode-> tnt,str);
 	stackNode->next = NULL; 
 	return stackNode; 
 } 
