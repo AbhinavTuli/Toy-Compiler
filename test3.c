@@ -95,8 +95,13 @@ bool checkIfTokenAlreadyPresent(struct ruleToken* CurrentRuleToken){
     return false;
 }
 
-void computeRecursiveFollow(int index,char* nt,struct ruleToken* CurrentRuleToken){
+void computeRecursiveFollow(int index,int j){
+    findRuleNumbersForRHS_NonTerminals(grammar[index].nt);
+    // for(int i=0; i<rhsNTSize;i++){
+    //     while(strcmp(grammar[rhsNT[i]]->grammar[index].nt)!=0){
 
+    //     }
+    // }
 }
 
 void findRuleNumbersForRHS_NonTerminals(char* nt){

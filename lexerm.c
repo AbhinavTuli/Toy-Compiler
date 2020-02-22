@@ -11,25 +11,27 @@
 #include<string.h> 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <math.h>
 #include "lexer.h"
 #include "lexerDef.h"
 #include <errno.h>
 
-#define report_error(s, e) {
-    errno=(e); 
-    perror((s)); 
-    exit((e)); 
-}
+// #define report_error(s, e) {
+//     errno=(e); 
+//     perror((s)); 
+//     exit((e)); 
+// }
 
 #define BUFFER_MAX 100
 #define MAX_IDENTIFIER_LENGTH 20
+FILE* programFile;
 
 int curr_state=0;
 int buffPtr=0;
 int linePosition=0;
 int lineNumber=1;
-char* buff[BUFFER_MAX];
+char buff[BUFFER_MAX];
 int bcount = 0;
 
 token* currentToken;
@@ -42,7 +44,7 @@ FILE *getStream(FILE *fp)
     int count=0;
     
     if(buffPtr > BUFFER_MAX - 20)
-    {
+    {   
         char temp[20];
         int i = 0;
 
@@ -54,336 +56,36 @@ FILE *getStream(FILE *fp)
         }           
 
         memset(buff,' ',sizeof(char)*BUFFER_MAX);
-
+        int j=0;
         while(count<i)
         {
-            buff[count] = temp[i];
+            buff[count] = temp[j];
             count++;
+            j++;
         }
     }
-    memset(buff,' ',sizeof(char)*BUFFER_MAX);
-    
-    while ( (ch = fgetc(fp)) != EOF && count<BUFFER_MAX)
-    {
+    else{
+        memset(buff,' ',sizeof(char)*BUFFER_MAX);
+    }
+    printf("After if\n");
+    while (count<100 && ch!=EOF)
+    {   
+        //printf("before\n");
+        ch = fgetc(fp);
+        printf("%c",ch);
+
         if(ch=='\n')
             lineNumber++;
         buff[count] = ch;
-        count++;   
+        count++;  
+        printf("%d\n",count); 
     }
-
+    // for(int i=0;i<100;i++){
+    //     printf("1 %d %c\n", i, buff[i]);
+    // }
+    printf("After while %d",count);
     buffPtr = 0;
     return fp;
-}
-
-void getNextToken()
-{   
-    if(buffPtr > BUFFER_MAX - 20)
-        programFile = getStream(programFile);
-
-
-    if(prevToken == NULL)
-    {
-        prevToken = (token *)malloc(sizeof(token));
-
-        prevToken->tokterm = HEAD;
-        prevToken->lineno = -1;
-        prevToken->prev = NULL;
-        prevToken->next = NULL;
-        prevToken->val.i = -1;
-        prevToken->tag = 1;
-
-        head = prevToken;
-    }
-
-    currentToken = head;
-    char curr = buff[buffPtr];
-    buffPtr++;
-    
-    bool tokenGet = false;
-    while(!tokenGet)
-    {
-        switch(curr){
-        case ':' :  currentToken = checkASSIGNOP();
-                    tokenGet = true;
-                    break;
-                    
-        case '=' :  currentToken = checkEQ();
-                    tokenGet = true;
-                    break;
-
-        case '>' :  currentToken = checkGT();
-                    tokenGet = true;
-                    break;
-
-        case '<' :  currentToken = checkLT();
-                    tokenGet = true;
-                    break;
-                    
-        case '\t':  //it will fall through this case (no break statement)
-              
-        case ' ' :  while(buff[buffPtr]==' ' || '\t')
-                    {
-                        buffPtr++;
-                    }
-                    break;
-
-        case '\n' : lineNumber++;
-                    buffPtr++;
-                    break;
-
-        case '+':   currentToken = retTokenSTR("+",PLUS);
-                    tokenGet = true;
-                    break;
-
-        case '-':   currentToken = retTokenSTR("-",MINUS);
-                    tokenGet = true;
-                    break;
-
-        case '/':   currentToken = retTokenSTR("/",DIV);
-                    tokenGet = true;
-                    break;
-
-        case '*':   currentToken = retTokenSTR("*",MUL); // Change because comment ** can also be there
-                    tokenGet = true;
-                    break;
-
-        case '[':   currentToken = retTokenSTR("[",SQBO);
-                    tokenGet = true;
-                    break;       
-                 
-        case ']':   currentToken = retTokenSTR("]",SQBC);
-                    tokenGet = true;
-                    break;
-
-        case '(':   currentToken = retTokenSTR("(",BO);
-                    tokenGet = true;
-                    break;
-
-        case ')':   currentToken = retTokenSTR(")",BC);
-                    tokenGet = true;
-                    break;
-
-        case ';':   currentToken = retTokenSTR(";",SEMICOL);
-                    tokenGet = true;
-                    break;
-
-        case ',':   currentToken = retToken(",",COMMA);
-                    tokenGet = true;          
-                    break;
-                    
-        case '.':   currentToken = checkRANGEOP();
-                    tokenGet = true;
-                    break;
-
-        default : 
-                    if(isAlpha(curr))
-                    {
-                        int count = 0;
-                        char tempchar = buff[buffPtr];
-                        char id[21];
-                        memset(id,'\0',21*sizeof(char));
-                        id[count] = tempchar; 
-                        buffPtr++;
-
-                        while(isAlpha(tempchar) || isDigit(tempchar) || tempchar == '_')
-                        {
-                            count++;
-                            id[count] = tempchar;
-
-                            if(count>=20)
-                            {
-                                printf("Lexical Error on line no. %d, character %d",lineNumber, linePosition); 
-                                currentToken = NULL;
-                                break;
-                            }
-
-                            buffPtr++;
-                            tempchar = buff[buffPtr];
-                        }
-
-                        currentToken = retTokenSTR(id,ID);
-                        tokenGet = true;
-                        break;
-                    }           
-
-                    else if(isDigit(curr))
-                    {
-                        char num1[21];
-                        memset(num1,'\0',21*sizeof(char));
-                        
-                        int count = 0;
-                        num1[count] = curr;
-
-                        buffPtr++;
-                        char tempchar = buff[buffPtr];
-
-                        while(isDigit(tempchar))
-                        {
-                            count++;
-                            num1[count] = tempchar;
-
-                            buffPtr++;
-                            tempchar = buff[buffPtr];
-                        }
-
-                        if(tempchar == '.')
-                        {
-                            count++;
-                            num1[count] = tempchar;
-
-                            buffPtr++;
-                            tempchar = buff[buffPtr];
-
-                            if(tempchar == '.')
-                            {
-                                buffPtr--;
-                                buffPtr--;
-
-                                num1[count] = '\0';
-
-                                currentToken = retTokenINT(atoi(num1),INTEGER);
-                                tokenGet = true;
-                                break;
-                            }
-
-                            while(isDigit(tempchar))
-                            {
-                                count++;
-                                num1[count] = tempchar;
-
-                                buffPtr++;
-                                tempchar = buff[buffPtr];
-                            }
-
-                            if(tempchar == 'e' || tempchar == 'E')
-                            {
-                                count++;
-                                num1[count] = tempchar;
-
-                                buffPtr++;
-                                tempchar = buff[buffPtr];
-
-                                if(tempchar == '+' || tempchar == '-')
-                                {
-                                    count++;
-                                    num1[count] = tempchar;
-
-                                    buffPtr++;
-                                    tempchar = buff[buffPtr];
-                                }
-
-                                while(isDigit(tempchar))
-                                {
-                                    count++;
-                                    num1[count] = tempchar;
-
-                                    buffPtr++;
-                                    tempchar = buff[buffPtr];
-                                }
-
-                                float fRet = 0;
-                                char num2[21];
-                                memset(num2,'\0',21*sizeof(char));
-
-                                int trav=0;
-                                while(num1[trav] != '.')
-                                {
-                                    num2[trav] = num1[trav];
-                                    trav++;
-                                }
-
-                                fRet = fRet + atoi(num2);
-
-                                trav++;
-                                int j = 0;
-                                memset(num2,'\0',21*sizeof(char));
-
-                                while(!(num1[trav]=='E' || num1[trav]=='e'))
-                                {
-                                    num2[j] = num1[trav];
-                                    trav++;
-                                    j++; 
-                                }
-
-                                int l = log10(atoi(num2));
-                                fRet = fRet + atoi(num2)/pow(10,l+1);
-
-                                trav++;
-                                j=0;
-
-                                bool plus = true;
-
-                                if(num1[trav] == '+' || num1[trav] == '-')
-                                {
-                                    trav++;
-
-                                    if(num1[trav] == '-')
-                                        plus = false;
-                                }
-
-                                while(num1[trav] != '\0')
-                                {
-                                    num2[j] = num1[trav];
-                                    j++;
-                                    trav++;
-                                }
-
-                                int raise;
-                                if(plus)
-                                    raise = atoi(num2);
-                                else
-                                    raise = 0 - atoi(num2);
-
-                                fRet = fRet*pow(10,raise);
-
-                                currentToken = retTokenREAL(fRet,REAL);
-                                tokenGet = true;
-                                break;
-                            }   
-
-                            else
-                            {
-                                float fRet = 0;
-                                char num2[21];
-                                memset(num2,'\0',21*sizeof(char));
-
-                                int trav=0;
-                                while(num1[trav] != '.')
-                                {
-                                    num2[trav] = num1[trav];
-                                    trav++;
-                                }
-
-                                fRet = fRet + atoi(num2);
-
-                                trav++;
-                                int j = 0;
-                                memset(num2,'\0',21*sizeof(char));
-
-                                while(!(num1[trav]=='\0'))
-                                {
-                                    num2[j] = num1[trav];
-                                    trav++;
-                                    j++; 
-                                }
-
-                                int l = log10(atoi(num2));
-                                fRet = fRet + atoi(num2)/pow(10,l+1);
-
-                                currentToken = retTokenREAL(fRet,REAL);
-                                tokenGet = true;
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            currentToken = retTokenINT(atoi(num1),INTEGER);
-                            tokenGet = true;
-                            break;
-                        }
-                    }
-        }
-    }
 }
 
 token* retTokenINT(int value,term t)
@@ -470,7 +172,6 @@ token* checkEQ(){
     if(buff[buffPtr]=='='){
         buffPtr++;
         return retTokenSTR("==",EQ);
-        return n;
     }
     else {
         printf("Lexical Error on line no. %d, character %d",lineNumber, linePosition); 
@@ -489,7 +190,7 @@ token* checkGT(){
         if(buff[buffPtr] == '>' )
         {
             buffPtr++;
-            retTokenSTR(">>>",DRIVERENDDEF)
+            return retTokenSTR(">>>",DRIVERENDDEF);
         }
 
         return retTokenSTR(">>",ENDDEF);
@@ -510,7 +211,7 @@ token* checkLT(){
         if(buff[buffPtr] == '<')
         {
             buffPtr++;
-            retTokenSTR("<<<",DRIVERDEF);
+            return retTokenSTR("<<<",DRIVERDEF);
         }
 
         return retTokenSTR("<<",DEF);
@@ -524,7 +225,6 @@ token* checkRANGEOP(){
     if(buff[buffPtr]=='.'){
         buffPtr++;
         return retTokenSTR("..",RANGEOP);
-        return n;
     }
     else {
         printf("Lexical Error on line no. %d, character %d",lineNumber, linePosition); 
@@ -636,4 +336,354 @@ void removeComments(char *testcaseFile, char *cleanFile)
     
     }
     
+}
+void getNextToken()
+{   
+    if(buffPtr > BUFFER_MAX - 20){
+        programFile = getStream(programFile);
+       // buffPtr=0; 
+    }
+    
+    //  for(int i=0;i<100;i++){
+    //      printf("%d %c\n", i, buff[i]);
+    //  }
+
+    if(prevToken == NULL)
+    {
+        prevToken = (token *)malloc(sizeof(token));
+
+        prevToken->tokterm = HEAD;
+        prevToken->lineno = -1;
+        prevToken->prev = NULL;
+        prevToken->next = NULL;
+        prevToken->val.i = -1;
+        prevToken->tag = 1;
+
+        head = prevToken;
+        printf("head assigned\n");
+    }
+
+    currentToken = head;
+    char curr = buff[buffPtr];
+    buffPtr++;
+    
+    bool tokenGet = false;
+    while(!tokenGet)
+    {
+        switch(curr){
+        case ':' :  currentToken = checkASSIGNOP();
+                    tokenGet = true;
+                    break;
+                    
+        case '=' :  currentToken = checkEQ();
+                    tokenGet = true;
+                    break;
+
+        case '>' :  currentToken = checkGT();
+                    tokenGet = true;
+                    break;
+
+        case '<' :  currentToken = checkLT();
+                    tokenGet = true;
+                    break;
+                    
+        case '\t':  //it will fall through this case (no break statement)
+              
+        case ' ' :  while(buff[buffPtr]==' ' || buff[buffPtr]=='\t')
+                    {
+                        buffPtr++;
+                    }
+                    tokenGet=true;
+                    break;
+
+        case '\n' : lineNumber++;
+                    //buffPtr++;
+                    tokenGet=true;
+                    break;
+
+        case '+':   currentToken = retTokenSTR("+",PLUS);
+                    tokenGet = true;
+                    break;
+
+        case '-':   currentToken = retTokenSTR("-",MINUS);
+                    tokenGet = true;
+                    break;
+
+        case '/':   currentToken = retTokenSTR("/",DIV);
+                    tokenGet = true;
+                    break;
+
+        case '*':   currentToken = retTokenSTR("*",MUL); // Change because comment ** can also be there
+                    tokenGet = true;
+                    break;
+
+        case '[':   currentToken = retTokenSTR("[",SQBO);
+                    tokenGet = true;
+                    break;       
+                 
+        case ']':   currentToken = retTokenSTR("]",SQBC);
+                    tokenGet = true;
+                    break;
+
+        case '(':   currentToken = retTokenSTR("(",BO);
+                    tokenGet = true;
+                    break;
+
+        case ')':   currentToken = retTokenSTR(")",BC);
+                    tokenGet = true;
+                    break;
+
+        case ';':   currentToken = retTokenSTR(";",SEMICOL);
+                    tokenGet = true;
+                    break;
+
+        case ',':   currentToken = retTokenSTR(",",COMMA);
+                    tokenGet = true;          
+                    break;
+                    
+        case '.':   currentToken = checkRANGEOP();
+                    tokenGet = true;
+                    break;
+
+        default : 
+                    if(isAlpha(curr))
+                    {
+                        int count = 0;
+                        char tempchar = curr;
+                        //printf("abc %c\n",tempchar);
+                        char id[21];
+                        memset(id,'\0',21*sizeof(char));
+                        id[count] = tempchar; 
+                        //buffPtr++;
+                        tempchar = buff[buffPtr];
+                        while(isAlpha(tempchar) || isDigit(tempchar) || tempchar == '_')
+                        {
+                            count++;
+                            id[count] = tempchar;
+
+                            if(count>=20)
+                            {
+                                printf("Lexical Error on line no. %d, character %d",lineNumber, linePosition); 
+                                currentToken = NULL;
+                                break;
+                            }
+
+                            buffPtr++;
+                            tempchar = buff[buffPtr];
+                        }
+
+                        currentToken = retTokenSTR(id,ID);
+                        tokenGet = true;
+                        break;
+                    }           
+
+                    else if(isDigit(curr))
+                    {
+                        int numct=0;
+                        char num1[21];
+                        memset(num1,'\0',21*sizeof(char));
+                        
+                        int count = 0;
+                        num1[count] = curr;
+
+                        //buffPtr++;
+                        char tempchar = buff[buffPtr];
+
+                        while(isDigit(tempchar))
+                        {
+                            count++;
+                            num1[count] = tempchar;
+
+                            buffPtr++;
+                            tempchar = buff[buffPtr];
+                        }
+
+                        if(tempchar == '.')
+                        {
+                            count++;
+                            num1[count] = tempchar;
+
+                            buffPtr++;
+                            tempchar = buff[buffPtr];
+
+                            if(tempchar == '.')
+                            {
+                                buffPtr--;
+                                //buffPtr--;
+
+                                num1[count] = '\0';
+
+                                currentToken = retTokenINT(atoi(num1),INTEGER);
+                                tokenGet = true;
+                                break;
+                            }
+
+                            while(isDigit(tempchar))
+                            {
+                                numct++;
+                                count++;
+                                num1[count] = tempchar;
+
+                                buffPtr++;
+                                tempchar = buff[buffPtr];
+                            }
+
+                            if(tempchar == 'e' || tempchar == 'E')
+                            {
+                                count++;
+                                num1[count] = tempchar;
+
+                                buffPtr++;
+                                tempchar = buff[buffPtr];
+
+                                if(tempchar == '+' || tempchar == '-')
+                                {
+                                    count++;
+                                    num1[count] = tempchar;
+
+                                    buffPtr++;
+                                    tempchar = buff[buffPtr];
+                                }
+
+                                while(isDigit(tempchar))
+                                {
+                                    count++;
+                                    num1[count] = tempchar;
+
+                                    buffPtr++;
+                                    tempchar = buff[buffPtr];
+                                }
+
+                                double fRet = 0;
+                                char num2[21];
+                                memset(num2,'\0',21*sizeof(char));
+
+                                int trav=0;
+                                while(num1[trav] != '.')
+                                {
+                                    num2[trav] = num1[trav];
+                                    trav++;
+                                }
+                                //printf("bc %s\n",num1);
+                                fRet = fRet + atoi(num2);
+                                //printf("bh %lf",fRet);
+                                trav++;
+                                int j = 0;
+                                memset(num2,'\0',21*sizeof(char));
+
+                                while(!(num1[trav]=='E' || num1[trav]=='e'))
+                                {
+                                    num2[j] = num1[trav];
+                                    trav++;
+                                    j++; 
+                                }
+
+                                int l = log10(atoi(num2));
+                                fRet = fRet + atoi(num2)/pow(10,l+1);
+
+                                trav++;
+                                j=0;
+
+                                bool plus = true;
+
+                                if(num1[trav] == '+' || num1[trav] == '-')
+                                {
+                                    if(num1[trav] == '-')
+                                        plus = false;
+                                    trav++;
+                                }
+                                memset(num2,'\0',21*sizeof(char));
+                                while(num1[trav] != '\0')
+                                {
+                                    num2[j] = num1[trav];
+                                    j++;
+                                    trav++;
+                                }
+
+                                int raise;
+                                if(plus)
+                                    raise = atoi(num2);
+                                else
+                                    raise = 0 - atoi(num2);
+
+                                fRet = fRet*pow(10,raise);
+                                currentToken = retTokenREAL(fRet,REAL);
+                                tokenGet = true;
+                                break;
+                            }   
+
+                            else
+                            {
+                                float fRet = 0;
+                                char num2[21];
+                                memset(num2,'\0',21*sizeof(char));
+
+                                int trav=0;
+                                while(num1[trav] != '.')
+                                {
+                                    num2[trav] = num1[trav];
+                                    trav++;
+                                }
+
+                                fRet = fRet + atoi(num2);
+
+                                trav++;
+                                int j = 0;
+                                memset(num2,'\0',21*sizeof(char));
+
+                                while(!(num1[trav]=='\0'))
+                                {
+                                    num2[j] = num1[trav];
+                                    trav++;
+                                    j++; 
+                                }
+
+                                int l = log10(atoi(num2));
+                                fRet = fRet + atoi(num2)/pow(10,l+1);
+
+                                currentToken = retTokenREAL(fRet,REAL);
+                                tokenGet = true;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            currentToken = retTokenINT(atoi(num1),INTEGER);
+                            tokenGet = true;
+                            break;
+                        }
+                    }
+        }
+    }
+}
+
+int main(){
+    programFile=fopen("lexerTest.txt","rb");
+    programFile=getStream(programFile);
+    getNextToken();
+    getNextToken();
+    getNextToken();
+    getNextToken();
+    getNextToken();
+    getNextToken();
+    getNextToken();
+    getNextToken();
+    getNextToken();
+    
+    token* trav = head;
+
+    while(trav!=NULL)
+    {
+        if(trav->tag == 1)
+            printf("%d  %d\n",trav->tokterm,trav->val.i);
+        if(trav->tag == 2)
+            printf("%d  %f\n",trav->tokterm,trav->val.f);
+        if(trav->tag == 3)
+            printf("%d  %d\n",trav->tokterm,trav->val.b);
+        if(trav->tag == 4)
+            printf("%d  %s\n",trav->tokterm,trav->val.s);
+        trav = trav->next;
+    }
+
+    //printf("%d   buffptr",buffPtr);
 }
