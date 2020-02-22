@@ -10,11 +10,11 @@ typedef struct StackNode {
 	struct StackNode* next; 
 }lex; 
 
-lex* newNode(int data, char* tnt) 
+lex* newNode(int data, char* str) 
 { 
 	lex* stackNode = (lex*)malloc(sizeof(lex)); 
-	stackNode->tag = tag;
-    stackNode-> tnt = tnt;
+	stackNode->tag = data;
+    stackNode-> tnt = str;
 	stackNode->next = NULL; 
 	return stackNode; 
 } 
@@ -24,9 +24,9 @@ int isEmpty(lex* root)
 	return !root; 
 } 
 
-void push(lex** root, int data) 
+void push(lex** root, int data, char* str) 
 { 
-	lex* stackNode = newNode(data); 
+	lex* stackNode = newNode(data,str); 
 	stackNode->next = *root; 
 	*root = stackNode; 
 	printf("%d pushed to stack\n", data); 
@@ -36,28 +36,28 @@ int pop(lex** root)
 { 
 	if (isEmpty(*root)) 
 		return INT_MIN; 
-	struct StackNode* temp = *root; 
+	lex* temp = *root; 
 	*root = (*root)->next; 
-	int popped = temp->data; 
+	int popped = temp->tag; 
 	free(temp); 
 
 	return popped; 
 } 
 
-int peek(struct StackNode* root) 
+int peek(lex* root) 
 { 
 	if (isEmpty(root)) 
 		return INT_MIN; 
-	return root->data; 
+	return root->tag; 
 } 
 
 int main() 
 { 
-	struct StackNode* root = NULL; 
+	lex* root = NULL; 
 
-	push(&root, 10); 
-	push(&root, 20); 
-	push(&root, 30); 
+	push(&root, 2,"FOR"); 
+	push(&root, 1,"NUM"); 
+	push(&root, 3, "IN"); 
 
 	printf("%d popped from stack\n", pop(&root)); 
 
