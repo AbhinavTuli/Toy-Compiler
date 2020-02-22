@@ -9,16 +9,19 @@ void ComputeFirstAndFollow(){
 
     for(int i=0;i<grammarLength;i++){ // which non-terminal
 
+        currentFirstFollowCompute = i;
+        tempSize=0;
         struct ntRules* currentNtRules = &grammar[i];
         // Checking a non-terminal's rules
         for(int j=0;j<grammar[i].numRules;j++){ // ruleNo
-            tempSize=0;
+            CurrentRuleTokenFF = &grammar[i].heads[j];
             // printf("Check10 : %s\n",currentNtRules->nt);
             computeRecursiveFirst(i,j);
             // computeRecursiveFollow(i,currentNtRules->nt,&(currentNtRules->heads[j]));
             
         }
-        addFirsts(i);   // add all from temp array 
+        // printf("Check1_4 : %s\n",grammar[i].nt);
+        addFirsts(currentFirstFollowCompute);   // add all from temp array 
         // addFollows(i);
     }
 }
@@ -26,11 +29,37 @@ void ComputeFirstAndFollow(){
 void computeRecursiveFirst(int index,int j){
 
         struct ruleToken* CurrentRuleToken = &grammar[index].heads[j];
-        // printf("Check11 : %s\n",CurrentRuleToken->tnt);
+        printf("Current Computing FF of : %s \n",grammar[currentFirstFollowCompute].nt);
+        printf("In recursive : %s \n",grammar[index].nt);
+
+        // printf("Check : %s\n",grammar[index].nt);
+
+        if(strcmp(CurrentRuleToken->tnt,"ε")==0){
+            // see the diff b/w CurrentRuleToken and CurrentRuleTokenFF
+            if(CurrentRuleTokenFF->next!=NULL){
+                CurrentRuleTokenFF = CurrentRuleTokenFF->next;
+
+                if(CurrentRuleTokenFF->tag==1){
+                    // add this terminal
+                    if(checkIfTokenAlreadyPresent(CurrentRuleTokenFF))
+                    return;
+
+                    strcpy(temp[tempSize++],CurrentRuleTokenFF->tnt);
+                    printf("Addding %s\n",temp[tempSize-1]);
+                    return;
+                }
+
+                int newIndex = getIndexOfNonTerminal(CurrentRuleTokenFF->tnt);
+                for(int k=0;k<grammar[newIndex].numRules;k++)
+                computeRecursiveFirst(newIndex,k);
+                return;
+            }
+        }
 
         struct ntfirstFollow* firstFollowRuleOfCurrentRule = &FirstFollowSets[index];
 
         strcpy(firstFollowRuleOfCurrentRule->nt,grammar[index].nt);
+
         
         if(CurrentRuleToken->tag==0)    // Non-Terminal
         {
@@ -45,22 +74,25 @@ void computeRecursiveFirst(int index,int j){
             // add terminal to firsts of this non-terminal
             // Check if it is already there or not!   
             // printf("Check12\n"); 
-            if(strcmp(CurrentRuleToken->tnt,"ε")==0){
-                // Call on next Non-Terminal as well
-                computeRecursiveFirst(index,j+1);
-            }
 
-
-            for(int i=0;i<tempSize;i++){
-                // printf("Check13 : %s\n",CurrentRuleToken->tnt); 
-                if(strcmp(CurrentRuleToken->tnt,temp[i])==0)
-                return;
-            }
+            if(checkIfTokenAlreadyPresent(CurrentRuleToken))
+            return;
 
             strcpy(temp[tempSize++],CurrentRuleToken->tnt);
-
+            printf("Addding %s\n",temp[tempSize-1]);
         }
 
+}
+
+bool checkIfTokenAlreadyPresent(struct ruleToken* CurrentRuleToken){
+    
+    for(int i=0;i<tempSize;i++){
+        // printf("Check13 : %s\n",CurrentRuleToken->tnt); 
+        if(strcmp(CurrentRuleToken->tnt,temp[i])==0)
+        return true;
+    }
+
+    return false;
 }
 
 void computeRecursiveFollow(int index,char* nt,struct ruleToken* CurrentRuleToken){
@@ -332,16 +364,16 @@ int main(){
         }
     }
 
-    ComputeFirstAndFollow();
-    printAllFirstSets();
+    // ComputeFirstAndFollow();
+    // printAllFirstSets();
     // printAllNonTerminals();
     // printAllTerminals();
     
-    // findRuleNumbersForRHS_NonTerminals("otherModules");
+    findRuleNumbersForRHS_NonTerminals("otherModules");
 
-    // for(int i=0;i<rhsNTSize;i++){
-    //     printf("%d\n",rhsNT[i]);
-    // }
+    for(int i=0;i<rhsNTSize;i++){
+        printf("%d\n",rhsNT[i]);
+    }
 
-    // printRuleGrammarStruct(1);
+    // printRuleGrammarStruct(0);
 }

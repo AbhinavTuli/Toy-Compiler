@@ -17,9 +17,15 @@ int tempSize2 = 0;
 
 char nonterminals[MAX_NON_TERMINALS][NTSIZE];
 char terminals[MAX_TERMINALS][TSIZE];
+int rhsNT[15];
 
+int rhsNTSize = 0;
 int numNT = 0;
 int numT = 0;
+
+int currentFirstFollowCompute = 0;
+
+struct ruleToken* CurrentRuleTokenFF;
 
 struct ruleToken{
     int tag; // Non-terminal(0) or terminal(1)
@@ -53,7 +59,7 @@ struct ntfirstFollow FirstFollowSets[MAX_NON_TERMINALS];
 
 void ComputeFirstAndFollow();
 
-void computeRecursiveFirst(int index,char* nt,struct ruleToken* CurrentRuleToken);
+void computeRecursiveFirst(int index,int j);
 
 void computeRecursiveFollow(int index,char* nt,struct ruleToken* CurrentRuleToken);
 
@@ -74,3 +80,7 @@ void printAllFirstSets();
 void printAllTerminals();
 
 void printAllNonTerminals();
+
+void findRuleNumbersForRHS_NonTerminals(char* nt);
+
+bool checkIfTokenAlreadyPresent(struct ruleToken* CurrentRuleToken);
