@@ -61,7 +61,7 @@ void ComputeFirstAndFollow();
 
 void computeRecursiveFirst(int index,int j);
 
-void computeRecursiveFollow(int index,char* nt,struct ruleToken* CurrentRuleToken);
+void computeRecursiveFollow(int index,int j);
 
 int getIndexOfNonTerminal(char* nt);
 

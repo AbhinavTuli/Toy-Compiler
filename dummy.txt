@@ -1,0 +1,8 @@
+<A>  -->  <B> <C><D>
+
+<B>  -->  <C><D> 
+
+<C>  -->  ε
+
+<D>  -->  DECLARE MODULE ID SEMICOL 
+
