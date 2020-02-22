@@ -2,59 +2,261 @@
 #include <stdio.h>
 #include <string.h>
 #include "lexerDef.h"
+#include "parser.h"
 #include <stdbool.h>
 
-#define NTSIZE 	30
-#define TSIZE	20
-#define BUFF_SIZE 150
-#define NON_TERMINALS 50
+void ComputeFirstAndFollow(){
 
-char buffer[BUFF_SIZE];
+    for(int i=0;i<grammarLength;i++){ // which non-terminal
 
-char nonTerminals[NON_TERMINALS][NTSIZE];
-char terminals[TERMINALS][TSIZE];
-
-struct ruleToken{
-    int tag; // Non-terminal(0) or terminal(1)
-    char tnt[30];
-    struct ruleToken* next;
-};
-
-struct ntRules{
-    char nt[NTSIZE];
-    int numRules;
-    struct ruleToken* heads;
-};
-
-struct ntfirstFollow{
-    char nt[NTSIZE];
-
-    char* firsts[TSIZE]; // firsts consists only of terminals
-    int numFirsts;
-
-    char* follows[TSIZE]; // follows consists only of terminals
-    int numFollows;
-};
-
-struct ntRules grammar[NON_TERMINALS];
-int grammarLength = 0;
-
-struct ntfirstFollow FirstFollowSets[NON_TERMINALS];
-
-void ComputeFirstAndFollow()
-{
-    for(int i=0;i<grammarLength;i++){
-
-        struct ntRules currentRules = grammar[i];
-
-        token* currentNt = &currentRules.nt;
-
-        for(int j=0;j<currentRules.numRules;j++){
+        struct ntRules* currentNtRules = &grammar[i];
+        // Checking a non-terminal's rules
+        for(int j=0;j<grammar[i].numRules;j++){ // ruleNo
+            tempSize=0;
+            // printf("Check10 : %s\n",currentNtRules->nt);
+            computeRecursiveFirst(i,currentNtRules->nt,&(currentNtRules->heads[j]));
+            // computeRecursiveFollow(i,currentNtRules->nt,&(currentNtRules->heads[j]));
             
-            FirstFollowSets[i] = 
+        }
+        addFirsts(i);   // add all from temp array 
+        // addFollows(i);
+    }
+}
+
+void computeRecursiveFirst(int index,char* nt,struct ruleToken* CurrentRuleToken){
+
+        // printf("Check11 : %s\n",CurrentRuleToken->tnt);
+
+        struct ntfirstFollow* firstFollowRuleOfCurrentRule = &FirstFollowSets[index];
+
+        strcpy(firstFollowRuleOfCurrentRule->nt,nt);
+        
+        if(CurrentRuleToken->tag==0)
+        {
+            int indexOfFirstNtToken  = getIndexOfNonTerminal(CurrentRuleToken->tnt);
+            struct ntRules* currentNtRules = &grammar[indexOfFirstNtToken];
+
+            for(int j=0;j<currentNtRules->numRules;j++){
+                computeRecursiveFirst(indexOfFirstNtToken,CurrentRuleToken->tnt,&(currentNtRules->heads[j]));
+            }
+
+        }else{
+            // add terminal to firsts of this non-terminal
+            // Check if it is already there or not!   
+            // printf("Check12\n"); 
+            for(int i=0;i<tempSize;i++){
+                // printf("Check13 : %s\n",CurrentRuleToken->tnt); 
+                if(strcmp(CurrentRuleToken->tnt,temp[i])==0)
+                return;
+            }
+
+            strcpy(temp[tempSize++],CurrentRuleToken->tnt);
+        }
+
+}
+
+void computeRecursiveFollow(int index,char* nt,struct ruleToken* CurrentRuleToken){
+
+}
+
+int getIndexOfNonTerminal(char* nt){
+    for(int i=0;i<grammarLength;i++){
+        if(strcmp(grammar[i].nt,nt)==0){
+            // Non-Terminal Found
+            return i;
+        }
+    }
+    return -1;
+}
+
+int getIndexOfTerminal(char *bufferToken){
+    for(int i=0;i<numT;i++){
+        if(strcmp(terminals[i],bufferToken)==0){
+            // Terminal Found
+            return i;
+        }
+    }
+    return -1;
+}
+
+
+void addFirsts(int i){
+    FirstFollowSets[i].numFirsts = tempSize;
+    // printf("Check14\n"); 
+    for(int j=0;j<tempSize;j++){
+        // printf("Check15 : %s\n",temp[j]); 
+        strcpy(FirstFollowSets[i].firsts[j],temp[j]);
+    }
+}
+
+void addFollows(int i){
+    FirstFollowSets[i].numFollows = tempSize2;
+    for(int j=0;j<tempSize2;j++){
+        strcpy(FirstFollowSets[i].follows[j],temp2[j]);
+    }
+}
+
+void addRuleToGrammer(char* rule){
+
+    int i=0,j=0;
+    bool got_nt = false;
+    char bufferToken[50];
+    struct ntRules* ntRulePointer;
+    struct ruleToken* prevToken = NULL;
+    struct ruleToken* tempRuleToken;
+
+    while(rule[i]!='\n'){
+
+        if(rule[i]==' '){
+            i++;
+            continue;
+        }
+       
+
+        if(!got_nt){
+            // printf("Check1\n");
+            // If reading non-terminal is still left
+            got_nt =true;
+            if(rule[i]=='<'){
+                i++;
+                j=0;
+                while(rule[i]!='>'){
+                    bufferToken[j++] = rule[i++];
+                }
+                bufferToken[j++] = 0;
+                // Got the L.H.S of rule(NT)
+                i++;
+                // printf("Check2 : %s\n",bufferToken);
+                int index = getIndexOfNonTerminal(bufferToken);
+
+                if(index==-1)   // Not Found - First Occurence of this Non-Terminal
+                {
+                    // printf("Check3\n");
+                    strcpy(nonterminals[numNT++],bufferToken); // storing all non-terminals in one place
+                    ntRulePointer = &grammar[grammarLength++];
+                    strcpy(ntRulePointer->nt,bufferToken);
+                }
+                else{
+                    // printf("Check4\n");
+                    ntRulePointer = &grammar[index];
+                }
+
+                tempRuleToken = &ntRulePointer->heads[ntRulePointer->numRules++]; // Got this rule's position!
+                // printf("Addding Rule Number : %d\n",ntRulePointer->numRules);
+            }
+            memset( bufferToken, '\0', sizeof(char)*50); // empty the bufferToken
+            j=0;
+        }
+        else{
+            // printf("Check5\n");
+
+            if(rule[i]=='-'){
+                // printf("Check5_5\n");
+                i=i+4;
+                continue;
+            }
+
+            if(rule[i]=='<'){
+                // printf("Check6\n");
+                // Non-terminal encountered
+                i++;
+                j=0;
+                while(rule[i]!='>' && rule[i]!='\n'){
+                    bufferToken[j++] = rule[i++];
+                }
+                bufferToken[j++] = 0;
+
+                if(rule[i]=='>')
+                i++;
+
+                if(prevToken==NULL){
+                    // first token at R.H.S
+                    prevToken = tempRuleToken;
+                    tempRuleToken->tag = 0;
+                    tempRuleToken->next = NULL;
+                    strcpy(tempRuleToken->tnt,bufferToken);
+                }else{
+                    struct ruleToken newToken;
+                    newToken.tag=0;
+                    newToken.next=NULL;
+                    strcpy(newToken.tnt,bufferToken);
+                    prevToken->next = &newToken;
+                    prevToken = &newToken;
+                }
+
+                memset( bufferToken, '\0', sizeof(char)*50); // empty the bufferToken
+                j=0;
+            }
+            else{
+                
+                // Terminal encountered
+                j=0;
+                while(rule[i]!=' ' && rule[i]!='\n'){
+                    bufferToken[j++] = rule[i++];
+                }
+
+                bufferToken[j++] = 0;
+
+                if(rule[i]==' ')
+                i++;
+
+                // printf("Check7 : %s\n",bufferToken);
+
+                if(getIndexOfTerminal(bufferToken)==-1){
+                    strcpy(terminals[numT++],bufferToken);
+                }
+
+                if(prevToken==NULL){
+                    // printf("Check8\n");
+                    // first token at R.H.S
+                    prevToken = tempRuleToken;
+                    tempRuleToken->tag = 1;
+                    tempRuleToken->next = NULL;
+                    strcpy(tempRuleToken->tnt,bufferToken);
+                }else{
+                    // printf("Check9\n");
+                    struct ruleToken newToken;
+                    newToken.tag=1;
+                    newToken.next=NULL;
+                    strcpy(newToken.tnt,bufferToken);
+                    prevToken->next = &newToken;
+                    prevToken = &newToken;
+                }
+
+                memset( bufferToken, '\0', sizeof(char)*50); // empty the bufferToken
+                j=0;
+            }
         }
 
     }
+    // printf("Adding Rule : \t %s\n", rule);
+}
+
+void printAllNonTerminals(){
+    for(int i=0;i<numNT;i++){
+        printf("%s\n",nonterminals[i]);
+    }
+}
+
+void printAllTerminals(){
+     for(int i=0;i<numT;i++){
+        printf("%s\n",terminals[i]);
+    }
+}
+
+void printAllFirstSets(){
+    for(int i=0;i<grammarLength;i++){
+        printf("%s \t : ",FirstFollowSets[i].nt);
+
+        for(int j=0;j<FirstFollowSets[i].numFirsts;j++){
+            printf("%s  ",FirstFollowSets[i].firsts[j]);
+        }
+        printf("\n");
+    }
+}
+
+void printRuleGrammarStruct(int i){
+    
 }
 
 
@@ -68,17 +270,26 @@ int main(){
         exit(1);
     }else{
 
-        bool alternateLine = 0;
+        bool alternateLine = 1;
 
         while(fgets(buffer, BUFF_SIZE, fp)) {
-            buffer[strcspn(buffer, "\n")] = 0;
+            // buffer[strcspn(buffer, "\n")] = 0;
 
-            if(alternateLine)
-            printf("%s\n", buffer);
+            if(alternateLine){
+                // printf("Adding\n");
+                addRuleToGrammer(buffer);
+                // printf("Adding Rule : \t %s\n", buffer);
+            }
 
             alternateLine = !alternateLine;
             // break;
         }
     }
+
+    ComputeFirstAndFollow();
+    // printAllFirstSets();
+    // printAllNonTerminals();
+    // printAllTerminals();
+
 
 }

@@ -100,7 +100,7 @@
 
 <index>  -->  ID
 
-<moduleReuseStmt>  -->   <optional> USE MODULE ID WITH PARAMETERS <idList>SEMICOL
+<moduleReuseStmt>  -->  <optional> USE MODULE ID WITH PARAMETERS <idList> SEMICOL
 
 <optional>  -->  SQBO <idList> SQBC ASSIGNOP
 
@@ -198,7 +198,7 @@
 
 <default>  -->  DEFAULT COLON <statements> BREAK SEMICOL
 
-<default>  -->  ε
+<default>  -->  ε 
 
 <iterativeStmt>  -->  FOR BO ID IN <range> BC START <statements> END
 
