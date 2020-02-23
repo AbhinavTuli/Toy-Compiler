@@ -260,10 +260,10 @@ void main()
 
 struct treeNode{
     char tnt[NTSIZE];
-    int tag;
+    int tag; //0 for nt, 1 for T
     struct treeNode* child;
     struct treeNode* next;
-}
+};
 
 struct treeNode* createTreeNode()
 {
@@ -274,57 +274,172 @@ struct treeNode* createTreeNode()
 
 
 
+struct treeNode* findLeftMostWithoutChild(struct treeNode* root)
+{
+
+    if(root->child == NULL && root->next==NULL)
+    {
+        return root;
+    }
+
+    struct treeNode* temp = root;
+    //struct treeNode* parent;
+
+    struct treeNode* result=NULL;
+    if(temp->child != NULL)
+    {
+        result = findLeftMostWithoutChild(temp->child);
+        if(result->tag==1){
+            result=NULL;
+        }
+    }
+    while(result == NULL && temp!=NULL ) 
+    {
+        result = findLeftMostWithoutChild((temp) -> next);
+        if(result->tag==1){
+            result=NULL;
+        }
+
+        temp = temp->next;
+    }
+
+    return result;
+}
 
 
-
-struct treeNode* parseInputSourceCode(lex* root, char *testcaseFile, int Table[MAX_NON_TERMINALS][MAX_TERMINALS],struct ntRules grammar[MAX_NON_TERMINALS], struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS])
+struct treeNode* parseInputSourceCode(lex* top, char *testcaseFile, int Table[MAX_NON_TERMINALS][MAX_TERMINALS],struct ntRules grammar[MAX_NON_TERMINALS], struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS])
 {
 
     //lexer on testcaseFile
     //use head
 
-    struct treeNode* top = createTreeNode();
-    struct treeNode* tempTree = top;
+    struct treeNode* root = createTreeNode();
+    root->next = NULL;
 
     token* temp;
-    temp = head;
+    temp = HEAD;
+
+    //push the $ , then start symbol on the stack 
+    push(&top, 1, terminals[getIndexOfTerminal("$")]);
+    push(&top, 0, nonterminals[0]);
+    strcpy(root->tnt, nonterminals[0]);
+    root->tag = 0;
+
+
+    struct treeNode* tempTreeNode = createNode();
+    root->child = tempTreeNode;
+    
     while(temp!= NULL)
     {
 
-        //push the start symbol on the stack 
-        push(root, 0, nonterminals[0]);
-        int tag = temp->tag;
-        value val = temp->val;
+          
+        // int tag = temp->tag;
+        // value val = temp->val;
         term tokterm = temp->tokterm;
-        int lineno = temp->lineno;
+        // int lineno = temp->lineno;
+
+        // char lexeme[20];
+        //  strcpy(lexeme, GetLexeme(temp->tokterm)) ;
+        // int lenflag = strlen(lexeme) + strlen(top->tnt);
+        // char flag[lenflag];
+        // strcat(lenflag, lexeme);
+        // strcat(lenflag, "_");
+        // strcat(lenflag, top->tnt);
+
+
+        //functionNames/ identifiers
+        char currLexeme[20];
+        strcpy(currLexeme, GetLexeme(tokterm) );
 
         
-
-        switch(tag)
+        //compare currName with name on the stack
+        if( strcmp(currLexeme, top->tnt)==0 )
         {
-            case 4: //functionNames/ identifiers
-                    char currName[NTSIZE];
-                    strcpy(currName, val.s);
+            //need to pop accoring to
+            pop(&top);
+            temp=temp->next;
+        }
+        else
+        {
+            int i;
+            int j;
+            if(top->tag == 0)
+                i = getIndexOfNonTerminal(top->tnt);
+            else
+                i = getIndexOfTerminal(top->tnt);
+                
+            j = getIndexOfTerminal(currLexeme);
+            int ruleNo = Table[i][j];
 
+            struct ruleToken head;
+            //push gramar[ruleNo] on to the stack
+            int count = 0, cumulative=0;
+            for(int i=0; i<MAX_NON_TERMINALS; i++)
+            {
+                
+                count+=grammar[i].numRules;
+                if(ruleNo < count) //found here
+                {
                     
-                    //compare currName with name on the stack
-                    if( strcmp(currName, lex->tnt)==0 )
-                    {
-                        //need to pop accoring to
-                    }
-                    else
-                    {
-                        int i;
-                        int j;
-                        i = getIndexOfNonTerminal(lex->tnt);
-                        j = getIndexOfTerminal(currName);
-                        int ruleNo = Table[i][j];
+                     head = grammar[i].heads[ruleNo - cumulative];
+                }
 
-                        
-                    }
+                cumulative+=grammar[i].numRules;
+            }
+
+            pop(&top); //pop E
+            //push(&top, head.tag, head.tnt);
+
+            strcpy(tempTreeNode->tnt, head.tnt);
+            tempTreeNode->tag = head.tag;
+            tempTreeNode->next = NULL;
+            tempTreeNode->child = NULL;
+
+            
+            struct ruleToken* headNext = head.next;
+
+            struct ruleToken ARRAY[10]; //jisko ulta stack me daalna hai :)
+            struct ruleToken ZEROS;
+            ZEROS.next = NULL;
+            ZEROS.tag = 0;
+            strcpy(ZEROS.tnt, "");
+
+            for(int i=0; i<10; i++) //setting every ARRAY[i] to 0
+            {
+                ARRAY[i] = ZEROS;
+            }
+            ARRAY[0] = head;
+            int index = 0;
+            while(headNext!=NULL)
+            {
+                ARRAY[++index] = *headNext;
+                tempTreeNode->next = createTreeNode();
+                tempTreeNode = tempTreeNode->next;
+
+                strcpy(tempTreeNode->tnt, headNext->tnt);
+                tempTreeNode->tag = headNext->tag;
+                tempTreeNode->next = NULL;
+                tempTreeNode->child = NULL;   
+
+                
+                //push(&top, headNext->tag, headNext->tnt );
+                headNext = headNext->next;
+            }
+
+            //push ulta
+            for(int i= index-1; i>=0; i--)
+            {
+                push(&top, ARRAY[i].tag, ARRAY[i].tnt );
+            }
+            
+
+
+
+
+        }
                     
                 
-        }
+    
         
 
 
