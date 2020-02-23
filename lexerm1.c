@@ -86,17 +86,21 @@ FILE *getStream(FILE *fp)
 
     if(ch == EOF)
     {
+        if(!endfile)
+        {
         if(count != BUFFER_MAX)
         {
             endfile = true;
             //printf("fdsaf dsfa\n");
-            buff[count] = '$';
+            buff[count-1] = '$';
             //printf(" %c  %c     %c  %d\n",buff[count],buff[count-1],buff[count-2],count);
+        }
         }
     }
 
-    // for(int k = 0; k<count;k++)
-    //    printf("%c %d \n",buff[k],k);
+    for(int k = 0; k<count;k++)
+        printf("%c",buff[k],k);
+    printf("     WOOOOLOOOOOO  \n");
     buffPtr = 0;
     return fp;
 }
@@ -399,6 +403,7 @@ void getNextToken()
                     break;
 
         case '$' :  currentToken = retTokenSTR("$",$);
+                    tokenGet = true;
                     break;
                     
         case '\t':  //it will fall through this case (no break statement)
@@ -736,13 +741,10 @@ int main(){
         getNextToken();
         trav = currentToken;
 
-        if(trav->tag == 4)
+        if(trav->tokterm == 60)
         {
-            if(trav->val.s[0] == '$')
-            {
-                printf("%d  %s\n",trav->tokterm,trav->val.s);
-                break;
-            }
+            printf("%d  %s\n",trav->tokterm,trav->val.s);
+            break;
         }
         if(trav->tag == 1)
             printf("%d  %d  %d  %d\n",trav->tokterm,trav->val.i,tempCount,buffPtr);
