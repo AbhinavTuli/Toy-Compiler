@@ -26,7 +26,6 @@
 #define BUFFER_MAX 100
 #define MAX_IDENTIFIER_LENGTH 20
 FILE* programFile;
-
 int curr_state=0;
 int buffPtr=0;
 int linePosition=0;
@@ -98,8 +97,9 @@ FILE *getStream(FILE *fp)
         }
     }
 
-    for(int k = 0; k<count;k++)
-        printf("%c",buff[k],k);
+    //printf("   count   %d\n",count);
+    //for(int k = 0; k<count;k++)
+    //    printf("%c   %d\n",buff[k],buff[k]);
     //printf("     WOOOOLOOOOOO  \n");
     buffPtr = 0;
     return fp;
@@ -356,6 +356,7 @@ void removeComments(char *testcaseFile, char *cleanFile)
 }
 void getNextToken()
 {   
+    //printf("dvd ");
     if(buffPtr > BUFFER_MAX - 20){
         programFile = getStream(programFile);
        // buffPtr=0; 
@@ -373,7 +374,7 @@ void getNextToken()
         prevToken->tag = 1;
 
         head = prevToken;
-        printf("head assigned\n");
+        //printf("head assigned\n");
     }
 
     currentToken = head;
@@ -383,7 +384,7 @@ void getNextToken()
     bool tokenGet = false;
     while(!tokenGet)
     {
-        //printf(" dsf\n");
+        //printf(" curr = %d\n",curr);
 
         switch(curr){
         case ':' :  currentToken = checkASSIGNOP();
@@ -535,8 +536,15 @@ void getNextToken()
 
                             if(count>=20)
                             {
-                                printf("Lexical Error on line no. %d, character %d",lineNumber, linePosition); 
-                                currentToken = NULL;
+                                printf("Lexical Error on line no. %d\n",lineNumber); 
+                                char tempChar=buff[buffPtr];
+                                while(tempChar!='\n' && tempChar!='$'){
+                                    buffPtr++;
+                                    if(buffPtr > BUFFER_MAX - 20)
+                                    programFile = getStream(programFile);
+                                    tempChar=buff[buffPtr];
+                                }
+                                curr = tempChar;
                                 break;
                             }
 
@@ -544,10 +552,13 @@ void getNextToken()
                             tempchar = buff[buffPtr];
                         }
 
+                        if(count>=20)
+                            break;
+
                         currentToken = retTokenSTR(id,ID);
                         tokenGet = true;
                         break;
-                    }           
+                    }
 
                     else if(isDigit(curr))
                     {
@@ -728,25 +739,28 @@ void getNextToken()
                     else{
                         printf("Lexical Error\n");
                         char tempChar=buff[buffPtr];
-                        printf("%c ",tempChar);
-                        while(tempChar!="\n"|| tempChar!=EOF){
-                            buffPtr++;
-                            if(buffPtr > BUFFER_MAX - 20)
-                                programFile = getStream(programFile);
-                            tempChar=buff[buffPtr];
+                        //printf("%c ",tempChar);
+                        while(tempChar!='\n' && tempChar!='$'){
+                             buffPtr++;
+                             if(buffPtr > BUFFER_MAX - 20)
+                                 programFile = getStream(programFile);
+                             tempChar=buff[buffPtr];
+                             //printf("%c ",tempChar);
                         }
+                        curr = tempChar;
                     }
         }
     }
 }
 
 int main(){
-    programFile=fopen("t2.txt","rb");
+    //printf("one one");
+    programFile=fopen("garbage.txt","rb");
     programFile=getStream(programFile);
-    
+    //printf("two two");
     
     token* trav = head;
-
+    //printf("cdfads");
     while(true)
     {
         getNextToken();
@@ -758,13 +772,13 @@ int main(){
             break;
         }
         if(trav->tag == 1)
-            printf("%d  %d  %d  %d\n",trav->tokterm,trav->val.i,tempCount,buffPtr);
+            printf("%d  %d  \n",trav->tokterm,trav->val.i);
         if(trav->tag == 2)
-            printf("%d  %f  %d  %d\n",trav->tokterm,trav->val.f,tempCount,buffPtr);
+            printf("%d  %f  \n",trav->tokterm,trav->val.f);
         if(trav->tag == 3)
-            printf("%d  %d  %d  %d\n",trav->tokterm,trav->val.b,tempCount,buffPtr);
+            printf("%d  %d  \n",trav->tokterm,trav->val.b);
         if(trav->tag == 4)
-            printf("%d  %s  %d  %d\n",trav->tokterm,trav->val.s,tempCount,buffPtr);
+            printf("%d  %s  \n",trav->tokterm,trav->val.s);
         //trav = trav->next;
     }
 
