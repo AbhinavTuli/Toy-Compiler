@@ -60,8 +60,9 @@ struct ntfirstFollow{
 struct ntRules grammar[MAX_NON_TERMINALS];
 int grammarLength = 0;
 
-struct ntfirstFollow FirstFollowSets[MAX_NON_TERMINALS];
+struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS];
 
+int Table[MAX_NON_TERMINALS][MAX_TERMINALS]; //stores the rule number
 
 // Functionns
 
@@ -124,3 +125,14 @@ void printAllNonTerminals();
 void printAllFirstSets();
 
 void printAllFollowSets();
+
+void printParseTable();
+
+
+void createParseTable();
+
+void addDollarToParseTable();
+
+int checkIfTerminalRuleExists(int index);
+
+int getRuleNumber(int index,int rule);
