@@ -20,6 +20,8 @@ int tempFirstsSize = 0;
 char tempFollows[MAX_FOLLOW][TSIZE];  // Contains Follows
 int tempFollowsSize = 0;
 
+int stack[MAX_FIRST];
+int stackSize=0;
 
 char nonterminals[MAX_NON_TERMINALS][NTSIZE];
 char terminals[MAX_TERMINALS][TSIZE];
@@ -30,6 +32,7 @@ int numT = 0;
 int currentFirstFollowCompute = 0;
 
 struct ruleToken* CurrentRuleTokenGlobal;
+struct ruleToken* prevCurrentRuleTokenGlobal;
 
 struct ruleToken{
     int tag; // Non-terminal(0) or terminal(1)
@@ -52,12 +55,6 @@ struct ntfirstFollow{
     char follows[MAX_FOLLOW][TSIZE]; // follows consists only of terminals
     int numFollows;
 
-    int status;
-    /*  
-        0 - No firsts or follows computed
-        1 - Only Firsts Computed
-        2 - Both Firsts and Follows computed
-    */
 };
 
 struct ntRules grammar[MAX_NON_TERMINALS];
@@ -79,6 +76,8 @@ void computeFirstAllSets();
 void computeFirstForSingleNT(int indexNT);
 
 void computeFirstRecursive(int indexNT,int ruleNum);
+
+void computeFirstRecursive2(struct ruleToken* CurrentRuleHead,struct ruleToken* toAddRuleHead);
 
 void addFirsts(int i);
 
@@ -108,6 +107,8 @@ int findRHSPositions(char* str,int* rhsNT,int* rhsNTRulePos);
 bool checkIfFollowAlreadyPresent(char* str);
 
 bool checkIfFirstAlreadyPresent(char* str);
+
+bool checkIfPresentInStack(int indexNT);
 
 // Print Functions
 void printAllGrammar();

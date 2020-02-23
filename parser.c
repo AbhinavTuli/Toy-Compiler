@@ -1,13 +1,5 @@
 #include "parser.h"
-// Hash Function for strings
-// unsigned long hash(unsigned char *str)
-//     {
-//         unsigned long hash = 5381;
-//         int c;
-//         while (c = *str++)
-//             hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-//             return hash;
-//     }
+
 int Table[MAX_NON_TERMINALS][TERMINALS]; //stores the rule number
 
 
