@@ -1,14 +1,7 @@
-#include "parser.h"
+#include "parserFF.h"
+#include "parserFF.c"
 
-int Table[MAX_NON_TERMINALS][TERMINALS]; //stores the rule number
-
-
-
-void ComputeFirstAndFollow(grammar G,FirstandFollow F)
-{
-                            // if first is terminal, return first, else recursively go through non terminals
-
-}
+int Table[MAX_NON_TERMINALS][MAX_TERMINALS]; //stores the rule number
 
 void createParseTable(struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS], struct ntRules grammar[MAX_TERMINALS]) //, int[][] Table)
 {
@@ -92,18 +85,7 @@ void createParseTable(struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS], s
     }
  }
 
+int main(){
 
-struct treeNode
-
-
-
-
-void parseInputSourceCode(char *testcaseFile, table T)
-{
-
-}
-
-printParseTree(parseTree PT, char *outfile)
-{
 
 }

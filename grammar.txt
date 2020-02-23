@@ -22,7 +22,7 @@
 
 <N1>  -->  COMMA ID COLON <dataType> <N1>
 
-<N1>  -->  ε		
+<N1>  -->  ε
 
 <output_plist>  -->  ID COLON <type><N2>
 
@@ -76,7 +76,9 @@
 
 <var_id_num>  -->  RNUM
 
-<boolConstt>  -->  TRUE | FALSE
+<boolConstt>  -->  TRUE
+
+<boolConstt>  -->  FALSE
 
 <whichId>   -->  SQBO <index> SQBC
 
@@ -182,7 +184,7 @@
 
 <declareStmt>  -->  DECLARE <idList> COLON <dataType> SEMICOL
 
-<condionalStmt>  -->  SWITCH BO ID BC START <caseStmts><default> END
+<conditionalStmt>  -->  SWITCH BO ID BC START <caseStmts> <default> END
 
 <caseStmts>  -->  CASE <value> COLON <statements> BREAK SEMICOL <N9>
 

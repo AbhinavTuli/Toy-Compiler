@@ -110,6 +110,8 @@ bool checkIfFirstAlreadyPresent(char* str);
 
 bool checkIfPresentInStack(int indexNT);
 
+void readGrammerTextFile(FILE* fp);
+
 // Print Functions
 void printAllGrammar();
 

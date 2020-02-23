@@ -1,4 +1,4 @@
-#include "parserDef.h"
+#include "parserFF.h"
 
 void computeFirstAndFollow(){
 
@@ -574,11 +574,7 @@ bool isEpsilon(char* str){
     return false;
 }
 
-
-int main(){
-
-    FILE* fp = fopen("grammar.txt","r");
-
+void readGrammerTextFile(FILE* fp){
     if (fp == NULL) {
         printf("Error Opening Grammar file");
         // Program exits if file pointer returns NULL.
@@ -600,6 +596,14 @@ int main(){
             // break;
         }
     }
+}
+
+
+int main(){
+
+    FILE* fp = fopen("grammar.txt","r");
+
+    readGrammerTextFile(fp);
 
     // printf("Total Non-Terminals : %d\n",numNT);
     // printf("Total Terminals : %d\n\n",numT);
