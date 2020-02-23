@@ -24,8 +24,8 @@ const char* GetLexeme(term t)
 {
    switch (t) 
    {
-      case INTEGER: return "Sunday"; 
-      case REAL: return "Monday"; 
+      case INTEGER: return "INTEGER"; 
+      case REAL: return "REAL"; 
       case BOOLEAN : return "BOOLEAN"; 
       case OF : return "OF"; 
       case ARRAY : return "ARRAY"; 
@@ -84,7 +84,7 @@ const char* GetLexeme(term t)
       case NUM : return "NUM";
       case RNUM : return "RNUM";
       case $ : return "$";
-      case e: return e;
+      case e: return "ε";
       case HEAD : return "HEAD";
       default : return "\0";
    }

@@ -77,8 +77,8 @@ FILE *getStream(FILE *fp)
     {   
         ch = fgetc(fp);
     
-        if(ch=='\n')
-            lineNumber++;
+        // if(ch=='\n')
+        //     lineNumber++;
         buff[count] = ch;
         count++;  
     }
