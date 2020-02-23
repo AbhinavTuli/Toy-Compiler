@@ -265,24 +265,66 @@ struct treeNode{
     struct treeNode* next;
 }
 
-struct treeNode* top;
+struct treeNode* createTreeNode()
+{
+    struct treeNode* temp;
+    temp = (struct treeNode*)malloc(sizeof(struct treeNode));
+    return temp;
+}
 
-void parseInputSourceCode(lex* root, char *testcaseFile, int Table[MAX_NON_TERMINALS][MAX_TERMINALS],struct ntRules grammar[MAX_NON_TERMINALS], struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS])
+
+
+
+
+
+struct treeNode* parseInputSourceCode(lex* root, char *testcaseFile, int Table[MAX_NON_TERMINALS][MAX_TERMINALS],struct ntRules grammar[MAX_NON_TERMINALS], struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS])
 {
 
     //lexer on testcaseFile
     //use head
 
+    struct treeNode* top = createTreeNode();
+    struct treeNode* tempTree = top;
+
     token* temp;
     temp = head;
-    while(temp->next!= NULL)
+    while(temp!= NULL)
     {
 
         //push the start symbol on the stack 
         push(root, 0, nonterminals[0]);
-        
         int tag = temp->tag;
+        value val = temp->val;
+        term tokterm = temp->tokterm;
+        int lineno = temp->lineno;
+
         
+
+        switch(tag)
+        {
+            case 4: //functionNames/ identifiers
+                    char currName[NTSIZE];
+                    strcpy(currName, val.s);
+
+                    
+                    //compare currName with name on the stack
+                    if( strcmp(currName, lex->tnt)==0 )
+                    {
+                        //need to pop accoring to
+                    }
+                    else
+                    {
+                        int i;
+                        int j;
+                        i = getIndexOfNonTerminal(lex->tnt);
+                        j = getIndexOfTerminal(currName);
+                        int ruleNo = Table[i][j];
+
+                        
+                    }
+                    
+                
+        }
         
 
 
