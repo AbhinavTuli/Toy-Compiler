@@ -100,7 +100,7 @@ FILE *getStream(FILE *fp)
 
     for(int k = 0; k<count;k++)
         printf("%c",buff[k],k);
-    printf("     WOOOOLOOOOOO  \n");
+    //printf("     WOOOOLOOOOOO  \n");
     buffPtr = 0;
     return fp;
 }
@@ -723,6 +723,17 @@ void getNextToken()
                             currentToken = retTokenINT(atoi(num1),INTEGER);
                             tokenGet = true;
                             break;
+                        }
+                    }
+                    else{
+                        printf("Lexical Error\n");
+                        char tempChar=buff[buffPtr];
+                        printf("%c ",tempChar);
+                        while(tempChar!="\n"|| tempChar!=EOF){
+                            buffPtr++;
+                            if(buffPtr > BUFFER_MAX - 20)
+                                programFile = getStream(programFile);
+                            tempChar=buff[buffPtr];
                         }
                     }
         }
