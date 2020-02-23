@@ -30,7 +30,7 @@ void computeFirstForSingleNT(int indexNT){
 
     currentFirstFollowCompute = indexNT;
 
-    // printf("\nComputingFirst For %s : %d\n",grammar[indexNT].nt,grammar[indexNT].numRules);
+    printf("\nComputingFirst For %s : %d\n",grammar[indexNT].nt,grammar[indexNT].numRules);
     strcpy(FirstFollowSets[indexNT].nt,grammar[indexNT].nt);
 
     for(int j=0;j<grammar[indexNT].numRules;j++){
@@ -47,8 +47,8 @@ void computeFirstRecursive(int indexNT,int ruleNum){
     // Each Rule is a linked list!
     // CurrentRuleHead starts with first token of that rule
 
-    // printf("computeFirstRecursive : %s  %d\n",grammar[indexNT].nt,ruleNum);
-    // printf("CurrentRuleHead : %s %d\n",CurrentRuleHead->tnt,CurrentRuleHead->tag);
+    printf("computeFirstRecursive : %s  %d\n",grammar[indexNT].nt,ruleNum);
+    printf("CurrentRuleHead : %s %d\n",CurrentRuleHead->tnt,CurrentRuleHead->tag);
 
     if(CurrentRuleHead->tag==0){
         // If head is NT
@@ -59,8 +59,11 @@ void computeFirstRecursive(int indexNT,int ruleNum){
         if(isEpsilon(CurrentRuleHead->tnt) && CurrentRuleTokenGlobal->next!=NULL){
             // Fetch First of next NT as well
             
-            if(CurrentRuleTokenGlobal->next->tag==1)
-            strcpy(tempFirsts[tempFirstsSize++],CurrentRuleHead->tnt);
+            if(CurrentRuleTokenGlobal->next->tag==1){
+                printf("Adding First : %s\n",CurrentRuleHead->next->tnt);
+                strcpy(tempFirsts[tempFirstsSize++],CurrentRuleHead->next->tnt);
+            }
+            
 
             CurrentRuleTokenGlobal = CurrentRuleTokenGlobal->next;
 
@@ -71,6 +74,7 @@ void computeFirstRecursive(int indexNT,int ruleNum){
         if(!checkIfFirstAlreadyPresent(CurrentRuleHead->tnt)){
             // Terminal Added if not a repeat
             // printf("Adding %s to %s\n",CurrentRuleHead->tnt,grammar[currentFirstFollowCompute].nt);
+            printf("Adding First : %s\n",CurrentRuleHead->tnt);
             strcpy(tempFirsts[tempFirstsSize++],CurrentRuleHead->tnt);
         }
 
@@ -510,7 +514,7 @@ bool isEpsilon(char* str){
 
 int main(){
 
-    FILE* fp = fopen("grammar.txt","r");
+    FILE* fp = fopen("dummy2.txt","r");
 
     if (fp == NULL) {
         printf("Error Opening Grammar file");
