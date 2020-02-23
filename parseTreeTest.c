@@ -10,9 +10,9 @@
 #define TSIZE	10
 #define BUFF_SIZE 150
 #define MAX_NON_TERMINALS 2
-#define MAX_TERMINALS 5
-#define MAX_FIRST 5
-#define MAX_FOLLOW 5
+#define MAX_TERMINALS 6
+#define MAX_FIRST 6
+#define MAX_FOLLOW 6
 
 //#include "parser.h"
 char nonterminals[MAX_NON_TERMINALS][NTSIZE];
@@ -513,6 +513,7 @@ void main()
     strcpy(terminals[2],")");
     strcpy(terminals[3],"a");
     strcpy(terminals[4],"ε");
+    strcpy(terminals[5], "$");
 
     //setting up grammar rules 
     struct ntRules grammar[MAX_NON_TERMINALS];
