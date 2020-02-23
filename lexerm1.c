@@ -449,13 +449,14 @@ void getNextToken()
                                     buffPtr++;
                                     buffPtr++;
                                     comment = false;
-                                    printf("   Comment end %c ",buff[buffPtr]);
+                                    printf("\nComment end %c \n",buff[buffPtr]);
                                     break;
                                 }
                             }
 
-                            else if(buff[buffPtr] == '\n')
+                            else if(buff[buffPtr] == '\n'){
                                 lineNumber++;
+                            }
 
                             buffPtr++;
 
@@ -545,6 +546,7 @@ void getNextToken()
                                     tempChar=buff[buffPtr];
                                 }
                                 curr = tempChar;
+                                buffPtr++;
                                 break;
                             }
 
@@ -748,6 +750,7 @@ void getNextToken()
                              //printf("%c ",tempChar);
                         }
                         curr = tempChar;
+                        buffPtr++;
                     }
         }
     }
