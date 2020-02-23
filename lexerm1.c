@@ -95,8 +95,8 @@ FILE *getStream(FILE *fp)
         }
     }
 
-    for(int k = 0; k<count;k++)
-       printf("%c %d \n",buff[k],k);
+    // for(int k = 0; k<count;k++)
+    //    printf("%c %d \n",buff[k],k);
     buffPtr = 0;
     return fp;
 }
@@ -457,6 +457,7 @@ void getNextToken()
                                 programFile = getStream(programFile);
                         }
 
+                        curr = buff[buffPtr];
                         break;
                     }
                     else
