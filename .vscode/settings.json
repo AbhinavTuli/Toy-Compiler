@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "random": "c",
-        "memory_resource": "c"
+        "memory_resource": "c",
+        "stdlib.h": "c"
     }
 }
