@@ -618,6 +618,46 @@ void readGrammerTextFile(FILE* fp){
     }
 }
 
+int* firstofRHS(struct ruleToken* head){
+    
+    int* indexFirsts = (int*)malloc(sizeof(int)*MAX_FIRST);
+    int indexPos = 0;
+    bool checkEp = false;
+
+    struct ruleToken* temp = head;
+
+    while(temp!=NULL && temp->tag==0){
+
+        int indexNT = getIndexOfNonTerminal(temp->tnt);
+
+        for(int i=0;i<firstFollowSets[indexNT].numFirsts;i++){
+            if(isEpsilon(firstFollowSets[indexNT].firsts[i])){
+                checkEp = true;
+                continue;
+            }
+
+            indexFirsts[indexPos++] = getIndexOfTerminal(firstFollowSets[indexNT].firsts[i]);
+        }
+
+        if(checkEp){
+            checkEp = false;
+            temp = temp->next;
+        }else
+        break;
+    }
+
+    if(temp!=NULL && temp->tag==1){
+        indexFirsts[indexPos++] = getIndexOfTerminal(temp->tnt);
+    }
+
+    indexFirsts[indexPos++] = -1;
+
+    printf("Check : %d\n",indexPos);
+
+    return indexFirsts;
+}
+
+
 void createParseTable() //, int[][] Table)
 {
     strcpy(terminals[numT++],"$"); // adding dollar to terminals
@@ -663,17 +703,30 @@ void createParseTable() //, int[][] Table)
 
             if(tag[k] == 0)              //non terminal
             {
-                headIndex = getIndexOfNonTerminal(heads[k]);
-                
-                //for every terminal in first(alpha)
+                int* indexList = firstofRHS(&grammar[i].heads[k]);
+                int t = 0;
 
-                for(int j=0; j<firstFollowSets[indexNT].numFirsts; j++)
-                {
-                    
-                    int indexT = getIndexOfTerminal(firstFollowSets[indexNT].firsts[j]);
-                    Table[indexNT][indexT] = whichRule;
-                    // printf("AddingFirst %s  %s   :  %d\n",nonT,firstFollowSets[indexNT].firsts[j],whichRule);
+                while(indexList[t]!=-1){
+                    Table[indexNT][indexList[t]] = whichRule;
+                    printf("AddingFirst %s  %s   :  %d\n",nonT,terminals[indexList[t]],whichRule);
+                    t++;
                 }
+
+                // headIndex = getIndexOfNonTerminal(heads[k]);
+                
+                // //for every terminal in first(alpha)
+            
+
+                // for(int j=0; j<firstFollowSets[indexNT].numFirsts; j++)
+                // {
+                    
+                //     int indexT = getIndexOfTerminal(firstFollowSets[indexNT].firsts[j]);
+                //     // if(indexNT==16 && indexT==1){
+
+                //     // }
+                //     Table[indexNT][indexT] = whichRule;
+                //     printf("AddingFirst %s  %s   :  %d\n",nonT,firstFollowSets[indexNT].firsts[j],whichRule);
+                // }
             }
             else                          //terminal
             {
@@ -684,7 +737,7 @@ void createParseTable() //, int[][] Table)
                     {
                         int indexT = getIndexOfTerminal(firstFollowSets[i].follows[j]);
                         Table[indexNT][indexT] = whichRule;
-                        // printf("AddingFollow_ε %s  %s   :  %d\n",nonT,firstFollowSets[i].follows[j],whichRule);
+                        printf("AddingFollow_ε %s  %s   :  %d\n",nonT,firstFollowSets[i].follows[j],whichRule);
                     }
 
                 }
@@ -692,7 +745,7 @@ void createParseTable() //, int[][] Table)
                 {
                     headIndex = getIndexOfTerminal(heads[k]);
                     Table[indexNT][headIndex] = whichRule;       //only one terminal in FIRST() because it itself is a terminal
-                    // printf("AddingT  %s  %s   :  %d\n",nonT,heads[k],whichRule);
+                    printf("AddingT  %s  %s   :  %d\n",nonT,heads[k],whichRule);
                 }     
             } 
             whichRule++;
@@ -913,3 +966,7 @@ void runParser(){
     // printf("\n\nFollow Sets : \n\n");
     // printAllFollowSets();
 }
+
+// int main(){
+//     runParser();
+// }

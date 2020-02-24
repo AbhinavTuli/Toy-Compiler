@@ -910,7 +910,7 @@ void getNextToken()
 
                                 num1[count] = '\0';
 
-                                currentToken = retTokenINT(atoi(num1),INTEGER);
+                                currentToken = retTokenINT(atoi(num1),NUM);
                                 tokenGet = true;
                                 break;
                             }
@@ -1008,7 +1008,7 @@ void getNextToken()
 
                                 if(afterEnot)
                                 {
-                                    currentToken = retTokenREAL(fRet,REAL);
+                                    currentToken = retTokenREAL(fRet,RNUM);
 
                                     if(num1[trav] == '+' || num1[trav] == '-')
                                     {
@@ -1041,7 +1041,7 @@ void getNextToken()
                                     raise = 0 - atoi(num2);
 
                                 fRet = fRet*pow(10,raise);
-                                currentToken = retTokenREAL(fRet,REAL);
+                                currentToken = retTokenREAL(fRet,RNUM);
                                 tokenGet = true;
                                 break;
                             }   
@@ -1077,14 +1077,14 @@ void getNextToken()
                                 fRet = fRet + atoi(num2)/pow(10,l+1);
                                 }
 
-                                currentToken = retTokenREAL(fRet,REAL);
+                                currentToken = retTokenREAL(fRet,RNUM);
                                 tokenGet = true;
                                 break;
                             }
                         }
                         else
                         {
-                            currentToken = retTokenINT(atoi(num1),INTEGER);
+                            currentToken = retTokenINT(atoi(num1),NUM);
                             tokenGet = true;
                             break;
                         }

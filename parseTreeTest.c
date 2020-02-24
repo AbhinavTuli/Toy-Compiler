@@ -37,6 +37,7 @@
 
 
 
+
 struct ruleToken* createNode()
 {
     struct ruleToken* temp;
@@ -91,7 +92,13 @@ lex* newNode(int data, char* str)
 	stackNode->next = NULL; 
 	return stackNode; 
 } 
-
+void printStack(lex* top){
+    lex* temp=top;
+    while(temp!=NULL){
+        printf("%s\n", temp->tnt);
+        temp=temp->next;
+    }
+}
 int isEmpty(lex* root) 
 { 
 	return !root; 
@@ -388,9 +395,12 @@ struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][
     
     while(temp!= NULL)
     {
+        printf("\nStack is---------\n");
+        printStack(top);
         struct treeNode* tempTreeNode;
         struct treeNode* tempTreeNodeParent = findLeftMostWithoutChild(root);
         if(tempTreeNodeParent==NULL){ //parse tree complete
+            pop(&top); //popping $
             break;
         }
         if(strcmp(tempTreeNodeParent->tnt,"")!=0){
@@ -418,7 +428,7 @@ struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][
         char currLexeme[20];
         strcpy(currLexeme, getLexeme(tokterm) );
         printf("Currently at %s\n",currLexeme);
-        
+        //printf("debug\n");
         //compare currName with name on the stack
         if( strcmp(currLexeme, top->tnt)==0 )
         {
@@ -439,7 +449,6 @@ struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][
             j = getIndexOfTerminal(currLexeme);
             int ruleNo = Table[i][j];
             if(ruleNo==-1){
-                
                 printf("Error! at reading %s, stack is %s %d\n",currLexeme,top->tnt,temp->lineno);
                 exit(-1);
             }
@@ -460,7 +469,7 @@ struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][
 
                 cumulative+=grammar[i].numRules;
             }
-            printf("Popping on applying rule %s\n",top->tnt);
+            printf("Popping on applying rule %d on stack top %s\n",ruleNo ,top->tnt);
             pop(&top); 
             //push(&top, head.tag, head.tnt);
 
@@ -509,10 +518,6 @@ struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][
                 }
             }
             
-
-
-
-
         }
                     
                 
@@ -527,7 +532,6 @@ struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][
     return root;
 
 }
-
 
 int main()
 {
@@ -561,11 +565,8 @@ int main()
     runParser();
     printf("Parser Complete\n");
     struct treeNode* ROOT = parseInputSourceCode(head->next, Table, grammar, firstFollowSets);
-    //printLevelOrder(ROOT);
+    printLevelOrder(ROOT);
     // printf("Height is %d",height(ROOT));
-
-    
-
 
 }
 
