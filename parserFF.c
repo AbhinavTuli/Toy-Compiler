@@ -17,7 +17,7 @@ void computeFirstAllSets(){
         // For all rules of NT compute Firsts
 
         currentFirstFollowCompute = i;
-        strcpy(FirstFollowSets[i].nt,grammar[i].nt);
+        strcpy(firstFollowSets[i].nt,grammar[i].nt);
 
         // printf("\nComputingFirst For %s : %d\n\n",grammar[currentFirstFollowCompute].nt,grammar[i].numRules);
 
@@ -32,12 +32,22 @@ void computeFirstAllSets(){
             prevCurrentRuleTokenGlobal = &grammar[currentFirstFollowCompute].heads[j];
             computeFirstRecursive(i,j);     
         }
-
-
         // computeFirstForSingleNT(i);
         addFirsts(i);
         // These are temporary global variables to store firsts and their total size
+        // break;
     }
+
+    int index = getIndexOfNonTerminal("program");
+    int size = firstFollowSets[index].numFirsts;
+    firstFollowSets[index].numFirsts++;
+    strcpy(firstFollowSets[index].firsts[size++],"DRIVERDEF");
+
+    index = getIndexOfNonTerminal("statements");
+    size = firstFollowSets[index].numFirsts;
+    firstFollowSets[index].numFirsts++;
+    strcpy(firstFollowSets[index].firsts[size++],"USE");
+
 }
 
 void computeFirstForSingleNT(int indexNT){
@@ -46,7 +56,6 @@ void computeFirstForSingleNT(int indexNT){
         // printf("%d %d\n",currentFirstFollowCompute,indexNT);
         return;
     }
-
     //  printf("Check10\n");
 
     if(indexNT==-1)
@@ -88,17 +97,24 @@ void computeFirstRecursive(int indexNT,int ruleNum){
             // printf("Check3 : %s\n",CurrentRuleTokenGlobal->tnt);
             // Fetch First of next NT as well
             if(CurrentRuleTokenGlobal->next!=NULL){
-
+                // printf("Check5 : %s\n",CurrentRuleTokenGlobal->tnt);
                 computeFirstRecursive2(CurrentRuleHead,CurrentRuleTokenGlobal);
+                // computeFirstRecursive2(CurrentRuleHead,CurrentRuleTokenGlobal->next);
+                if(prevCurrentRuleTokenGlobal->next!=NULL){
+                    // printf("Check6 : %s\n",prevCurrentRuleTokenGlobal->tnt);
+                    computeFirstRecursive2(CurrentRuleHead,prevCurrentRuleTokenGlobal);
+                    return;
+                }
                 
             }else{
 
                 if(prevCurrentRuleTokenGlobal->next!=NULL){
+                    // printf("Check6 : %s\n",prevCurrentRuleTokenGlobal->tnt);
                     computeFirstRecursive2(CurrentRuleHead,prevCurrentRuleTokenGlobal);
                     return;
                 }
 
-                // Add Episilon
+                // Add Epsilon
                 if(!checkIfFirstAlreadyPresent(CurrentRuleHead->tnt)){
                     // printf("Add 2 : %s\n",CurrentRuleHead->tnt);
                     strcpy(tempFirsts[tempFirstsSize++],CurrentRuleHead->tnt);
@@ -120,6 +136,10 @@ void computeFirstRecursive(int indexNT,int ruleNum){
 }
 
 void computeFirstRecursive2(struct ruleToken* CurrentRuleHead,struct ruleToken* toAddRuleHead){
+
+    if(toAddRuleHead->next==NULL)
+    return;
+
     if(toAddRuleHead->next->tag==1){
         if(!checkIfFirstAlreadyPresent(toAddRuleHead->next->tnt)){
             // printf("Add 1 : %s\n",toAddRuleHead->next->tnt);
@@ -185,7 +205,7 @@ void computeFollowForSingleNT(int indexNT){
         strcpy(tempFollows[tempFollowsSize++],"$");
     }
 
-    // strcpy(FirstFollowSets[indexNT].nt,grammar[indexNT].nt); // Not needed since this task was done in firsts!
+    // strcpy(firstFollowSets[indexNT].nt,grammar[indexNT].nt); // Not needed since this task was done in firsts!
 
     int* rhsNT = (int*) malloc(sizeof(int)*15);    // contains line position
     int* rhsNTRulePos = (int*) malloc(sizeof(int)*15); // contains rule position
@@ -265,13 +285,13 @@ void getFirstsForFollows(int indexNT,struct ruleToken* rulePointer,struct ntRule
     // if(strcmp(grammar[currentFirstFollowCompute].nt,"moduleDeclarations")==0)
     // printf("Check %s\n",rulePointer->tnt);
 
-    for(int i=0;i<FirstFollowSets[indexNT].numFirsts;i++){
+    for(int i=0;i<firstFollowSets[indexNT].numFirsts;i++){
 
         // if(strcmp(grammar[currentFirstFollowCompute].nt,"moduleDeclarations")==0)
         // printf("Check Rule %d\n",i);
 
 
-        if(isEpsilon(FirstFollowSets[indexNT].firsts[i])){
+        if(isEpsilon(firstFollowSets[indexNT].firsts[i])){
             
             // if(strcmp(grammar[currentFirstFollowCompute].nt,"moduleDeclarations")==0)
             // printf("Check3 %s\n",rulePointer->next->tnt);
@@ -305,25 +325,25 @@ void getFirstsForFollows(int indexNT,struct ruleToken* rulePointer,struct ntRule
             // if(strcmp(grammar[currentFirstFollowCompute].nt,"moduleDeclarations")==0)
             // printf("Check5 %s\n",rulePointer->next->tnt);
 
-            if(!checkIfFollowAlreadyPresent(FirstFollowSets[indexNT].firsts[i])){
-                strcpy(tempFollows[tempFollowsSize++],FirstFollowSets[indexNT].firsts[i]);
+            if(!checkIfFollowAlreadyPresent(firstFollowSets[indexNT].firsts[i])){
+                strcpy(tempFollows[tempFollowsSize++],firstFollowSets[indexNT].firsts[i]);
             }
         }
     }
 }
 
 void addFirsts(int indexNT){
-    FirstFollowSets[indexNT].numFirsts = tempFirstsSize;
+    firstFollowSets[indexNT].numFirsts = tempFirstsSize;
     for(int j=0;j<tempFirstsSize;j++){ 
-        strcpy(FirstFollowSets[indexNT].firsts[j],tempFirsts[j]);
+        strcpy(firstFollowSets[indexNT].firsts[j],tempFirsts[j]);
     }
 }
 
 void addFollows(int indexNT){
     // printf("Adding %d follows to %s\n",tempFollowsSize,grammar[indexNT].nt);
-    FirstFollowSets[indexNT].numFollows = tempFollowsSize;
+    firstFollowSets[indexNT].numFollows = tempFollowsSize;
     for(int j=0;j<tempFollowsSize;j++){ 
-        strcpy(FirstFollowSets[indexNT].follows[j],tempFollows[j]);
+        strcpy(firstFollowSets[indexNT].follows[j],tempFollows[j]);
     }
 }
 
@@ -484,10 +504,10 @@ void printAllTerminals(){
 
 void printAllFirstSets(){
     for(int i=0;i<grammarLength;i++){
-        printf("%s \t : ",FirstFollowSets[i].nt);
+        printf("%s \t : ",firstFollowSets[i].nt);
 
-        for(int j=0;j<FirstFollowSets[i].numFirsts;j++){
-            printf("%s  ",FirstFollowSets[i].firsts[j]);
+        for(int j=0;j<firstFollowSets[i].numFirsts;j++){
+            printf("%s  ",firstFollowSets[i].firsts[j]);
         }
         printf("\n");
     }
@@ -495,10 +515,10 @@ void printAllFirstSets(){
 
 void printAllFollowSets(){
     for(int i=0;i<grammarLength;i++){
-        printf("%s \t : ",FirstFollowSets[i].nt);
+        printf("%s \t : ",firstFollowSets[i].nt);
 
-        for(int j=0;j<FirstFollowSets[i].numFollows;j++){
-            printf("%s  ",FirstFollowSets[i].follows[j]);
+        for(int j=0;j<firstFollowSets[i].numFollows;j++){
+            printf("%s  ",firstFollowSets[i].follows[j]);
         }
         printf("\n");
     }
@@ -598,27 +618,298 @@ void readGrammerTextFile(FILE* fp){
     }
 }
 
+void createParseTable() //, int[][] Table)
+{
+    strcpy(terminals[numT++],"$"); // adding dollar to terminals
 
-int main(){
+    for(int i=0; i<numNT; i++)
+    {
+        for(int j=0; j<numT; j++)
+        {
+            Table[i][j] = -1; //default
+        }
+    }
+
+    //populating the table now
+    
+    int whichRule = 0;
+    
+    for(int i=0; i<numNT; i++)       //for each production
+    {
+        //rule from NT n
+        struct ntRules rule = grammar[i];
+
+        char heads[rule.numRules][NTSIZE];     //rule for each NT can have multiple heads too
+        int tag[rule.numRules];                            //whether terminal or non terminal
+        
+        for(int k=0; k<rule.numRules; k++)                  //update the names of the heads and their tags 
+        {
+            strcpy(heads[k], rule.heads[k].tnt);
+            tag[k] = rule.heads[k].tag; 
+        }
+        
+        char nonT[NTSIZE];
+        strcpy(nonT,rule.nt);
+
+        //for every rule n -> alpha
+        //head is alpha in every rule 
+        for(int k=0; k<rule.numRules; k++)
+        {
+            int indexNT = getIndexOfNonTerminal(nonT);
+            int headIndex;
+
+            //DEBUG stmt printf("\n%d\n",whichRule+k);
+
+
+            if(tag[k] == 0)              //non terminal
+            {
+                headIndex = getIndexOfNonTerminal(heads[k]);
+                
+                //for every terminal in first(alpha)
+
+                for(int j=0; j<firstFollowSets[indexNT].numFirsts; j++)
+                {
+                    
+                    int indexT = getIndexOfTerminal(firstFollowSets[indexNT].firsts[j]);
+                    Table[indexNT][indexT] = whichRule;
+                    // printf("AddingFirst %s  %s   :  %d\n",nonT,firstFollowSets[indexNT].firsts[j],whichRule);
+                }
+            }
+            else                          //terminal
+            {
+                if(strcmp(heads[k],"ε")==0) //if the terminal is ε
+                {
+                    //for each b (terminal) in follow(n)
+                    for(int j=0; j<firstFollowSets[i].numFollows; j++)
+                    {
+                        int indexT = getIndexOfTerminal(firstFollowSets[i].follows[j]);
+                        Table[indexNT][indexT] = whichRule;
+                        // printf("AddingFollow_ε %s  %s   :  %d\n",nonT,firstFollowSets[i].follows[j],whichRule);
+                    }
+
+                }
+                else
+                {
+                    headIndex = getIndexOfTerminal(heads[k]);
+                    Table[indexNT][headIndex] = whichRule;       //only one terminal in FIRST() because it itself is a terminal
+                    // printf("AddingT  %s  %s   :  %d\n",nonT,heads[k],whichRule);
+                }     
+            } 
+            whichRule++;
+        }
+
+    }
+
+    // addDollarToParseTable();
+}
+
+void addDollarToParseTable(){
+    for(int i=0;i<numNT;i++){
+        int checkEp = checkIfEpTerminalRuleExists(i);
+        if(checkEp==-1){
+            // check follow of this
+            // checkFollowForDollar(i){
+                
+            // }
+            Table[i][numT] = checkEp;
+        }else{
+            Table[i][numT] = checkEp;
+        }
+    }
+}
+
+int checkIfEpTerminalRuleExists(int index){
+    for(int i=0;i<grammar[index].numRules;i++){
+        if(isEpsilon(grammar[index].heads[i].tnt))
+        {
+            return getRuleNumber(index,i);
+        }
+    }
+    return -1;
+}
+
+int getRuleNumber(int index,int rule){
+    int count = 0;
+    for(int i=0;i<grammarLength;i++){
+        int nR = grammar[i].numRules;
+        for(int j=0;j<nR;j++){
+
+            if(i==index && j==rule)
+            return count;
+
+            count++;
+        }
+    }
+
+    return -1;
+}
+
+void printParseTable(){
+    for(int i=0; i<=numNT; i++)
+    {
+        printf("\n");
+        for(int j=0; j<=numT; j++)
+        {
+            printf(",%d", Table[i][j]); 
+
+        }
+    }
+}
+
+void printParseTableToFile(){
+
+    FILE *fp = fopen("OutputTable.txt","w");
+
+    fprintf(fp,"%30s"," ");
+
+    for(int i=0;i<numT;i++){
+        fprintf(fp,"%10s",terminals[i]);
+    }
+
+    for(int i=0; i<numNT; i++)
+    {
+        fprintf(fp,"\n%30s",nonterminals[i]); // rows
+    
+        for(int j=0; j<numT; j++)
+        {
+            fprintf(fp,"%10d", Table[i][j]); 
+
+        }
+    }
+
+}
+
+void printRuleNumbers(){
+
+    FILE* fp = fopen("RuleNumbers.txt","w");
+    int count = 0;
+
+    for(int i=0;i<grammarLength;i++){
+        int nR = grammar[i].numRules;
+        for(int j=0;j<nR;j++){
+            fprintf(fp,"\nRule %d  %s\t: ",count,grammar[i].nt);
+            count++;
+            struct ruleToken* head = &grammar[i].heads[j];
+            while(head!=NULL){
+                fprintf(fp,"%s ",head->tnt);
+                head = head->next;
+            }
+        }
+    }
+}
+
+void printFirstFollowsToFile(){
+    
+    FILE *fp = fopen("FirstFollowsTable.txt","w");
+    fprintf(fp,"\t\t\t\t\t%s","Firsts\t\t");
+    fprintf(fp,"%20s\n","Follows");
+
+    for(int i=0;i<numNT;i++){
+        fprintf(fp,"\n%s\n",grammar[i].nt);
+        for(int j=0;j<10;j++){
+            if(j>firstFollowSets[i].numFirsts && j>firstFollowSets[i].numFollows)
+            break;
+
+            fprintf(fp,"\t\t\t\t\t%s\t\t%20s\n",firstFollowSets[i].firsts[j],firstFollowSets[i].follows[j]);
+        }
+    }
+
+}
+
+
+// void createParseTableTemp(){
+
+//     initializeParseTable();
+
+//     strcpy(terminals[getIndexOfTerminal("ε")],"$"); // Parse Table have column of "$" and No "ε"
+
+//     int ruleNo = 0;
+
+//     for(int i=0;i<numNT;i++){
+//         for(int j=0;j<grammar[i].numRules;j++){
+//             // Iterating rule by rule
+
+//             for(int k=0;k<firstFollowSets[i].firsts;k++){
+                
+//                 if(isEpsilon(firstFollowSets[i].firsts[k])){
+//                     // check follows of this NT
+
+//                 }else{
+//                     struct ruleToken* head = grammar[i].heads[j];
+//                     while()
+//                 }
+//             }
+
+//             ruleNo++;
+//         }
+//     }
+
+// }
+
+int findRuleForTerminal(int i,int j){
+    for(int k=0;k<grammar[i].numRules;k++){
+        struct ruleToken* head = &grammar[i].heads[k];
+
+        if(head->tag==1){ // If Terminal
+            if(strcmp(head->tnt,terminals[j])==0)
+            return getRuleNumber(i,k);
+        }
+        else{
+            int indexNT = getIndexOfNonTerminal(head->tnt);
+            // check if first of indexNT has the terminal j
+            for(int a=0;a<firstFollowSets[indexNT].numFirsts;a++){
+                if(strcmp(firstFollowSets[indexNT].firsts[a],terminals[j]))
+                return getRuleNumber(i,k);
+            }
+        }
+    }
+    return -1;
+}
+
+void initializeParseTable(){
+    parsingTable = (int**)malloc(sizeof(int**)*numNT);
+    for(int i=0;i<numNT;i++){
+        parsingTable[i] = (int*)malloc(sizeof(int)*numT);
+        for(int j=0;j<numT;j++){
+            parsingTable[i][j] = -1;
+        }
+    }
+}
+
+void runParser(){
 
     FILE* fp = fopen("grammar.txt","r");
 
     readGrammerTextFile(fp);
 
-    // printf("Total Non-Terminals : %d\n",numNT);
+    printf("\nComputing Firsts And Follows Started\n");
+    computeFirstAndFollow();
+    printf("\nComputing Firsts And Follows Ended\n\n");
+
+    printFirstFollowsToFile();
+
+    // printAllFirstSets();
+
+    printf("\nComputing Parse Table Started\n");
+    createParseTable();
+    printf("\nComputing Parse Table Ended\n\n");
+    printParseTableToFile();
+
+
+    // printParseTable();
+
+    // printRuleNumbers();
+
+     // printf("Total Non-Terminals : %d\n",numNT);
     // printf("Total Terminals : %d\n\n",numT);
 
     // printAllGrammar();
     // printAllTerminals();
     // printAllNonTerminals();
 
-    printf("\nComputing Firsts And Follows : \n\n");
-    computeFirstAndFollow();
+    // printf("\nFirst Sets : \n\n");
+    // printAllFirstSets();
 
-
-    printf("\nFirst Sets : \n\n");
-    printAllFirstSets();
-
-    printf("\n\nFollow Sets : \n\n");
-    printAllFollowSets();
+    // printf("\n\nFollow Sets : \n\n");
+    // printAllFollowSets();
 }

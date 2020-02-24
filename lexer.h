@@ -1,7 +1,8 @@
-
+#ifndef LEXER_H
+#define LEXER_H
 
  //functions
-
+#include"lexerDef.h"
 int hash(char * str);
 void insertEntry(char* c,term te);
 int findEntry(char* c);
@@ -24,3 +25,5 @@ int isAlpha(char c);
 int isDigit(char c);
 void removeComments(char *testcaseFile, char *cleanFile);
 void getNextToken();
+
+#endif

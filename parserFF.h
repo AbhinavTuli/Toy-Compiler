@@ -3,11 +3,11 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define NTSIZE 	35
-#define TSIZE	20
+#define NTSIZE 	25
+#define TSIZE	25
 #define BUFF_SIZE 150
-#define MAX_NON_TERMINALS 100
-#define MAX_TERMINALS 100
+#define MAX_NON_TERMINALS 65
+#define MAX_TERMINALS 65
 #define MAX_FIRST 15
 #define MAX_FOLLOW 15
 
@@ -63,6 +63,8 @@ int grammarLength = 0;
 struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS];
 
 int Table[MAX_NON_TERMINALS][MAX_TERMINALS]; //stores the rule number
+
+int **parsingTable;
 
 // Functionns
 
@@ -133,6 +135,14 @@ void createParseTable();
 
 void addDollarToParseTable();
 
-int checkIfTerminalRuleExists(int index);
+int checkIfEpTerminalRuleExists(int index);
 
 int getRuleNumber(int index,int rule);
+
+void initializeParseTable();
+
+int findRuleForTerminal(int i,int j);
+
+void createParseTableTemp();
+
+void parseTableFollowCompute(int i,int j,int whichRule);

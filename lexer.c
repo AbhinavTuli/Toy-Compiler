@@ -1107,34 +1107,34 @@ void getNextToken()
     }
 }
 
-int main(){
-    //printf("one one");
-    programFile=fopen("t5.txt","rb");
-    programFile=getStream(programFile);
+// int main(){
+//     //printf("one one");
+//     programFile=fopen("t5.txt","rb");
+//     programFile=getStream(programFile);
     
-    populateKeywordTable();
-    //printf("two two");
+//     populateKeywordTable();
+//     //printf("two two");
     
-    token* trav = head;
-    //printf("cdfads");
-    while(true)
-    {
-        getNextToken();
-        trav = currentToken;
+//     token* trav = head;
+//     //printf("cdfads");
+//     while(true)
+//     {
+//         getNextToken();
+//         trav = currentToken;
 
-        if(trav->tokterm == 60)
-        {
-            printf("%d  %s\n",trav->tokterm,trav->val.s);
-            break;
-        }
-        if(trav->tag == 1)
-            printf("Term - %s, Lexeme - %d, On line number  %d\n",getLexeme(trav->tokterm),trav->val.i,trav->lineno);
-        if(trav->tag == 2)
-            printf("Term - %s, Lexeme - %f, On line number  %d\n",getLexeme(trav->tokterm),trav->val.f,trav->lineno);
-        if(trav->tag == 3)
-            printf("Term - %s, Lexeme - %d, On line number  %d\n",getLexeme(trav->tokterm),trav->val.b,trav->lineno);
-        if(trav->tag == 4)
-            printf("Term - %s, Lexeme - %s, On line number  %d\n",getLexeme(trav->tokterm),trav->val.s,trav->lineno);
-        //trav = trav->next;
-    }
-}
+//         if(trav->tokterm == 60)
+//         {
+//             printf("%d  %s\n",trav->tokterm,trav->val.s);
+//             break;
+//         }
+//         if(trav->tag == 1)
+//             printf("Term - %s, Lexeme - %d, On line number  %d\n",getLexeme(trav->tokterm),trav->val.i,trav->lineno);
+//         if(trav->tag == 2)
+//             printf("Term - %s, Lexeme - %f, On line number  %d\n",getLexeme(trav->tokterm),trav->val.f,trav->lineno);
+//         if(trav->tag == 3)
+//             printf("Term - %s, Lexeme - %d, On line number  %d\n",getLexeme(trav->tokterm),trav->val.b,trav->lineno);
+//         if(trav->tag == 4)
+//             printf("Term - %s, Lexeme - %s, On line number  %d\n",getLexeme(trav->tokterm),trav->val.s,trav->lineno);
+//         //trav = trav->next;
+//     }
+// }

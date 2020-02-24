@@ -2,38 +2,36 @@
 #include<stdio.h>
 #include<math.h>
 #include<stdlib.h>
-#include<stdbool.h>
 #include<limits.h>
 //#include "stack.c"
-#include "lexerDef.h"
+#include "lexerDef-testparser.h"
 #include "lexer.c"
-#include "parserFF.c"
 
-// #define NTSIZE 	25
-// #define TSIZE	25
-// #define BUFF_SIZE 150
-// #define MAX_NON_TERMINALS 65
-// #define MAX_TERMINALS 65
-// #define MAX_FIRST 15
-// #define MAX_FOLLOW 15
+#define NTSIZE 	10
+#define TSIZE	10
+#define BUFF_SIZE 150
+#define MAX_NON_TERMINALS 2
+#define MAX_TERMINALS 6
+#define MAX_FIRST 6
+#define MAX_FOLLOW 6
 
 //#include "parser.h"
-// char nonterminals[MAX_NON_TERMINALS][NTSIZE];
-// char terminals[MAX_TERMINALS][TSIZE];
+char nonterminals[MAX_NON_TERMINALS][NTSIZE];
+char terminals[MAX_TERMINALS][TSIZE];
 
-// struct ruleToken{
-//     int tag; // Non-terminal(0) or terminal(1)
-//     char tnt[NTSIZE];
-//     struct ruleToken* next;
-// };
+struct ruleToken{
+    int tag; // Non-terminal(0) or terminal(1)
+    char tnt[NTSIZE];
+    struct ruleToken* next;
+};
 
-// struct ntRules{
-//     char nt[NTSIZE];
-//     int numRules;
-//     struct ruleToken heads[10];
-// };
+struct ntRules{
+    char nt[NTSIZE];
+    int numRules;
+    struct ruleToken heads[10];
+};
 
-// int Table[MAX_NON_TERMINALS][MAX_TERMINALS];
+int Table[MAX_NON_TERMINALS][MAX_TERMINALS];
 
 
 
@@ -48,15 +46,15 @@ struct ruleToken* createNode()
 }
 
 
-// struct ntfirstFollow{
-//     char nt[NTSIZE];
+struct ntfirstFollow{
+    char nt[NTSIZE];
 
-//     char firsts[MAX_FIRST][TSIZE]; // firsts consists only of terminals
-//     int numFirsts;
+    char firsts[MAX_FIRST][TSIZE]; // firsts consists only of terminals
+    int numFirsts;
 
-//     char follows[MAX_FOLLOW][TSIZE]; // follows consists only of terminals
-//     int numFollows;
-// };
+    char follows[MAX_FOLLOW][TSIZE]; // follows consists only of terminals
+    int numFollows;
+};
 
 
 struct treeNode{
@@ -125,28 +123,28 @@ int peek(lex* root)
 } 
 
 
-// int getIndexOfTerminal(char *t)
-// {
-//     //searching in the terminal array
-//     for(int i=0; i<MAX_TERMINALS; i++)
-//     {
-//         if(strcmp(t,terminals[i]) == 0)
-//         {
-//             return i;
-//         }
-//     }
-// }
-// int getIndexOfNonTerminal(char *t)
-// {
-//     //searching in the terminal array
-//     for(int i=0; i<MAX_NON_TERMINALS; i++)
-//     {
-//         if(strcmp(t,nonterminals[i]) == 0)
-//         {
-//             return i;
-//         }
-//     }
-// }
+int getIndexOfTerminal(char *t)
+{
+    //searching in the terminal array
+    for(int i=0; i<MAX_TERMINALS; i++)
+    {
+        if(strcmp(t,terminals[i]) == 0)
+        {
+            return i;
+        }
+    }
+}
+int getIndexOfNonTerminal(char *t)
+{
+    //searching in the terminal array
+    for(int i=0; i<MAX_NON_TERMINALS; i++)
+    {
+        if(strcmp(t,nonterminals[i]) == 0)
+        {
+            return i;
+        }
+    }
+}
 
 
 
@@ -158,7 +156,7 @@ int height(struct treeNode* node);
 /* Function to print level order traversal a tree*/
 void printLevelOrder(struct treeNode* root) 
 { 
-    //printf("Level order Called\n");
+    printf("Level order Called\n");
     int h = height(root); 
     int i; 
     for (i=1; i<=h; i++) {
@@ -211,87 +209,87 @@ int height(struct treeNode* node)
     return maxh;
 } 
 
-// void createParseTable(struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS], struct ntRules grammar[MAX_TERMINALS]) //, int[][] Table)
-// {
-//     for(int i=0; i<MAX_NON_TERMINALS; i++)
-//     {
-//         for(int j=0; j<MAX_TERMINALS; j++)
-//         {
-//             Table[i][j] = -1; //default
-//         }
-//     }
+void createParseTable(struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS], struct ntRules grammar[MAX_TERMINALS]) //, int[][] Table)
+{
+    for(int i=0; i<MAX_NON_TERMINALS; i++)
+    {
+        for(int j=0; j<MAX_TERMINALS; j++)
+        {
+            Table[i][j] = -1; //default
+        }
+    }
 
-//     //populating the table now
+    //populating the table now
     
-//     int whichRule = 0;
+    int whichRule = 0;
     
-//     for(int i=0; i<MAX_NON_TERMINALS; i++)       //for each production
-//     {
-//         //rule from NT n
+    for(int i=0; i<MAX_NON_TERMINALS; i++)       //for each production
+    {
+        //rule from NT n
         
         
-//         struct ntRules rule = grammar[i];
+        struct ntRules rule = grammar[i];
         
-//         char heads[rule.numRules][NTSIZE];     //rule for each NT can have multiple heads too
-//         int tag[rule.numRules];                            //whether terminal or non terminal
+        char heads[rule.numRules][NTSIZE];     //rule for each NT can have multiple heads too
+        int tag[rule.numRules];                            //whether terminal or non terminal
         
-//         for(int k=0; k<rule.numRules; k++)                  //update the names of the heads and their tags 
-//         {
-//             strcpy(heads[k], rule.heads[k].tnt);
-//             tag[k] = rule.heads[k].tag; 
-//         }
+        for(int k=0; k<rule.numRules; k++)                  //update the names of the heads and their tags 
+        {
+            strcpy(heads[k], rule.heads[k].tnt);
+            tag[k] = rule.heads[k].tag; 
+        }
         
-//         char nonT[NTSIZE];
-//         strcpy(nonT,rule.nt);
+        char nonT[NTSIZE];
+        strcpy(nonT,rule.nt);
 
-//         //for every rule n -> alpha
-//         //head is alpha in every rule 
-//         for(int k=0; k<rule.numRules; k++)
-//         {
-//             int indexNT = getIndexOfNonTerminal(nonT);
-//             int headIndex;
+        //for every rule n -> alpha
+        //head is alpha in every rule 
+        for(int k=0; k<rule.numRules; k++)
+        {
+            int indexNT = getIndexOfNonTerminal(nonT);
+            int headIndex;
 
-//             //DEBUG stmt printf("\n%d\n",whichRule+k);
+            //DEBUG stmt printf("\n%d\n",whichRule+k);
 
 
-//             if(tag[k] == 0)              //non terminal
-//             {
-//                 headIndex = getIndexOfNonTerminal(heads[k]);
+            if(tag[k] == 0)              //non terminal
+            {
+                headIndex = getIndexOfNonTerminal(heads[k]);
                 
-//                 //for every terminal in first(alpha)
-//                 for(int j=0; j<firstFollowSets[headIndex].numFirsts; j++)
-//                 {
-//                     int indexT = getIndexOfTerminal(firstFollowSets[headIndex].firsts[j]);
-//                     Table[indexNT][indexT] = whichRule + k;
+                //for every terminal in first(alpha)
+                for(int j=0; j<firstFollowSets[headIndex].numFirsts; j++)
+                {
+                    int indexT = getIndexOfTerminal(firstFollowSets[headIndex].firsts[j]);
+                    Table[indexNT][indexT] = whichRule + k;
 
                     
-//                 }
-//             }
-//             else                          //terminal
-//             {
-//                 if(strcmp(heads[k],"ε")==0) //if the terminal is ε
-//                 {
-//                     //for each b (terminal) in follow(n)
-//                     for(int j=0; j<firstFollowSets[headIndex].numFollows; j++)
-//                     {
-//                         int indexT = getIndexOfTerminal(firstFollowSets[headIndex].follows[j]);
-//                         Table[indexNT][indexT] = whichRule + k;
-//                     }
+                }
+            }
+            else                          //terminal
+            {
+                if(strcmp(heads[k],"ε")==0) //if the terminal is ε
+                {
+                    //for each b (terminal) in follow(n)
+                    for(int j=0; j<firstFollowSets[headIndex].numFollows; j++)
+                    {
+                        int indexT = getIndexOfTerminal(firstFollowSets[headIndex].follows[j]);
+                        Table[indexNT][indexT] = whichRule + k;
+                    }
 
 
-//                 }
-//                 else
-//                 {
-//                     headIndex = getIndexOfTerminal(heads[k]);
-//                     Table[indexNT][headIndex] = whichRule + k;        //only one terminal in FIRST() because it itself is a terminal
-//                 }     
-//             } 
+                }
+                else
+                {
+                    headIndex = getIndexOfTerminal(heads[k]);
+                    Table[indexNT][headIndex] = whichRule + k;        //only one terminal in FIRST() because it itself is a terminal
+                }     
+            } 
             
-//         }
+        }
 
-//         whichRule += rule.numRules;
-//     }
-//  }
+        whichRule += rule.numRules;
+    }
+ }
 
 token* createToken()
 {
@@ -416,14 +414,14 @@ struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][
 
         //functionNames/ identifiers
         char currLexeme[20];
-        strcpy(currLexeme, getLexeme(tokterm) );
-        printf("Currently at %s\n",currLexeme);
+        strcpy(currLexeme, GetLexeme(tokterm) );
+
         
         //compare currName with name on the stack
         if( strcmp(currLexeme, top->tnt)==0 )
         {
             //need to pop accoring to
-            printf("Popping on match %s\n",top->tnt);
+            printf("Popping %s\n",top->tnt);
             pop(&top);
             temp=temp->next;
         }
@@ -438,11 +436,6 @@ struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][
                 
             j = getIndexOfTerminal(currLexeme);
             int ruleNo = Table[i][j];
-            if(ruleNo==-1){
-                
-                printf("Error! at reading %s, stack is %s %d\n",currLexeme,top->tnt,temp->lineno);
-                exit(-1);
-            }
 
             struct ruleToken head;
             //push gramar[ruleNo] on to the stack
@@ -460,7 +453,7 @@ struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][
 
                 cumulative+=grammar[i].numRules;
             }
-            printf("Popping on applying rule %s\n",top->tnt);
+            printf("Popping %s\n",top->tnt);
             pop(&top); 
             //push(&top, head.tag, head.tnt);
 
@@ -503,10 +496,8 @@ struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][
 
             //push ulta
             for(int i= index; i>=0; i--)
-            {   
-                if(strcmp(ARRAY[i].tnt,"ε")){
-                    push(&top, ARRAY[i].tag, ARRAY[i].tnt );
-                }
+            {
+                push(&top, ARRAY[i].tag, ARRAY[i].tnt );
             }
             
 
@@ -529,40 +520,136 @@ struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][
 }
 
 
-int main()
+void main()
 {
-    
-    programFile=fopen("t5.txt","rb");
-    programFile=getStream(programFile);
-    
-    populateKeywordTable();
+    //setting the nonterminals and terminals
+    strcpy(nonterminals[0],"S");
+    strcpy(nonterminals[1], "F");
 
-    while(true)
+
+    strcpy(terminals[0],"(");
+    strcpy(terminals[1],"+");
+    strcpy(terminals[2],")");
+    strcpy(terminals[3],"a");
+    strcpy(terminals[4],"ε");
+    strcpy(terminals[5], "$");
+
+    //setting up grammar rules 
+    struct ntRules grammar[MAX_NON_TERMINALS];
+    // int grammarLength = 0;
+
+    strcpy(grammar[0].nt, "S");
+    grammar[0].numRules = 2;
+    grammar[0].heads[0].tag = 0;
+    strcpy(grammar[0].heads[0].tnt, "F");
+
+    struct ruleToken* temp,*node;
+    
+    grammar[0].heads[0].next = NULL;
+
+    strcpy(grammar[0].heads[1].tnt, "(");
+    grammar[0].heads[1].tag = 1;
+    temp = createNode();
+    node = temp;
+    grammar[0].heads[1].next = node;
+    node->tag = 0;
+    strcpy(node->tnt, "S");
+
+    temp = createNode();
+    node->next = temp;
+    node = temp;
+    node->tag = 1; //t
+    strcpy(node->tnt, "+");
+
+    temp = createNode();
+    node->next = temp;
+    node = temp;
+    node->tag = 0;
+    strcpy(node->tnt, "F");
+    
+    temp = createNode();
+    node->next = temp;
+    node = temp;
+    node->tag = 1;
+    strcpy(node->tnt, ")");
+
+    node->next = NULL;
+
+    strcpy(grammar[1].nt, "F");
+    grammar[1].numRules = 1;
+    grammar[1].heads[0].tag = 1;
+    strcpy(grammar[1].heads[0].tnt, "a");
+    grammar[1].heads[0].next = NULL;
+
+    //setting up First Follow Sets
+    struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS];
+    strcpy(firstFollowSets[0].nt, "S");
+
+    strcpy(firstFollowSets[0].firsts[0], "a");
+    strcpy(firstFollowSets[0].firsts[1], "(");
+    firstFollowSets[0].numFirsts = 2;
+
+    strcpy(firstFollowSets[0].follows[0], "$");
+    strcpy(firstFollowSets[0].follows[1], "+");
+    firstFollowSets[0].numFollows = 2;
+
+    strcpy(firstFollowSets[1].nt, "F");
+
+    strcpy(firstFollowSets[1].firsts[0], "a");
+    firstFollowSets[1].numFirsts = 1;
+
+    strcpy(firstFollowSets[1].follows[0], "$");
+    strcpy(firstFollowSets[1].follows[1], "+");
+    strcpy(firstFollowSets[1].follows[2], ")");
+    firstFollowSets[1].numFollows = 3;
+
+    token* headT = createToken();
+    headT->tokterm = BO;
+
+    token* temp1 = createToken();
+    headT->next = temp1;
+    temp1->tokterm = ID;
+    
+    temp1->next = createToken();
+    temp1 = temp1->next;
+    temp1->tokterm = PLUS;
+
+    temp1->next = createToken();
+    temp1 = temp1->next;
+    temp1->tokterm = ID;
+
+    temp1->next = createToken();
+    temp1 = temp1->next;
+    temp1->tokterm = BC;
+
+    temp1->next = createToken();
+    temp1 = temp1->next;
+    temp1->tokterm = $;
+
+    temp1->next = NULL;
+
+    
+
+
+    createParseTable(firstFollowSets, grammar);
+
+    //printing the parse table
+    for(int i=0; i<MAX_NON_TERMINALS; i++)
     {
-        getNextToken();
-        //trav = currentToken;
-
-        if(currentToken->tokterm == 60)
+        printf("\n");
+        for(int j=0; j<MAX_TERMINALS; j++)
         {
-            //printf("%d  %s\n",trav->tokterm,trav->val.s);
-            break;
+            printf("   %d", Table[i][j]); 
+
         }
-        // if(trav->tag == 1)
-        //     printf("Term - %s, Lexeme - %d, On line number  %d\n",getLexeme(trav->tokterm),trav->val.i,trav->lineno);
-        // if(trav->tag == 2)
-        //     printf("Term - %s, Lexeme - %f, On line number  %d\n",getLexeme(trav->tokterm),trav->val.f,trav->lineno);
-        // if(trav->tag == 3)
-        //     printf("Term - %s, Lexeme - %d, On line number  %d\n",getLexeme(trav->tokterm),trav->val.b,trav->lineno);
-        // if(trav->tag == 4)
-        //     printf("Term - %s, Lexeme - %s, On line number  %d\n",getLexeme(trav->tokterm),trav->val.s,trav->lineno);
-        //trav = trav->next;
     }
-    
-    runParser();
-    printf("Parser Complete\n");
-    struct treeNode* ROOT = parseInputSourceCode(head->next, Table, grammar, firstFollowSets);
-    //printLevelOrder(ROOT);
-    // printf("Height is %d",height(ROOT));
+
+    printf("\n\n\n");
+
+    struct treeNode* ROOT = parseInputSourceCode(headT, Table, grammar, firstFollowSets);
+
+    printLevelOrder(ROOT);
+    printf("Height is %d",height(ROOT));
 
     
 

@@ -1,5 +1,5 @@
-//#ifndef lexerDef.h
-//#define lexerDef.h
+#ifndef LEXERDEF_H
+#define LEXERDEF_H
 typedef union
 	{
 		int i;			//constant integer value
@@ -38,4 +38,4 @@ struct node{
     term tt;
     //token* t; //token
 };
-//#endif
+#endif
