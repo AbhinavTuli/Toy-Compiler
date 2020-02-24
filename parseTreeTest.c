@@ -171,19 +171,19 @@ void inOrder(struct treeNode* root){
     // temp=root->child;
     // Total children count 
       
-    // All the children except the last 
-    if(temp!=NULL){
-        while(temp->next!=NULL){
-            inOrder(temp);
-            temp=temp->next;
-        } 
-    }
+    // Print leftmost child
+    inOrder(temp);
+    if(temp!=NULL)
+        temp=temp->next;
   
     // Print the current node's data 
     printf("%s ",root->tnt); 
   
-    // Last child 
-    inOrder(temp);
+    // Print all other children
+    while(temp!=NULL){
+            inOrder(temp);
+            temp=temp->next;
+    } 
 }
 
 // void printLevelOrder(struct treeNode* root) 
