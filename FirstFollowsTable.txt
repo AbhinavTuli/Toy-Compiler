@@ -342,4 +342,121 @@ term
 							                  GE
 							                  EQ
 							                  NE
-							                
+							                 AND
+
+N5
+					MUL		                PLUS
+					DIV		               MINUS
+					ε		                  BC
+							                  LT
+							                  LE
+							                  GT
+							                  GE
+							                  EQ
+							                  NE
+							                 AND
+
+factor
+					BO		                 MUL
+					ID		                 DIV
+					NUM		                PLUS
+					RNUM		               MINUS
+							                  BC
+							                  LT
+							                  LE
+							                  GT
+							                  GE
+							                  EQ
+
+op1
+					PLUS		                  BO
+					MINUS		                  ID
+							                 NUM
+							                RNUM
+							                    
+
+op2
+					MUL		                  BO
+					DIV		                  ID
+							                 NUM
+							                RNUM
+							                    
+
+logicalOp
+					AND		                  BO
+					OR		                  ID
+							                 NUM
+							                RNUM
+							                TRUE
+							               FALSE
+							                    
+
+relationalOp
+					LT		                  BO
+					LE		                  ID
+					GT		                 NUM
+					GE		                RNUM
+					EQ		                    
+					NE		                    
+							                    
+
+declareStmt
+					DECLARE		           GET_VALUE
+							               PRINT
+							                  ID
+							                SQBO
+							             DECLARE
+							              SWITCH
+							                 FOR
+							               WHILE
+							                 USE
+							                    
+
+conditionalStmt
+					SWITCH		           GET_VALUE
+							               PRINT
+							                  ID
+							                SQBO
+							             DECLARE
+							              SWITCH
+							                 FOR
+							               WHILE
+							                 USE
+							                    
+
+caseStmts
+					CASE		             DEFAULT
+							                 END
+							                    
+
+N9
+					CASE		             DEFAULT
+					ε		                 END
+							                    
+
+value
+					NUM		               COLON
+					TRUE		                    
+					FALSE		                    
+							                    
+
+default
+					DEFAULT		                 END
+					ε		                    
+							                    
+
+iterativeStmt
+					FOR		           GET_VALUE
+					WHILE		               PRINT
+							                  ID
+							                SQBO
+							             DECLARE
+							              SWITCH
+							                 FOR
+							               WHILE
+							                 USE
+							                    
+
+range
+					NUM		                  BC
+							                    

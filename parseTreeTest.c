@@ -163,61 +163,84 @@ void printGivenLevel(struct treeNode* root, int level);
 int height(struct treeNode* node); 
   
 /* Function to print level order traversal a tree*/
-void printLevelOrder(struct treeNode* root) 
-{ 
-    //printf("Level order Called\n");
-    int h = height(root); 
-    int i; 
-    for (i=1; i<=h; i++) {
-        printGivenLevel(root, i); 
-            printf("\n"); 
-    }
 
-} 
-  
-/* Print nodes at a given level */
-void printGivenLevel(struct treeNode* root, int level) 
-{ 
+void inOrder(struct treeNode* root){
     if (root == NULL) 
         return; 
-    if (level == 1) 
-        printf("%s ", root->tnt); 
-    else if (level > 1) 
-    {   
-        struct treeNode* temp = root->child;
-        while(temp!=NULL){
-            printGivenLevel(temp, level-1);
-            temp = temp->next;
+    struct treeNode* temp=root->child;
+    // temp=root->child;
+    // Total children count 
+      
+    // All the children except the last 
+    if(temp!=NULL){
+        while(temp->next!=NULL){
+            inOrder(temp);
+            temp=temp->next;
         } 
-        printf("|");
     }
-} 
   
-/* Compute the "height" of a tree -- the number of 
-    nodes along the longest path from the root node 
-    down to the farthest leaf node.*/
-int height(struct treeNode* node) 
-{   
-    if (node==NULL) 
-        return 0;
-    int maxh=1;
-    struct treeNode* temp=node;
-    struct treeNode* temp2=node;
-    if(temp->child!=NULL){
-        maxh=1+height(temp->child);
-        //temp=temp->child;
-    }
-    /* compute the height of each subtree */
-    while(temp2!=NULL){
-        temp2=temp2->next;
-        int t=height(temp2);
-        if(t>maxh){
-                maxh=t;
-        }
-    } 
+    // Print the current node's data 
+    printf("%s ",root->tnt); 
+  
+    // Last child 
+    inOrder(temp);
+}
 
-    return maxh;
-} 
+// void printLevelOrder(struct treeNode* root) 
+// { 
+//     //printf("Level order Called\n");
+//     int h = height(root); 
+//     int i; 
+//     for (i=1; i<=h; i++) {
+//         printGivenLevel(root, i); 
+//             printf("\n"); 
+//     }
+
+// } 
+  
+// /* Print nodes at a given level */
+// void printGivenLevel(struct treeNode* root, int level) 
+// { 
+//     if (root == NULL) 
+//         return; 
+//     if (level == 1) 
+//         printf("%s ", root->tnt); 
+//     else if (level > 1) 
+//     {   
+//         struct treeNode* temp = root->child;
+//         while(temp!=NULL){
+//             printGivenLevel(temp, level-1);
+//             temp = temp->next;
+//         } 
+//         printf("|");
+//     }
+// } 
+  
+// /* Compute the "height" of a tree -- the number of 
+//     nodes along the longest path from the root node 
+//     down to the farthest leaf node.*/
+// int height(struct treeNode* node) 
+// {   
+//     if (node==NULL) 
+//         return 0;
+//     int maxh=1;
+//     struct treeNode* temp=node;
+//     struct treeNode* temp2=node;
+//     if(temp->child!=NULL){
+//         maxh=1+height(temp->child);
+//         //temp=temp->child;
+//     }
+//     /* compute the height of each subtree */
+//     while(temp2!=NULL){
+//         temp2=temp2->next;
+//         int t=height(temp2);
+//         if(t>maxh){
+//                 maxh=t;
+//         }
+//     } 
+
+//     return maxh;
+// } 
 
 // void createParseTable(struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS], struct ntRules grammar[MAX_TERMINALS]) //, int[][] Table)
 // {
@@ -403,10 +426,12 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
         if(tempTreeNodeParent==NULL){ //parse tree complete
             printf("Popping $\n");
             pop(&top); //popping $
-            printLevelOrder(root);
-            exit(0);
+            // printLevelOrder(root);
+            // exit(0);
+            inOrder(root);
             //return root;
             //break;
+            return;
         }
         if(strcmp(tempTreeNodeParent->tnt,"")!=0){
             tempTreeNode = createTreeNode();
@@ -524,15 +549,6 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
             }
             
         }
-                    
-                
-    
-        
-
-
-
-
-
     }
     //return root;
 
@@ -541,7 +557,7 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
 int main()
 {
     
-    programFile=fopen("3.txt","rb");
+    programFile=fopen("working1.txt","rb");
     programFile=getStream(programFile);
     
     populateKeywordTable();
