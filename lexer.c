@@ -216,6 +216,7 @@ void populateKeywordTable()
     insertEntry("module",MODULE);
     insertEntry("driver",DRIVER);
     insertEntry("program",PROGRAM);
+    insertEntry("Program",PROGRAM);
     insertEntry("record",RECORD);
     insertEntry("tagged",TAGGED);
     insertEntry("union",UNION);
@@ -427,7 +428,7 @@ token* retTokenSTR(char value[],term t)
 token* checkASSIGNOP(){
     if(buff[buffPtr]=='='){
         buffPtr++;
-        return retTokenSTR("=",ASSIGNOP); 
+        return retTokenSTR(":=",ASSIGNOP); 
     }
     else{
         return retTokenSTR(":",COLON);
@@ -678,6 +679,10 @@ void getNextToken()
 
         case '<' :  currentToken = checkLT();
                     tokenGet = true;
+                    break;
+
+        case '\r':  curr=buff[buffPtr];
+                    buffPtr++;
                     break;
 
         case '$' :  currentToken = retTokenSTR("$",$);

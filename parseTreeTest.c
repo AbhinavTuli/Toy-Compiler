@@ -205,13 +205,14 @@ int height(struct treeNode* node)
     struct treeNode* temp2=node;
     if(temp->child!=NULL){
         maxh=1+height(temp->child);
-        temp=temp->child;
+        //temp=temp->child;
     }
     /* compute the height of each subtree */
     while(temp2!=NULL){
         temp2=temp2->next;
-        if(height(temp2)>maxh){
-                maxh=height(temp2);
+        int t=height(temp2);
+        if(t>maxh){
+                maxh=t;
         }
     } 
 
@@ -369,7 +370,7 @@ struct treeNode* findLeftMostWithoutChild(struct treeNode* root)
 //     }
 // }
 
-struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINALS],struct ntRules grammar[MAX_NON_TERMINALS], struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS])
+void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINALS],struct ntRules grammar[MAX_NON_TERMINALS], struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS])
 {
 
     //lexer on testcaseFile
@@ -400,8 +401,12 @@ struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][
         struct treeNode* tempTreeNode;
         struct treeNode* tempTreeNodeParent = findLeftMostWithoutChild(root);
         if(tempTreeNodeParent==NULL){ //parse tree complete
+            printf("Popping $\n");
             pop(&top); //popping $
-            break;
+            printLevelOrder(root);
+            exit(0);
+            //return root;
+            //break;
         }
         if(strcmp(tempTreeNodeParent->tnt,"")!=0){
             tempTreeNode = createTreeNode();
@@ -529,14 +534,14 @@ struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][
 
 
     }
-    return root;
+    //return root;
 
 }
 
 int main()
 {
     
-    programFile=fopen("t5.txt","rb");
+    programFile=fopen("3.txt","rb");
     programFile=getStream(programFile);
     
     populateKeywordTable();
@@ -564,8 +569,8 @@ int main()
     
     runParser();
     printf("Parser Complete\n");
-    struct treeNode* ROOT = parseInputSourceCode(head->next, Table, grammar, firstFollowSets);
-    printLevelOrder(ROOT);
+    parseInputSourceCode(head->next, Table, grammar, firstFollowSets);
+    //printLevelOrder(ROOT);
     // printf("Height is %d",height(ROOT));
 
 }
