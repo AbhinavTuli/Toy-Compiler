@@ -823,7 +823,7 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
             j = getIndexOfTerminal(currLexeme);
             int ruleNo = Table[i][j];
             if(ruleNo==-1){
-                printf("Error at %d. Currently reading %s, stack top is %s\n",temp->lineno,currLexeme,top->tnt);
+                printf("Error at line number %d. Currently reading %s, stack top is %s\n",temp->lineno,currLexeme,top->tnt);
                 return;
             }
 
