@@ -28,15 +28,13 @@ int main(int argc, char *argv[]){
     printf("2. Both Lexical and Syntax analysis modules implemented. \n");
     printf("3. Modules compile and work with all test cases.\n");
     printf("4. Parse Tree Constructed for all syntactically correct cases.\n");
-    printf("5. Both lexical and syntactical errors are printed with line numbers.");
+    printf("5. Both lexical and syntactical errors are printed with line numbers.\n");
     printf("6. Error Recovery is working");
     printf("\n\n");
 
     int choice,i=0;
 
-    clock_t start_time_parser, end_time_parser, total_time;
-    clock_t t;
-    double total_CPU_time_parser, total_CPU_time_in_seconds_parser;
+    clock_t ticks;
 
     printf(" Enter Integer Corresponding to what you want to do\n 0 => Exit\n 1 => Removal of Comments\n 2=> Print Token List\n 3=> Verify Syntactic Correctness and Print Parse Tree\n 4=> Print total time required for total code\n");
     printf("Please Enter Choice : \t");
@@ -89,15 +87,21 @@ int main(int argc, char *argv[]){
                                     
             case 4:     
                         printFlag = false;
-                        t = clock();
+                        ticks = clock();
                         runParser(fp1,fp2);
                         lexerFree();
-                        t = clock() - t; 
-                        double time_taken = ((double)t)/CLOCKS_PER_SEC;
-                        printf("Total time taken by parser took %f seconds to execute \n", time_taken);
+                        ticks = clock() - ticks; 
+                        double time_taken = ((double)ticks)/CLOCKS_PER_SEC;
+                        printf("Total Clock ticks : %ld\n",ticks);
+                        printf("Total time taken by parser : %f seconds\n", time_taken);
                         break;
+
+            default:
+                    printf("\nEnter a Valid Choice!\n");
+                    break;
         }
         printf("\n\nEnter Choice again : \t");
         scanf("%d",&choice);
+	printf("\n");
     }
 }   

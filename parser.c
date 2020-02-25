@@ -1062,9 +1062,10 @@ void inOrderParseTree(struct treeNode* root,FILE* parseTreeFile){
         temp=temp->next;
   
     // Print the current node's data 
-    // printf("%s ",root->tnt); 
-    fflush(parseTreeFile);
+    printf("%s ",root->tnt); 
+    
     fprintf(parseTreeFile,"%s ",root->tnt);
+    fflush(parseTreeFile);
   
     // Print all other children
     while(temp!=NULL){
@@ -1189,7 +1190,6 @@ void runParser(FILE* testFile, FILE* parseTreeFile){
     
     if(printFlag)
     printf("\nParser Complete\n");
-
 
     /*
         To generate Files : ParseTable.txt
