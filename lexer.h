@@ -17,7 +17,7 @@ int hash(char * str);
 void insertEntry(char* c,term te);
 int findEntry(char* c);
 struct node* retNode(char *c);
-int printHashtable();
+void printHashtable();
 void initializeHashtable();
 const char* getLexeme(term t);
 void populateKeywordTable();

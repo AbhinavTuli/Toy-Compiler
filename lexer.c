@@ -63,7 +63,7 @@ struct node* retNode(char *c)
     }
     return t;
 }
-int printHashtable(){
+void printHashtable(){
     for(int i=0;i<MAX_TABLE;i++){
         if(keywords[i]!=NULL){
             printf("Hash entry %d\n",i);

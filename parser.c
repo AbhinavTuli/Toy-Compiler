@@ -770,9 +770,9 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
     
     while(temp!= NULL)
     {
-        printf("\nStack is---------\n");
+        //printf("\nStack is---------\n");
         //printf("Th is %d\n",isEmpty(top));
-        printStack(top);
+        //printStack(top);
         struct treeNode* tempTreeNode;
         struct treeNode* tempTreeNodeParent = findLeftMostWithoutChild(root);
         if(tempTreeNodeParent==NULL){ //parse tree complete
@@ -801,13 +801,13 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
         //functionNames/ identifiers
         char currLexeme[20];
         strcpy(currLexeme, getLexeme(tokterm) );
-        printf("Currently at %s\n",currLexeme);
+        //printf("Currently at %s\n",currLexeme);
 
         //compare currName with name on the stack
         if( strcmp(currLexeme, top->tnt)==0 )
         {
             //need to pop accoring to
-            printf("Popping on match %s\n",top->tnt);
+            //printf("Popping on match %s\n",top->tnt);
             pop(&top);
             temp=temp->next;
         }
@@ -843,7 +843,7 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
 
                 cumulative+=grammar[i].numRules;
             }
-            printf("Popping on applying rule %d on stack top %s\n",ruleNo ,top->tnt);
+            //printf("Popping on applying rule %d on stack top %s\n",ruleNo ,top->tnt);
             pop(&top); 
             //push(&top, head.tag, head.tnt);
 
@@ -923,7 +923,7 @@ void push(lex** root, int data, char* str)
 	lex* stackNode = newNode(data,str); 
 	stackNode->next = *root; 
 	*root = stackNode; 
-	printf("%s pushed to stack\n", str); 
+	//printf("%s pushed to stack\n", str); 
 } 
 
 int pop(lex** root) 
