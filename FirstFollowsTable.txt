@@ -1,0 +1,462 @@
+					Firsts		             Follows
+
+program
+					DECLARE		                   $
+					DEF		                    
+					DRIVERDEF		                    
+							                    
+
+moduleDeclarations
+					DECLARE		                 DEF
+					ε		           DRIVERDEF
+							                    
+
+moduleDeclaration
+					DECLARE		             DECLARE
+							                    
+
+otherModules
+					DEF		           DRIVERDEF
+					ε		                   $
+							                    
+
+driverModule
+					DRIVERDEF		                 DEF
+							                   $
+							                    
+
+module
+					DEF		                 DEF
+							                    
+
+ret
+					RETURNS		               START
+					ε		                    
+							                    
+
+input_plist
+					ID		                SQBC
+							                    
+
+N1
+					COMMA		                SQBC
+					ε		                    
+							                    
+
+output_plist
+					ID		                SQBC
+							                    
+
+N2
+					COMMA		                SQBC
+					ε		                    
+							                    
+
+dataType
+					INTEGER		               COMMA
+					REAL		                SQBC
+					BOOLEAN		             SEMICOL
+					ARRAY		                    
+							                    
+
+range_arrays
+					NUM		                SQBC
+					ID		                    
+							                    
+
+type
+					INTEGER		               COMMA
+					REAL		                SQBC
+					BOOLEAN		             SEMICOL
+							                    
+
+moduleDef
+					START		                 DEF
+							                   $
+							                    
+
+statements
+					GET_VALUE		                 END
+					PRINT		               BREAK
+					ID		                    
+					SQBO		                    
+					DECLARE		                    
+					SWITCH		                    
+					FOR		                    
+					WHILE		                    
+					ε		                    
+					USE		                    
+
+statement
+					GET_VALUE		           GET_VALUE
+					PRINT		               PRINT
+					ID		                  ID
+					SQBO		                SQBO
+					USE		             DECLARE
+					DECLARE		              SWITCH
+					SWITCH		                 FOR
+					FOR		               WHILE
+					WHILE		                 USE
+							                    
+
+ioStmt
+					GET_VALUE		           GET_VALUE
+					PRINT		               PRINT
+							                  ID
+							                SQBO
+							             DECLARE
+							              SWITCH
+							                 FOR
+							               WHILE
+							                 USE
+							                    
+
+var
+					ID		                  BC
+					NUM		                    
+					RNUM		                    
+					TRUE		                    
+					FALSE		                    
+							                    
+
+var_id_num
+					ID		                  BC
+					NUM		             SEMICOL
+					RNUM		                 MUL
+							                 DIV
+							                PLUS
+							               MINUS
+							                  LT
+							                  LE
+							                  GT
+							                  GE
+
+boolConstt
+					TRUE		                  BC
+					FALSE		                 AND
+							                  OR
+							             SEMICOL
+							                    
+
+whichId
+					SQBO		                  BC
+					ε		             SEMICOL
+							                 MUL
+							                 DIV
+							                PLUS
+							               MINUS
+							                  LT
+							                  LE
+							                  GT
+							                  GE
+
+simpleStmt
+					ID		           GET_VALUE
+					SQBO		               PRINT
+					USE		                  ID
+							                SQBO
+							             DECLARE
+							              SWITCH
+							                 FOR
+							               WHILE
+							                 USE
+							                    
+
+assignmentStmt
+					ID		           GET_VALUE
+							               PRINT
+							                  ID
+							                SQBO
+							             DECLARE
+							              SWITCH
+							                 FOR
+							               WHILE
+							                 USE
+							                    
+
+whichStmt
+					ASSIGNOP		           GET_VALUE
+					SQBO		               PRINT
+							                  ID
+							                SQBO
+							             DECLARE
+							              SWITCH
+							                 FOR
+							               WHILE
+							                 USE
+							                    
+
+lvalueIDStmt
+					ASSIGNOP		           GET_VALUE
+							               PRINT
+							                  ID
+							                SQBO
+							             DECLARE
+							              SWITCH
+							                 FOR
+							               WHILE
+							                 USE
+							                    
+
+lvalueARRStmt
+					SQBO		           GET_VALUE
+							               PRINT
+							                  ID
+							                SQBO
+							             DECLARE
+							              SWITCH
+							                 FOR
+							               WHILE
+							                 USE
+							                    
+
+index
+					NUM		             RANGEOP
+					ID		                SQBC
+							                    
+
+moduleReuseStmt
+					SQBO		           GET_VALUE
+					USE		               PRINT
+							                  ID
+							                SQBO
+							             DECLARE
+							              SWITCH
+							                 FOR
+							               WHILE
+							                 USE
+							                    
+
+optional
+					SQBO		                 USE
+					ε		                    
+							                    
+
+idList
+					ID		             SEMICOL
+							                SQBC
+							               COLON
+							                    
+
+N3
+					COMMA		             SEMICOL
+					ε		                SQBC
+							               COLON
+							                    
+
+expression
+					BO		             SEMICOL
+					ID		                    
+					NUM		                    
+					RNUM		                    
+					TRUE		                    
+					FALSE		                    
+					PLUS		                    
+					MINUS		                    
+							                    
+
+U
+					PLUS		             SEMICOL
+					MINUS		                    
+							                    
+
+new_NT
+					BO		             SEMICOL
+					ID		                    
+					NUM		                    
+					RNUM		                    
+							                    
+
+unary_op
+					PLUS		                  BO
+					MINUS		                  ID
+							                 NUM
+							                RNUM
+							                    
+
+arithmeticOrBooleanExpr
+					BO		             SEMICOL
+					ID		                  BC
+					NUM		                    
+					RNUM		                    
+					TRUE		                    
+					FALSE		                    
+							                    
+
+N7
+					AND		             SEMICOL
+					OR		                  BC
+					ε		                    
+							                    
+
+AnyTerm
+					BO		                 AND
+					ID		                  OR
+					NUM		             SEMICOL
+					RNUM		                  BC
+					TRUE		                    
+					FALSE		                    
+							                    
+
+N8
+					LT		                 AND
+					LE		                  OR
+					GT		             SEMICOL
+					GE		                  BC
+					EQ		                    
+					NE		                    
+					ε		                    
+							                    
+
+arithmeticExpr
+					BO		                  BC
+					ID		                  LT
+					NUM		                  LE
+					RNUM		                  GT
+							                  GE
+							                  EQ
+							                  NE
+							                 AND
+							                  OR
+							             SEMICOL
+
+N4
+					PLUS		                  BC
+					MINUS		                  LT
+					ε		                  LE
+							                  GT
+							                  GE
+							                  EQ
+							                  NE
+							                 AND
+							                  OR
+							             SEMICOL
+
+term
+					BO		                PLUS
+					ID		               MINUS
+					NUM		                  BC
+					RNUM		                  LT
+							                  LE
+							                  GT
+							                  GE
+							                  EQ
+							                  NE
+							                 AND
+
+N5
+					MUL		                PLUS
+					DIV		               MINUS
+					ε		                  BC
+							                  LT
+							                  LE
+							                  GT
+							                  GE
+							                  EQ
+							                  NE
+							                 AND
+
+factor
+					BO		                 MUL
+					ID		                 DIV
+					NUM		                PLUS
+					RNUM		               MINUS
+							                  BC
+							                  LT
+							                  LE
+							                  GT
+							                  GE
+							                  EQ
+
+op1
+					PLUS		                  BO
+					MINUS		                  ID
+							                 NUM
+							                RNUM
+							                    
+
+op2
+					MUL		                  BO
+					DIV		                  ID
+							                 NUM
+							                RNUM
+							                    
+
+logicalOp
+					AND		                  BO
+					OR		                  ID
+							                 NUM
+							                RNUM
+							                TRUE
+							               FALSE
+							                    
+
+relationalOp
+					LT		                  BO
+					LE		                  ID
+					GT		                 NUM
+					GE		                RNUM
+					EQ		                    
+					NE		                    
+							                    
+
+declareStmt
+					DECLARE		           GET_VALUE
+							               PRINT
+							                  ID
+							                SQBO
+							             DECLARE
+							              SWITCH
+							                 FOR
+							               WHILE
+							                 USE
+							                    
+
+conditionalStmt
+					SWITCH		           GET_VALUE
+							               PRINT
+							                  ID
+							                SQBO
+							             DECLARE
+							              SWITCH
+							                 FOR
+							               WHILE
+							                 USE
+							                    
+
+caseStmts
+					CASE		             DEFAULT
+							                 END
+							                    
+
+N9
+					CASE		             DEFAULT
+					ε		                 END
+							                    
+
+value
+					NUM		               COLON
+					TRUE		                    
+					FALSE		                    
+							                    
+
+default
+					DEFAULT		                 END
+					ε		                    
+							                    
+
+iterativeStmt
+					FOR		           GET_VALUE
+					WHILE		               PRINT
+							                  ID
+							                SQBO
+							             DECLARE
+							              SWITCH
+							                 FOR
+							               WHILE
+							                 USE
+							                    
+
+range
+					NUM		                  BC
+							                    

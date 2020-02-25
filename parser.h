@@ -65,6 +65,8 @@ bool checkIfPresentInStack(int indexNT);
 
 void readGrammerTextFile(FILE* fp);
 
+void parserFree();
+
 // Print Functions
 
 void printAllGrammar();
@@ -106,6 +108,11 @@ int pop(lex** root);
 int isEmpty(lex* root);
 
 int peek(lex* root);
+
+
+struct treeNode* createTreeNode();
+
+struct ruleToken* createNode();
 
 
 #endif

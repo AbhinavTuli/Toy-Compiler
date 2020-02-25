@@ -63,7 +63,7 @@ struct node* retNode(char *c)
     }
     return t;
 }
-void printHashtable(){
+int printHashtable(){
     for(int i=0;i<MAX_TABLE;i++){
         if(keywords[i]!=NULL){
             printf("Hash entry %d\n",i);
@@ -513,7 +513,11 @@ void getNextToken()
         case '=' :  ;token* ttoken = checkEQ();
                     if(error)
                     {
-                        printf("Lexical Error on line no - %d. Just a single equal to (=) sign. Will now check from next line\n",lineNumber); 
+                        if(printFlag)
+                        printf("Line %d: Lexical Error due to just a single equal to (=) sign.\n",lineNumber);
+
+                        lexicalErrors[numLexicalErrors++] = lineNumber;
+
                         char tempChar=buff[buffPtr];
                         
                         while(tempChar!='\n' && tempChar!='$')
@@ -662,7 +666,10 @@ void getNextToken()
         case '.':   ;ttoken = checkRANGEOP();
                     if(error)
                     {
-                        printf("Lexical Error on line no - %d. Just a single dot (.). Will now check from next line\n",lineNumber); 
+                        if(printFlag)
+                        printf("Line %d: Lexical Error due to Just a single dot (.).\n",lineNumber);
+                        
+                        lexicalErrors[numLexicalErrors++] = lineNumber;
                         char tempChar=buff[buffPtr];
                         
                         while(tempChar!='\n' && tempChar!='$')
@@ -707,7 +714,10 @@ void getNextToken()
 
                             if(count>=20)
                             {
-                                printf("Lexical Error on line no - %d. More than 20 characters in Identifier. Will now check from next line\n",lineNumber); 
+                                if(printFlag)
+                                printf("Line %d: Lexical Error. Identifier cannot be more than 20 characters.\n",lineNumber);
+
+                                lexicalErrors[numLexicalErrors++] = lineNumber; 
                                 char tempChar=buff[buffPtr];
                                 while(tempChar!='\n' && tempChar!='$'){
                                     buffPtr++;
@@ -783,7 +793,10 @@ void getNextToken()
 
                             if(!isDigit(tempchar))
                             {
-                                printf("Lexical Error on line no. %d. No Number after Decimal Point. Will now check from next line\n",lineNumber); 
+                                if(printFlag)
+                                printf("Line %d: Lexical Error. There is no number after Decimal Point\n",lineNumber);
+
+                                lexicalErrors[numLexicalErrors++] = lineNumber;
                                 char tempChar1=buff[buffPtr];
                         
                                 while(tempChar1!='\n' && tempChar1!='$')
@@ -956,7 +969,10 @@ void getNextToken()
                         }
                     }
                     else{
-                        printf("Lexical Error on line number - %d. Foreign Character. Will now check from next line\n",lineNumber);
+                        if(printFlag)
+                        printf("Line %d: Lexical Error due to Unexpected Character.\n",lineNumber);
+
+                        lexicalErrors[numLexicalErrors++] = lineNumber;
                         char tempChar=buff[buffPtr];
                         //printf("%c ",tempChar);
                         while(tempChar!='\n' && tempChar!='$'){
@@ -978,7 +994,6 @@ token* lexerRun(FILE* fptr)
     programFile = fptr;
     programFile = getStream(programFile);
 
-    //printf("WOOOLOOOO");
 
     if(first)
     {
@@ -1005,36 +1020,5 @@ void lexerFree()
     error = false;
     lineNumber=1;
     endfile = false;
+    
 }
-
-// int main(){
-//     //printf("one one");
-//     programFile=fopen("t7.txt","rb");
-//     programFile=getStream(programFile);
-    
-//     populateKeywordTable();
-//     //printf("two two");
-    
-//     token* trav = head;
-//     //printf("cdfads");
-//     while(true)
-//     {
-//         getNextToken();
-//         trav = currentToken;
-
-//         if(trav->tokterm == 60)
-//         {
-//             printf("%d  %s\n",trav->tokterm,trav->val.s);
-//             break;
-//         }
-        // if(trav->tag == 1)
-        //     printf("Term - %s, Lexeme - %d, On line number  %d\n",getLexeme(trav->tokterm),trav->val.i,trav->lineno);
-        // if(trav->tag == 2)
-        //     printf("Term - %s, Lexeme - %f, On line number  %d\n",getLexeme(trav->tokterm),trav->val.f,trav->lineno);
-        // if(trav->tag == 3)
-        //     printf("Term - %s, Lexeme - %d, On line number  %d\n",getLexeme(trav->tokterm),trav->val.b,trav->lineno);
-        // if(trav->tag == 4)
-        //     printf("Term - %s, Lexeme - %s, On line number  %d\n",getLexeme(trav->tokterm),trav->val.s,trav->lineno);
-        //trav = trav->next;
-//     }
-// }

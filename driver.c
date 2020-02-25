@@ -1,3 +1,12 @@
+/*
+    Group Number            -        26
+    Abhinav Tuli            -   2017A7PS0048P
+    Kushagra Raina          -   2017A7PS0161P
+    Tanmay Moghe            -   2017A7PS0184P
+    Amratanshu Shrivastava  -   2017A7PS0225P
+    Rohit Bohra             -   2017A7PS0225P
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -19,15 +28,19 @@ int main(int argc, char *argv[]){
     printf("2. Both Lexical and Syntax analysis modules implemented. \n");
     printf("3. Modules compile and work with all test cases.\n");
     printf("4. Parse Tree Constructed for all syntactically correct cases.\n");
+    printf("5. Both lexical and syntactical errors are printed with line numbers.");
+    printf("6. Error Recovery is working");
     printf("\n\n");
 
     int choice,i=0;
 
     clock_t start_time_parser, end_time_parser, total_time;
+    clock_t t;
     double total_CPU_time_parser, total_CPU_time_in_seconds_parser;
 
     printf(" Enter Integer Corresponding to what you want to do\n 0 => Exit\n 1 => Removal of Comments\n 2=> Print Token List\n 3=> Verify Syntactic Correctness and Print Parse Tree\n 4=> Print total time required for total code\n");
     printf("Please Enter Choice : \t");
+    printf("\n");
     scanf("%d",&choice);
     while(choice!=0)
     {   
@@ -69,30 +82,20 @@ int main(int argc, char *argv[]){
                         break;
 
             case 3:   
-                        // start_time_parser = clock();
+                        printFlag = true;
                         runParser(fp1,fp2);
                         lexerFree();
-                        // end_time_parser = clock();
-                        // total_CPU_time_parser = end_time_parser - start_time_parser ;
-                        // total_CPU_time_in_seconds_parser = total_CPU_time_parser/CLOCKS_PER_SEC;
                         break;  
                                     
-            // case 4:     if(total_CPU_time_in_seconds_lexer==0)
-            //             {
-            //                 printf("\nLexer not yet run");
-            //             }
-            //             else 
-            //             {
-            //                 printf("\n CPU time:%d\t CPU time in seconds:%d\n",total_CPU_time_lexer, total_CPU_time_in_seconds_lexer);
-            //             }
-            //             if(total_CPU_time_in_seconds_parser==0)
-            //             {
-            //                 printf("\nParser not yet run");
-            //             }
-            //             else 
-            //             {
-            //                 printf("\n CPU time:%d\t CPU time in seconds:%d\n",total_CPU_time_lexer,total_CPU_time_in_seconds_lexer);
-            //             }
+            case 4:     
+                        printFlag = false;
+                        t = clock();
+                        runParser(fp1,fp2);
+                        lexerFree();
+                        t = clock() - t; 
+                        double time_taken = ((double)t)/CLOCKS_PER_SEC;
+                        printf("Total time taken by parser took %f seconds to execute \n", time_taken);
+                        break;
         }
         printf("\n\nEnter Choice again : \t");
         scanf("%d",&choice);

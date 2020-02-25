@@ -47,6 +47,8 @@ void computeFirstAllSets(){
         
     }
     computeFirstSets2();
+    memset(tempFirsts, '\0', sizeof(char)*MAX_FIRST);
+    memset(stackFirsts, -1, sizeof(int)*MAX_FIRST);
 }
 
 void computeFirstForSingleNT(int indexNT){
@@ -494,6 +496,7 @@ void printRuleGrammarStruct(int i){
 
 void printAllGrammar(){
     for(int i=0;i<grammarLength;i++){
+        printf("Check\n");
         printRuleGrammarStruct(i);
     }
 }
@@ -558,6 +561,7 @@ void readGrammerTextFile(FILE* fp){
 
         bool alternateLine = 1;
 
+        if(printFlag)
         printf("Reading Grammer...\n\n");
 
         while(fgets(buffer, BUFF_SIZE, fp)) {
@@ -631,29 +635,14 @@ void createParseTable()
     
     for(int i=0; i<numNT; i++)       //for each production
     {
-        //rule from NT n
-        struct ntRules rule = grammar[i];
 
-        char heads[rule.numRules][NTSIZE];     //rule for each NT can have multiple heads too
-        int tag[rule.numRules];                            //whether terminal or non terminal
-        
-        for(int k=0; k<rule.numRules; k++)                  //update the names of the heads and their tags 
-        {
-            strcpy(heads[k], rule.heads[k].tnt);
-            tag[k] = rule.heads[k].tag; 
-        }
-        
-        char nonT[NTSIZE];
-        strcpy(nonT,rule.nt);
 
-        //for every rule n -> alpha
-        //head is alpha in every rule 
-        for(int k=0; k<rule.numRules; k++)
+        for(int k=0; k<grammar[i].numRules; k++)
         {
-            int indexNT = getIndexOfNonTerminal(nonT);
+            int indexNT = getIndexOfNonTerminal(grammar[i].nt);
             int headIndex;
 
-            if(tag[k] == 0)              // non terminal
+            if(grammar[i].heads[k].tag == 0)              // non terminal
             {
                 int* indexList = firstofRHS(&grammar[i].heads[k]);
                 int t = 0;
@@ -666,7 +655,7 @@ void createParseTable()
             }
             else                          //    terminal
             {
-                if(strcmp(heads[k],"ε")==0) //if the terminal is ε
+                if(strcmp(grammar[i].heads[k].tnt,"ε")==0) //if the terminal is ε
                 {
                     //for each b (terminal) in follow(n)
                     for(int j=0; j<firstFollowSets[i].numFollows; j++)
@@ -679,7 +668,7 @@ void createParseTable()
                 }
                 else
                 {
-                    headIndex = getIndexOfTerminal(heads[k]);
+                    headIndex = getIndexOfTerminal(grammar[i].heads[k].tnt);
                     Table[indexNT][headIndex] = whichRule;       //only one terminal in FIRST() because it itself is a terminal
                     // printf("AddingT  %s  %s   :  %d\n",nonT,heads[k],whichRule);
                 }     
@@ -750,6 +739,62 @@ void printFirstFollowsToFile(){
 
 }
 
+struct treeNode* createTreeNode()
+{
+    struct treeNode* temp;
+    temp = (struct treeNode*)malloc(sizeof(struct treeNode));
+    temp->next = NULL;
+    strcpy(temp->tnt, "");
+    temp->child = NULL;
+    temp->tag = 0;
+    return temp;
+}
+
+
+struct ruleToken* createNode()
+{
+    struct ruleToken* temp;
+    temp = (struct ruleToken*)malloc(sizeof(struct ruleToken));
+    temp->next = NULL;
+    temp->tag = 0;
+    strcpy(temp->tnt, "");
+    return temp;
+}
+
+bool checkIfInFirst(char* currLexeme,lex* top){
+    
+    int index = getIndexOfNonTerminal(top->tnt);
+
+    for(int i=0;i<firstFollowSets[index].numFirsts;i++){
+        if(strcmp(firstFollowSets[index].firsts[i],currLexeme)==0){
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool checkIfInFollows(char* currLexeme,lex* top){
+
+    int index = getIndexOfNonTerminal(top->tnt);
+
+    for(int i=0;i<firstFollowSets[index].numFollows;i++){
+        if(strcmp(firstFollowSets[index].follows[i],currLexeme)==0){
+            return true;
+        }
+    }
+    
+    return false;
+
+}
+
+bool checkIfLexicalErrorLine(int line){
+    for(int i=0;i<numLexicalErrors;i++){
+        if(lexicalErrors[i]==line)
+        return true;
+    }
+    return false;
+}
 
 void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINALS],struct ntRules grammar[MAX_NON_TERMINALS], struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS],FILE* parseTreeFile)
 {
@@ -770,24 +815,30 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
     
     while(temp!= NULL)
     {
-        //printf("\nStack is---------\n");
-        //printf("Th is %d\n",isEmpty(top));
-        //printStack(top);
+
+        if(checkIfLexicalErrorLine(temp->lineno))
+        {
+            temp = temp->next;
+            continue;
+        }
+
+        // printf("\nStack is---------\n");
+        // printStack(top);
         struct treeNode* tempTreeNode;
         struct treeNode* tempTreeNodeParent = findLeftMostWithoutChild(root);
         if(tempTreeNodeParent==NULL){ //parse tree complete
             //printf("Popping $\n");
             pop(&top); //popping $
             //printf("This is %d\n",isEmpty(top));
-            printStack(top);
+            // printStack(top);
             if(isEmpty(top)==0){
-                //printf("Yo\n");
+                // printf("Yo\n");
                 break;
             }
             printf("Parse tree is:- \n");
             inOrderParseTree(root,parseTreeFile);
             printf("\n\nParseTreeFile Generated\n");
-            break;
+            return;
         }
         if(strcmp(tempTreeNodeParent->tnt,"")!=0){
             tempTreeNode = createTreeNode();
@@ -802,12 +853,13 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
         char currLexeme[20];
         strcpy(currLexeme, getLexeme(tokterm) );
         //printf("Currently at %s\n",currLexeme);
-
+        //printf("debug\n");
         //compare currName with name on the stack
+
         if( strcmp(currLexeme, top->tnt)==0 )
         {
             //need to pop accoring to
-            //printf("Popping on match %s\n",top->tnt);
+            // printf("Popping on match %s\n",top->tnt);
             pop(&top);
             temp=temp->next;
         }
@@ -823,8 +875,57 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
             j = getIndexOfTerminal(currLexeme);
             int ruleNo = Table[i][j];
             if(ruleNo==-1){
-                printf("Error at line number %d. Currently reading %s, stack top is %s\n",temp->lineno,currLexeme,top->tnt);
+
+                if(isEmpty(top)==0 && strcmp(currLexeme,"$")==0){
+                    printf("Error in parsing! Stack isn't empty at the end! Parse Tree Not generated!\n");
+                    return;
+                }
+
+                if(printFlag){
+                    if(strcmp(top->tnt,"SEMICOL")==0)
+                    printf("Line %d: Syntax Error. Current token is %s, stack top is %s\n",temp->lineno-1,currLexeme,top->tnt);
+                    else
+                    printf("Line %d: Syntax Error. Current token is %s, stack top is %s\n",temp->lineno,currLexeme,top->tnt);
+                }
+
+                while(temp->next!=NULL){
+                    
+                    if(checkIfLexicalErrorLine(temp->lineno))
+                    {
+                        temp = temp->next;
+                        continue;
+                    }
+
+
+                    // printf("Tag : %d\n",top->tag);
+
+                    if(top->tag==1){
+
+                        if(strcmp(currLexeme,top->tnt)==0)
+                        temp = temp->next;
+
+                        pop(&top);
+                    }
+
+                    if(checkIfInFirst(currLexeme,top)){
+                        //temp=temp->next;
+                        break;
+                    }
+                    if(checkIfInFollows(currLexeme,top)){
+                        // printf("Entered here\n");
+                        pop(&top);  
+                        break;    
+                    }
+
+                    temp = temp->next;
+                    // printf("Skipping\n");
+                    strcpy(currLexeme, getLexeme(temp->tokterm));
+                }
+
+                if(temp==NULL)
                 return;
+
+                continue;
             }
 
             struct ruleToken head;
@@ -843,7 +944,7 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
 
                 cumulative+=grammar[i].numRules;
             }
-            //printf("Popping on applying rule %d on stack top %s\n",ruleNo ,top->tnt);
+            // printf("Popping on applying rule %d on stack top %s\n",ruleNo ,top->tnt);
             pop(&top); 
             //push(&top, head.tag, head.tnt);
 
@@ -855,13 +956,13 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
             
             struct ruleToken* headNext = head.next;
 
-            struct ruleToken ARRAY[20]; 
+            struct ruleToken ARRAY[15]; 
             struct ruleToken ZEROS;
             ZEROS.next = NULL;
             ZEROS.tag = 0;
             strcpy(ZEROS.tnt, "");
 
-            for(int i=0; i<20; i++) //setting every ARRAY[i] to 0
+            for(int i=0; i<10; i++) //setting every ARRAY[i] to 0
             {
                 ARRAY[i] = ZEROS;
             }
@@ -896,7 +997,7 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
     }
     //if stack isn't empty
     if(isEmpty(top)==0){
-        printf("Error in parsing! Stack isn't empty at the end! Parse Tree Not generated! \n");
+        printf("Error in parsing! Stack isn't empty at the end! Parse Tree Not generated!\n");
         return;
     }
 
@@ -912,10 +1013,7 @@ void printStack(lex* top){
 }
 int isEmpty(lex* root) 
 { 
-	if(root->next==NULL){
-        return 1;
-    } 
-    return 0;
+	return !root; 
 } 
 
 void push(lex** root, int data, char* str) 
@@ -1014,19 +1112,49 @@ struct treeNode* findLeftMostWithoutChild(struct treeNode* root)
     return result;
 }
 
+void parserFree(){
+
+    tempFirstsSize = 0;
+    tempFollowsSize = 0;
+    stackFirstsSize=0;
+    numNT = 0;
+    numT = 0;
+    currentFirstFollowCompute = 0;
+    grammarLength = 0;
+    CurrentRuleTokenGlobal = NULL;
+    prevCurrentRuleTokenGlobal = NULL;
+    memset(tempFirsts, '\0', sizeof(char)*MAX_FIRST);
+    memset(stackFirsts, -1, sizeof(int)*MAX_FIRST);
+    memset(buffer,'\0',sizeof(char)*BUFF_SIZE);
+
+    memset(grammar, 0, MAX_NON_TERMINALS * sizeof(struct ntRules));
+
+}
 
 void runParser(FILE* testFile, FILE* parseTreeFile){
+
+    parserFree();
 
     FILE* fp = fopen("grammar.txt","r");
 
     readGrammerTextFile(fp);
 
+    // printAllGrammar();
+
+    if(printFlag)
     printf("\nComputing Firsts And Follows Started\n");
+
     computeFirstAndFollow();
+
+    if(printFlag)
     printf("\nComputing Firsts And Follows Ended\n\n");
 
+    if(printFlag)
     printf("\nComputing Parse Table Started\n");
+
     createParseTable();
+
+    if(printFlag)
     printf("\nComputing Parse Table Ended\n\n");
 
     populateKeywordTable();
@@ -1047,17 +1175,18 @@ void runParser(FILE* testFile, FILE* parseTreeFile){
         break;
     }
     
-
-    printf("Parser Complete\n");
+    if(printFlag)
+    printf("Parsing Input Source Started\n");    
 
     parseInputSourceCode(head->next, Table, grammar, firstFollowSets,parseTreeFile);
     
-    
+    if(printFlag)
+    printf("\nParser Complete\n");
+
 
     /*
         To generate Files : ParseTable.txt
         Uncomment above lines
     */
-
 }
 

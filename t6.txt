@@ -26,7 +26,7 @@ start
 end
 <<<driver program>>>
 start
-	declare A:array[1...15] of real;					**ERROR 6**
+	declare A:array[1...15] of real;				**ERROR 6**
 	declare k:integer;
 	declare s:real;
 	get_value(k);

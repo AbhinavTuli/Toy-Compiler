@@ -15,7 +15,7 @@
 #include <errno.h>
 
 #define BUFFER_MAX 100
-#define MAX_TABLE 200
+#define MAX_TABLE 300
 #define MAX_IDENTIFIER_LENGTH 20
 
 #ifndef LEXERDEF_H
@@ -54,7 +54,7 @@ typedef struct node1
 }  token;
 
 struct node{
-    char value[30];
+    char value[50];
     struct node* next;
     term tt;
     //token* t; //token
@@ -77,5 +77,10 @@ token* head;
 bool endfile = false;
 
 struct node* keywords[MAX_TABLE];
+
+int lexicalErrors[20];
+int numLexicalErrors;
+
+bool printFlag = true;
 
 #endif

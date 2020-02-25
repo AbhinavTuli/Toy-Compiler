@@ -22,8 +22,8 @@
 #define NTSIZE 	35
 #define TSIZE	30
 #define BUFF_SIZE 150
-#define MAX_NON_TERMINALS 100
-#define MAX_TERMINALS 100
+#define MAX_NON_TERMINALS 200
+#define MAX_TERMINALS 200
 #define MAX_FIRST 15
 #define MAX_FOLLOW 15
 
@@ -83,33 +83,12 @@ int Table[MAX_NON_TERMINALS][MAX_TERMINALS]; //stores the rule number
 
 // For Parse Tree and Syntax Verification
 
-struct ruleToken* createNode()
-{
-    struct ruleToken* temp;
-    temp = (struct ruleToken*)malloc(sizeof(struct ruleToken));
-    temp->next = NULL;
-    temp->tag = 0;
-    strcpy(temp->tnt, "");
-    return temp;
-}
-
 struct treeNode{
     char tnt[NTSIZE];
     int tag; //0 for nt, 1 for T
     struct treeNode* child;
     struct treeNode* next;
 };
-
-struct treeNode* createTreeNode()
-{
-    struct treeNode* temp;
-    temp = (struct treeNode*)malloc(sizeof(struct treeNode));
-    temp->next = NULL;
-    strcpy(temp->tnt, "");
-    temp->child = NULL;
-    temp->tag = 0;
-    return temp;
-}
 
 typedef struct StackNode { 
 	int tag; 
