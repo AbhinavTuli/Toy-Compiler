@@ -1,86 +1,111 @@
-#define NTSIZE 	35
-#define TSIZE	20
-#define BUFF_SIZE 150
-#define MAX_NON_TERMINALS 100
-#define MAX_TERMINALS 100
-#define MAX_FIRST 15
-#define MAX_FOLLOW 15
+/*
+    Group Number            -        26
+    Abhinav Tuli            -   2017A7PS0048P
+    Kushagra Raina          -   2017A7PS0161P
+    Tanmay Moghe            -   2017A7PS0184P
+    Amratanshu Shrivastava  -   2017A7PS0225P
+    Rohit Bohra             -   2017A7PS0225P
+*/
 
+#ifndef PARSER_H
+#define PARSER_H
+#include "parserDef.h"
+#include "lexerDef.h"
 
-char buffer[BUFF_SIZE];
-
-char temp[10][TSIZE]; // Contains Firsts
-int tempSize = 0;
-
-char temp2[10][TSIZE];  // Contains Follows
-int tempSize2 = 0;
-
-char nonterminals[MAX_NON_TERMINALS][NTSIZE];
-char terminals[MAX_TERMINALS][TSIZE];
-int rhsNT[15];
-
-int rhsNTSize = 0;
-int numNT = 0;
-int numT = 0;
-
-int currentFirstFollowCompute = 0;
-
-struct ruleToken* CurrentRuleTokenFF;
-
-struct ruleToken{
-    int tag; // Non-terminal(0) or terminal(1)
-    char tnt[NTSIZE];
-    struct ruleToken* next;
-};
-
-struct ntRules{
-    char nt[NTSIZE];
-    int numRules;
-    struct ruleToken heads[10];
-};
-
-struct ntfirstFollow{
-    char nt[NTSIZE];
-
-    char firsts[MAX_FIRST][TSIZE]; // firsts consists only of terminals
-    int numFirsts;
-
-    char follows[MAX_FOLLOW][TSIZE]; // follows consists only of terminals
-    int numFollows;
-};
-
-struct ntRules grammar[MAX_NON_TERMINALS];
-int grammarLength = 0;
-
-struct ntfirstFollow FirstFollowSets[MAX_NON_TERMINALS];
-
-
-// Functions
-
-void ComputeFirstAndFollow();
-
-void computeRecursiveFirst(int index,int j);
-
-void computeRecursiveFollow(int index,int j);
-
-int getIndexOfNonTerminal(char* nt);
-
-int getIndexOfTerminal(char *bufferToken);
-
-void addFirsts(int i);
-
-void addFollows(int i);
+// Reading Grammar from grammar.txt and storing it in our array of structures "grammar"
 
 void addRuleToGrammer(char* rule);
 
-void printRuleGrammarStruct(int i);
+// First Functions
 
-void printAllFirstSets();
+void computeFirstAndFollow(); // Main Function for FirstFollow
+
+void computeFirstAllSets();
+
+void computeFirstForSingleNT(int indexNT);
+
+void computeFirstRecursive(int indexNT,int ruleNum);
+
+void computeFirstRecursive2(struct ruleToken* CurrentRuleHead,struct ruleToken* toAddRuleHead);
+
+void addFirsts(int i);
+
+//  Follow Functions
+
+void computeFollowAllSets();
+
+void computeFollowForSingleNT(int indexNT);
+
+void computeFollowRecursive(char* strNT,int lineNo,int ruleNo);
+
+void computeFollowRecursive2(struct ruleToken* rulePointer,struct ntRules* startToken);
+
+void getFirstsForFollows(int indexNT,struct ruleToken* rulePointer,struct ntRules* startToken);
+
+void addFollows(int i);
+
+
+// Miscellaneous
+
+bool isEpsilon(char* str);
+
+int getIndexOfTerminal(char *bufferToken);
+
+int getIndexOfNonTerminal(char *bufferToken);
+
+int findRHSPositions(char* str,int* rhsNT,int* rhsNTRulePos);
+
+bool checkIfFollowAlreadyPresent(char* str);
+
+bool checkIfFirstAlreadyPresent(char* str);
+
+void computeFirstSets2();
+
+bool checkIfPresentInStack(int indexNT);
+
+void readGrammerTextFile(FILE* fp);
+
+// Print Functions
+
+void printAllGrammar();
+
+void printRuleGrammarStruct(int i);
 
 void printAllTerminals();
 
 void printAllNonTerminals();
 
-void findRuleNumbersForRHS_NonTerminals(char* nt);
+void printAllFirstSets();
 
-bool checkIfTokenAlreadyPresent(struct ruleToken* CurrentRuleToken);
+void printAllFollowSets();
+
+void printParseTable();
+
+// Creating Parse Table from First And Follow
+void createParseTable();
+
+void addDollarToParseTable();
+
+// Parsing Input from Lexer to Parser to check for syntax verification
+void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINALS],struct ntRules grammar[MAX_NON_TERMINALS], struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS],FILE* parseTreeFile);
+
+struct treeNode* findLeftMostWithoutChild(struct treeNode* root);
+
+// Printing InOrder Traversal of Parse Tree
+void inOrderParseTree(struct treeNode* root,FILE* parseTreeFile);
+
+token* createToken();
+
+// Stack Functions
+void printStack(lex* top);
+
+void push(lex** root, int data, char* str);
+
+int pop(lex** root);
+
+int isEmpty(lex* root);
+
+int peek(lex* root);
+
+
+#endif

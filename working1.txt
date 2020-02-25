@@ -1,4 +1,4 @@
-<<<driver Program>>>
+<<<driver program>>>
 start
 declare num, k:integer;
 declare A:array [1..10] of integer; num:=5;

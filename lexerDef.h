@@ -1,5 +1,26 @@
+/*
+    Group Number            -        26
+    Abhinav Tuli            -   2017A7PS0048P
+    Kushagra Raina          -   2017A7PS0161P
+    Tanmay Moghe            -   2017A7PS0184P
+    Amratanshu Shrivastava  -   2017A7PS0225P
+    Rohit Bohra             -   2017A7PS0225P
+*/
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <string.h> 
+#include <stdbool.h>
+#include <math.h>
+#include <errno.h>
+
+#define BUFFER_MAX 100
+#define MAX_TABLE 200
+#define MAX_IDENTIFIER_LENGTH 20
+
 #ifndef LEXERDEF_H
 #define LEXERDEF_H
+
 typedef union
 	{
 		int i;			//constant integer value
@@ -38,4 +59,23 @@ struct node{
     term tt;
     //token* t; //token
 };
+
+FILE* programFile;
+
+int buffPtr=0;
+
+int lineNumber=1;
+char buff[BUFFER_MAX];
+
+bool error = false;
+bool first = true;
+
+token* currentToken;
+token* prevToken = NULL;
+token* head; 
+
+bool endfile = false;
+
+struct node* keywords[MAX_TABLE];
+
 #endif

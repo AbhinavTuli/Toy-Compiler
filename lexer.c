@@ -1,48 +1,13 @@
 /*
- *  COMPILER PROJECT- ERPLAG COMPILER
- *  Batch Number 26
- *  Abhinav Tuli : 2017A7PS0048P
- *  Kushagra Raina : 2017A7PS0161P
- *  Tanmay Moghe : 2017A7PS0184P
- *  Rohit Bohra : 2017A7PS0225P
- *  Amratanshu Shrivastava : 2017A7PS0224P 
- */
-
-#include<string.h> 
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <math.h>
+    Group Number            -        26
+    Abhinav Tuli            -   2017A7PS0048P
+    Kushagra Raina          -   2017A7PS0161P
+    Tanmay Moghe            -   2017A7PS0184P
+    Amratanshu Shrivastava  -   2017A7PS0225P
+    Rohit Bohra             -   2017A7PS0225P
+*/
 #include "lexer.h"
 #include "lexerDef.h"
-#include <errno.h>
-
-// #define report_error(s, e) {
-//     errno=(e); 
-//     perror((s)); 
-//     exit((e)); 
-// }
-
-#define BUFFER_MAX 100
-#define MAX_TABLE 200
-#define MAX_IDENTIFIER_LENGTH 20
-FILE* programFile;
-int curr_state=0;
-int buffPtr=0;
-//int linePosition=0;
-int lineNumber=1;
-char buff[BUFFER_MAX];
-//int bcount = 0;
-int tempCount = 0;
-bool error = false;
-
-token* currentToken;
-token* prevToken = NULL;
-token* head; 
-
-bool endfile = false;
-
-struct node* keywords[MAX_TABLE];
 
 int hash(char * str) {
     int hash = 401;
@@ -54,26 +19,14 @@ int hash(char * str) {
     return hash % MAX_TABLE;
 }
 
-// token* createToken(char* keyword, term tt) //token
-// {
-//     token* t = (token*) malloc(sizeof(token));
 
-//     t->tag = 4;
-//     strcpy(t->val.s,keyword);
-//     t->prev = NULL;
-//     t->next = NULL;
-
-//     t->tokterm = tt;
-//     t->lineno = -1;
-// }
-
-void insertEntry(char* c,term te){//term tt
+void insertEntry(char* c,term te){
     if(keywords[hash(c)]==NULL){
         keywords[hash(c)]=(struct node*)malloc(sizeof(struct node));
         strcpy(keywords[hash(c)]->value,c);
         keywords[hash(c)]->next=NULL;
         keywords[hash(c)]->tt = te;
-        //keywords[hash(c)]->t=createToken(c,tt); //token
+        
     }
     else{
         struct node* t;
@@ -86,7 +39,6 @@ void insertEntry(char* c,term te){//term tt
         curr->next=NULL;
         t->next=curr;
         curr->tt = te;
-        //keywords[hash(c)]->t=createToken(c,tt); //token
     }
 }
 
@@ -216,7 +168,6 @@ void populateKeywordTable()
     insertEntry("module",MODULE);
     insertEntry("driver",DRIVER);
     insertEntry("program",PROGRAM);
-    insertEntry("Program",PROGRAM);
     insertEntry("record",RECORD);
     insertEntry("tagged",TAGGED);
     insertEntry("union",UNION);
@@ -241,53 +192,10 @@ void populateKeywordTable()
     insertEntry("while",WHILE);
 }
 
-// term getTerm(char* str) 
-// {
-//    if(strcmp)
-//    switch (str) 
-//    {
-//       case "integer": return INTEGER; 
-//       case "real": return MONDAY; 
-//       case "boolean" : return BOOLEAN; 
-//       case "of" : return OF; 
-//       case "array" : return ARRAY;
-//       case "start" : return START; 
-//       case "end" : return END; 
-//       case "declare" : return DECLARE; 
-//       case "module" : return MODULE;
-//       case "driver" : return DRIVER;
-//       //case "driverdef" : return DRIVERDEF;
-//       //case "driverenddef" : return DRIVERENDDEF;
-//       case "program" : return PROGRAM;
-//       case "record" : return RECORD;
-//       case "tagged" : return TAGGED;
-//       case "union" : return UNION;
-//       case "get_value" : return GET_VALUE;
-//       case "print" : return PRINT;
-//       case "use" : return USE;
-//       case "with" : return WITH;
-//       case "parameters" : return PARAMETERS;
-//       case "true" : return TRUE;
-//       case "false" :return FALSE ;
-//       case "takes" : return TAKES;
-//       case "input" : return INPUT;
-//       case "returns" : return RETURNS;
-//       case "AND" : return AND ;
-//       case "OR" : return OR;
-//       case "for" : return FOR;
-//       case "in" : return IN ; 
-//       case "switch" : return SWITCH;
-//       case "case" : return CASE;
-//       case "break": return BREAK;
-//       case "default" : return DEFAULT;
-//       case "while" : return WHILE;
-//       default : return e;
-//    }
-// }
 
 FILE *getStream(FILE *fp)
 {
-    tempCount++;
+    //tempCount++;
 
     char ch;
     int count=0;
@@ -321,9 +229,7 @@ FILE *getStream(FILE *fp)
     while (count<100 && ch!=EOF)
     {   
         ch = fgetc(fp);
-    
-        //if(ch=='\n')
-          //  lineNumber++;
+   
         buff[count] = ch;
         count++;  
     }
@@ -335,23 +241,11 @@ FILE *getStream(FILE *fp)
         if(count != BUFFER_MAX)
         {
             endfile = true;
-            //printf("fdsaf dsfa\n");
             buff[count-1] = '$';
-            //printf(" %c  %c     %c  %d\n",buff[count],buff[count-1],buff[count-2],count);
         }
         }
     }
 
-    //printf("   count   %d\n",count);
-    // for(int k = 0; k<count;k++)
-    // {
-    //     if(buff[k] == '\n')
-    //         printf("\nNew Line\n");
-    //     else
-    //         printf("%c",buff[k]);
-    // }
-    //printf("\nEND\n");
-    //printf("     WOOOOLOOOOOO  \n");
     buffPtr = 0;
     return fp;
 }
@@ -442,7 +336,6 @@ token* checkEQ(){
         return retTokenSTR("==",EQ);
     }
     else {
-        //printf("Lexical Error on line no. %d",lineNumber); 
         error = true;
         return prevToken;
     }
@@ -496,7 +389,6 @@ token* checkRANGEOP(){
         return retTokenSTR("..",RANGEOP);
     }
     else {
-        //printf("Lexical Error WWW on line no. %d\n",lineNumber); 
         error = true;
         return prevToken;  // No need of prevToken here, just needed something to return, not modifying prevtoken
     }
@@ -520,99 +412,75 @@ int isDigit(char c)
     return 0;
 }
 
-void removeComments(char *testcaseFile, char *cleanFile)
-{
-    int len;
-    len = strlen(testcaseFile);
-    int i=0;
-    char c;
-    char result[len];
-    int j=0;
-    char temp,next,tempNext;
-    while(i<len) //i++ in the end
-    {
-        c=testcaseFile[i];
-        
-        if(i+1 == len)
-        break;
-        
-        next=testcaseFile[i+1];
-        
-        if(c=='*' && next=='*') //comment starting
+void removeComments(FILE* fptr)
+{   
+    char curr = fgetc(fptr);
+    char next = fgetc(fptr);;
+    int flag = 0;
+
+    while (curr != EOF) 
+    { 
+        if(next==EOF){
+            printf("%c",curr);
+            break;
+        }
+
+        if(flag==1 && next!='*'){
+            printf("#%c",next);
+        }
+
+        flag=0;
+
+        if(curr =='*' && next=='*') //comment starting
         {
+            curr = fgetc(fptr);
+            next = fgetc(fptr);
 
-            printf("Comment Start Found\n");
-
-            //start reading till **
-            //start reading from the character just after the *
-
-            //put a check on i+2 and i+3
-            i=i+2;
-            //j=j+2;
-            if(i == len)
-                break;
-            
-             
-            
-
-            while(i<len)
-            {
-                c = testcaseFile[i];  
-                if(c=='\n')
+            // printf("\nComment Start Found\n");          
+            while(curr!=EOF)
+            { 
+                if(curr=='\n')
                 {
-                    result[j]='\n';
-                    j++; //to keep the number of lines same
+                    printf("\n");
+                    //j++; //to keep the number of lines same
                 }   
 
-                //if next ele is there
-                if(i+1 == len)
-                {
+                if(next==EOF){
                     break;
                 }
-                
-                next = testcaseFile[i+1];
-                if(c=='*' && next=='*') //comment end found
+                if(curr=='*' && next=='*') //comment end found
                 {   
-
-                    printf("Comment End Found\n");
-
-                    i=i+2;
+                    // printf("\nComment End Found\n");
+                    curr = fgetc(fptr);
+                    next = fgetc(fptr);
                     break;
                 }    
-            
-
-                i++; //j++;  
+                curr = next;
+                next = fgetc(fptr);
             }
-            
         }
         else //not a comment
         {
-            result[j] = testcaseFile[i]; //copy as it is
-            i++;
-            j++;        
+            if(next=='*'){
+                printf("%c",curr);
+                flag = 1;
+                curr = next;
+                next = fgetc(fptr);
+            }else{
+                printf("%c%c",curr,next);
+                curr = fgetc(fptr);
+                next = fgetc(fptr);
+            }
         }
-        
-    
-    } //end of while
-
-    
-    for(int i=0;i<len;i++)
-    {
-        if(result[i] == '\0')
-            break;
-        
-        cleanFile[i]=result[i];
-
-    
-    }
-    
+    } 
+  
+    fclose(fptr); 
 }
+
 void getNextToken()
 {   
-    //printf("dvd ");
     if(buffPtr > BUFFER_MAX - 20){
         programFile = getStream(programFile);
-       // buffPtr=0; 
     }
 
     if(prevToken == NULL)
@@ -627,7 +495,6 @@ void getNextToken()
         prevToken->tag = 1;
 
         head = prevToken;
-        //printf("head assigned\n");
     }
 
     currentToken = head;
@@ -637,7 +504,6 @@ void getNextToken()
     bool tokenGet = false;
     while(!tokenGet)
     {
-        //printf("%c",curr);
 
         switch(curr){
         case ':' :  currentToken = checkASSIGNOP();
@@ -666,9 +532,7 @@ void getNextToken()
                     
                     else
                     {
-                        //printf("Before");
                         currentToken = ttoken;
-                        //printf("After");
                         tokenGet = true;
                         break;
                     }
@@ -681,12 +545,12 @@ void getNextToken()
                     tokenGet = true;
                     break;
 
-        case '\r':  curr=buff[buffPtr];
-                    buffPtr++;
-                    break;
-
         case '$' :  currentToken = retTokenSTR("$",$);
                     tokenGet = true;
+                    break;
+
+        case '\r':  curr = buff[buffPtr];
+                    buffPtr++;
                     break;
                     
         case '\t':  //it will fall through this case (no break statement)
@@ -704,14 +568,11 @@ void getNextToken()
                     break;
 
         case '\n' : lineNumber++;
-                    //printf(" 1. line No. = %d  \n",lineNumber);
                     
                     if(buffPtr > BUFFER_MAX - 20)
                             programFile = getStream(programFile);
 
                     curr = buff[buffPtr];
-                    // if(curr == '\n')
-                    //     printf("WOOLOO");
                     buffPtr++;
 
                     break;
@@ -1112,9 +973,43 @@ void getNextToken()
     }
 }
 
+token* lexerRun(FILE* fptr)
+{
+    programFile = fptr;
+    programFile = getStream(programFile);
+
+    //printf("WOOOLOOOO");
+
+    if(first)
+    {
+        populateKeywordTable();
+        first = false;
+    }
+
+    token* trav = head;
+
+    while(true)
+    {
+        getNextToken();
+
+        if(currentToken->tokterm == 60)
+            break;
+    }
+
+    return head;
+}
+
+void lexerFree()
+{
+    prevToken = NULL;
+    error = false;
+    lineNumber=1;
+    endfile = false;
+}
+
 // int main(){
 //     //printf("one one");
-//     programFile=fopen("t5.txt","rb");
+//     programFile=fopen("t7.txt","rb");
 //     programFile=getStream(programFile);
     
 //     populateKeywordTable();
@@ -1132,14 +1027,14 @@ void getNextToken()
 //             printf("%d  %s\n",trav->tokterm,trav->val.s);
 //             break;
 //         }
-//         if(trav->tag == 1)
-//             printf("Term - %s, Lexeme - %d, On line number  %d\n",getLexeme(trav->tokterm),trav->val.i,trav->lineno);
-//         if(trav->tag == 2)
-//             printf("Term - %s, Lexeme - %f, On line number  %d\n",getLexeme(trav->tokterm),trav->val.f,trav->lineno);
-//         if(trav->tag == 3)
-//             printf("Term - %s, Lexeme - %d, On line number  %d\n",getLexeme(trav->tokterm),trav->val.b,trav->lineno);
-//         if(trav->tag == 4)
-//             printf("Term - %s, Lexeme - %s, On line number  %d\n",getLexeme(trav->tokterm),trav->val.s,trav->lineno);
-//         //trav = trav->next;
+        // if(trav->tag == 1)
+        //     printf("Term - %s, Lexeme - %d, On line number  %d\n",getLexeme(trav->tokterm),trav->val.i,trav->lineno);
+        // if(trav->tag == 2)
+        //     printf("Term - %s, Lexeme - %f, On line number  %d\n",getLexeme(trav->tokterm),trav->val.f,trav->lineno);
+        // if(trav->tag == 3)
+        //     printf("Term - %s, Lexeme - %d, On line number  %d\n",getLexeme(trav->tokterm),trav->val.b,trav->lineno);
+        // if(trav->tag == 4)
+        //     printf("Term - %s, Lexeme - %s, On line number  %d\n",getLexeme(trav->tokterm),trav->val.s,trav->lineno);
+        //trav = trav->next;
 //     }
 // }
