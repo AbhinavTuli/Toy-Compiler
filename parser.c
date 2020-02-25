@@ -835,8 +835,10 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
                 // printf("Yo\n");
                 break;
             }
-            printf("Parse tree is:- \n");
+
             inOrderParseTree(root,parseTreeFile);
+
+            if(printFlag)
             printf("\n\nParseTreeFile Generated\n");
             return;
         }
@@ -1013,7 +1015,12 @@ void printStack(lex* top){
 }
 int isEmpty(lex* root) 
 { 
-	return !root; 
+	if(root->next==NULL){
+        return 1;
+    }else{
+        return 0;
+    }
+    
 } 
 
 void push(lex** root, int data, char* str) 
@@ -1055,7 +1062,7 @@ void inOrderParseTree(struct treeNode* root,FILE* parseTreeFile){
         temp=temp->next;
   
     // Print the current node's data 
-    printf("%s ",root->tnt); 
+    // printf("%s ",root->tnt); 
     fflush(parseTreeFile);
     fprintf(parseTreeFile,"%s ",root->tnt);
   
