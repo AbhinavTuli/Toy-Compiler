@@ -1,15 +1,74 @@
 #include "parser.h"
 #include "parserDef.h"
-//#include "lexer.c"
 #include "ast.h"
 #include "lexerDef.h"
 
-struct astNode* makeAstNode(char name[], value val,int tag,struct astNode* child){
+void printGivenLevel(struct astNode* root, int level); 
+int height(struct astNode* node); 
+
+void printLevelOrder(struct astNode* root) 
+{ 
+    //printf("Level order Called\n");
+    int h = height(root); 
+    int i; 
+    for (i=1; i<=h; i++) {
+        printGivenLevel(root, i); 
+            printf("\n"); 
+    }
+
+} 
+  
+/* Print nodes at a given level */
+void printGivenLevel(struct astNode* root, int level) 
+{ 
+    if (root == NULL) 
+        return; 
+    if (level == 1) 
+        printf("%s ", root->name); 
+    else if (level > 1) 
+    {   
+        struct astNode* temp = root->child;
+        while(temp!=NULL){
+            printGivenLevel(temp, level-1);
+            temp = temp->next;
+        } 
+        printf("|");
+    }
+} 
+  
+/* Compute the "height" of a tree -- the number of 
+    nodes along the longest path from the root node 
+    down to the farthest leaf node.*/
+int height(struct astNode* node) 
+{   
+    return 25;
+    if (node==NULL) 
+        return 0;
+    int maxh=1;
+    struct astNode* temp=node;
+    struct astNode* temp2=node;
+    if(temp->child!=NULL){
+        maxh=1+height(temp->child);
+        //temp=temp->child;
+    }
+    /* compute the height of each subtree */
+    while(temp2!=NULL){
+        temp2=temp2->next;
+        int t=height(temp2);
+        if(t>maxh){
+                maxh=t;
+        }
+    } 
+    return maxh;
+} 
+
+struct astNode* makeAstNode(char* name, value val,int tag,struct astNode* child){
     struct astNode* newNode = (struct astNode*) malloc(sizeof(struct astNode));
     newNode->child = child;
     newNode->tag = 0;
+    //printf("Check!! : %s\n",name);
     strcpy(newNode->name,name);
-
+    // printf("Check!! : %s\n",newNode->name);
     switch (tag)
     {
         case 1:     newNode->val.i = val.i;
@@ -32,13 +91,17 @@ struct astNode* makeAstNode(char name[], value val,int tag,struct astNode* child
 }
 
 struct astNode* generateAST(struct treeNode* root){
-    
-    printf("Yo\n");
+    if(root==NULL){
+        printf("ERROR!\n");
+        return NULL;
+    }
+    printf("%s\n",root->tnt);
     // tRoot - TreeNode , aRoot - astNode
     struct treeNode* temp;
     struct astNode* tempAstNode;
     struct astNode* childAstNode;
     value valAstNode;
+    
     // check for null   
     
     // <program>  -->  <moduleDeclarations> <otherModules><driverModule><otherModules>
@@ -565,7 +628,9 @@ struct astNode* generateAST(struct treeNode* root){
     else if(strcmp(root->tnt,"AnyTerm")==0 && strcmp(root->child->tnt,"arithmeticExpr")==0){
         temp = root->child;
         childAstNode = generateAST(temp);
+        printf("Yo 1\n");
         childAstNode->next = generateAST(temp->next);
+        printf("Yo 2\n");
         return makeAstNode("AnyTerm",valAstNode,0,childAstNode);
     }
 
@@ -574,11 +639,14 @@ struct astNode* generateAST(struct treeNode* root){
        return generateAST(root->child);
     }
 
-    else if(strcmp(root->tnt,"N8")){ 
+    else if(strcmp(root->tnt,"N8")==0){ 
         // <N8>  -->  <relationalOp> <arithmeticExpr>
-        if(strcmp(root->child->tnt,"relationalOp")){
+        if(strcmp(root->child->tnt,"relationalOp")==0){
+            printf("Check1\n");  
             temp = root->child; 
+            printf("Check2\n");
             childAstNode = generateAST(temp);
+            printf("Check3\n");
             temp = temp->next; 
             tempAstNode = childAstNode;
             tempAstNode->next = generateAST(temp);
@@ -588,21 +656,23 @@ struct astNode* generateAST(struct treeNode* root){
         // <N8>  -->  ε
         else{
             strcpy(valAstNode.s,"ε");
-            return(makeAstNode("N8",valAstNode,4,NULL));
+            childAstNode = makeAstNode("N8",valAstNode,4,NULL);
+            return childAstNode;
         }
     }
 
 
     // <arithmeticExpr>  -->  <term> <N4>
-    else if(strcmp(root->tnt,"arithmeticExpr")){
+    else if(strcmp(root->tnt,"arithmeticExpr")==0){
         childAstNode = generateAST(root->child);
         childAstNode->next = generateAST(root->child->next);
+        return makeAstNode("arithmeticExpr",valAstNode,0,childAstNode);
     } 
 
-    else if(strcmp(root->tnt,"N4")){ 
+    else if(strcmp(root->tnt,"N4")==0){ 
 
         // <N4>  -->  <op1> <term> <N4>
-        if(strcmp(root->child->tnt,"op1")){
+        if(strcmp(root->child->tnt,"op1")==0){
             temp = root->child; // <op1>
             childAstNode = generateAST(temp);
             tempAstNode = childAstNode;
@@ -623,7 +693,7 @@ struct astNode* generateAST(struct treeNode* root){
     }
 
     // <term>  -->  <factor> <N5>
-    else if(strcmp(root->tnt,"term")){ 
+    else if(strcmp(root->tnt,"term")==0){ 
         temp = root->child; 
         childAstNode = generateAST(temp);
         temp = temp->next; 
@@ -633,10 +703,10 @@ struct astNode* generateAST(struct treeNode* root){
         return makeAstNode("term",valAstNode,0,childAstNode);
     }
 
-    else if(strcmp(root->tnt,"N5")){ 
+    else if(strcmp(root->tnt,"N5")==0){ 
 
         // <N5>  -->  <op2> <factor> <N5> 
-        if(strcmp(root->child->tnt,"op2")){
+        if(strcmp(root->child->tnt,"op2")==0){
             temp = root->child; // <op2>
             childAstNode = generateAST(temp);
             tempAstNode = childAstNode;
@@ -656,10 +726,10 @@ struct astNode* generateAST(struct treeNode* root){
         }
     }
 
-    else if(strcmp(root->tnt,"factor")){ 
+    else if(strcmp(root->tnt,"factor")==0){ 
 
         // <factor>  -->  BO <arithmeticOrBooleanExpr> BC  
-        if(strcmp(root->child->tnt,"BO")){
+        if(strcmp(root->child->tnt,"BO")==0){
             return generateAST(root->child->next);
         }
         // <factor>  -->  <var_id_num>
@@ -669,80 +739,80 @@ struct astNode* generateAST(struct treeNode* root){
     }
 
 
-    else if(strcmp(root->tnt,"op1")){ 
+    else if(strcmp(root->tnt,"op1")==0){ 
 
         // <op1>  -->  PLUS
-        if(strcmp(root->child->tnt,"PLUS")){
+        if(strcmp(root->child->tnt,"PLUS")==0){
             strcpy(valAstNode.s,"+");
             return makeAstNode("op1",valAstNode,4,NULL);
         }
         
         // <op1>  -->  MINUS
-        else if(strcmp(root->child->tnt,"MINUS")){
+        else if(strcmp(root->child->tnt,"MINUS")==0){
             strcpy(valAstNode.s,"-");
             return makeAstNode("op1",valAstNode,4,NULL);
         }
     }
     
-    else if(strcmp(root->tnt,"op2")){ 
+    else if(strcmp(root->tnt,"op2")==0){ 
 
         // <op2>  -->  MUL
-        if(strcmp(root->child->tnt,"MUL")){
+        if(strcmp(root->child->tnt,"MUL")==0){
             strcpy(valAstNode.s,"*");
             return makeAstNode("op2",valAstNode,4,NULL);
         }
         
         // <op2>  -->  DIV
-        else if(strcmp(root->child->tnt,"DIV")){
+        else if(strcmp(root->child->tnt,"DIV")==0){
             strcpy(valAstNode.s,"/");
             return makeAstNode("op2",valAstNode,4,NULL);
         }
     }
 
-    else if(strcmp(root->tnt,"logicalOp")){ 
+    else if(strcmp(root->tnt,"logicalOp")==0){ 
         // <logicalOp>  -->  AND
-        if(strcmp(root->child->tnt,"AND")){
+        if(strcmp(root->child->tnt,"AND")==0){
             strcpy(valAstNode.s,"AND");
             return makeAstNode("logicalOp",valAstNode,4,NULL);
         }
         
         // <logicalOp>  -->  OR
-        else if(strcmp(root->child->tnt,"OR")){
+        else if(strcmp(root->child->tnt,"OR")==0){
             strcpy(valAstNode.s,"OR");
             return makeAstNode("logicalOp",valAstNode,4,NULL);
         }
     }
 
     
-    else if(strcmp(root->tnt,"relationalOp")){
+    else if(strcmp(root->tnt,"relationalOp")==0){
 
         // <relationalOp>  -->  LT
-        if(strcmp(root->child->tnt,"LT")){
+        if(strcmp(root->child->tnt,"LT")==0){
             strcpy(valAstNode.s,"LT");
             return makeAstNode("relationalOp",valAstNode,4,NULL);
         }
         // <relationalOp>  -->  LE
-        else if(strcmp(root->child->tnt,"LE")){
+        else if(strcmp(root->child->tnt,"LE")==0){
             strcpy(valAstNode.s,"LE");
             return makeAstNode("relationalOp",valAstNode,4,NULL);
         }
         // <relationalOp>  -->  GT
-        else if(strcmp(root->child->tnt,"GT")){
+        else if(strcmp(root->child->tnt,"GT")==0){
             strcpy(valAstNode.s,"GT");
             return makeAstNode("relationalOp",valAstNode,4,NULL);
         }
         // <relationalOp>  -->  GE
-        else if(strcmp(root->child->tnt,"GE")){
+        else if(strcmp(root->child->tnt,"GE")==0){
             strcpy(valAstNode.s,"GE");
             return makeAstNode("relationalOp",valAstNode,4,NULL);
         }
         // <relationalOp>  -->  EQ
-        else if(strcmp(root->child->tnt,"EQ")){
+        else if(strcmp(root->child->tnt,"EQ")==0){
             strcpy(valAstNode.s,"EQ");
             return makeAstNode("relationalOp",valAstNode,4,NULL);
         }
         // <relationalOp>  -->  NE
-        else if(strcmp(root->child->tnt,"NE")){
+        else if(strcmp(root->child->tnt,"NE")==0){
             strcpy(valAstNode.s,"NE");
             return makeAstNode("relationalOp",valAstNode,4,NULL);
         }
@@ -752,6 +822,7 @@ struct astNode* generateAST(struct treeNode* root){
     else if(strcmp(root->tnt,"declareStmt")==0){
         temp = root->child; // DECLARE
         temp = temp->next;  // <idList>
+        ;
         childAstNode = generateAST(temp);
         tempAstNode = childAstNode;
 
@@ -966,6 +1037,8 @@ void runAST(FILE* testFile, FILE* parseTreeFile){
 
     struct treeNode* rootParseTree = parseInputSourceCode(head->next, Table, grammar, firstFollowSets,parseTreeFile);
     
+    inOrderParseTree(rootParseTree,parseTreeFile);    
+
     generateAST(rootParseTree);
     if(printFlag)
     printf("\nParser Complete\n");
