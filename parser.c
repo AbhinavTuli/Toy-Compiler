@@ -496,7 +496,7 @@ void printRuleGrammarStruct(int i){
 
 void printAllGrammar(){
     for(int i=0;i<grammarLength;i++){
-        printf("Check\n");
+        // printf("Check\n");
         printRuleGrammarStruct(i);
     }
 }
@@ -796,7 +796,7 @@ bool checkIfLexicalErrorLine(int line){
     return false;
 }
 
-void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINALS],struct ntRules grammar[MAX_NON_TERMINALS], struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS],FILE* parseTreeFile)
+struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINALS],struct ntRules grammar[MAX_NON_TERMINALS], struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS],FILE* parseTreeFile)
 {
     struct treeNode* root = createTreeNode();
     root->next = NULL;
@@ -836,11 +836,11 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
                 break;
             }
 
-            inOrderParseTree(root,parseTreeFile);
+            // inOrderParseTree(root,parseTreeFile);
 
             if(printFlag)
             printf("\n\nParseTreeFile Generated\n");
-            return;
+            return root;
         }
         if(strcmp(tempTreeNodeParent->tnt,"")!=0){
             tempTreeNode = createTreeNode();
@@ -864,9 +864,11 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
             // printf("Popping on match %s , %s\n",top->tnt,tempTreeNode->tnt);
             if(checkForValueToken(currLexeme)){
                 // Add Value to the TreeNode
+
                 if(top->pTreePointer!=NULL){
                     top->pTreePointer->val = temp->val;
-                    printf("Add Value : %s\n",top->tnt);
+                    top->pTreePointer->tagUnion = temp->tag;
+                    // printf("Add Value : %s\n",top->tnt);
                 } 
             }
 
@@ -888,7 +890,7 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
 
                 if(isEmpty(top)==0 && strcmp(currLexeme,"$")==0){
                     printf("Error in parsing! Stack isn't empty at the end! Parse Tree Not generated!\n");
-                    return;
+                    return NULL;
                 }
 
                 if(printFlag){
@@ -933,7 +935,7 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
                 }
 
                 if(temp==NULL)
-                return;
+                return NULL;
 
                 continue;
             }
@@ -962,28 +964,32 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
             tempTreeNode->tag = head.tag;
             tempTreeNode->next = NULL;
             tempTreeNode->child = NULL;
-            printf("Add %s\n",tempTreeNode->tnt);
+            // printf("Add %s\n",tempTreeNode->tnt);
 
             if(checkForValueToken(tempTreeNode->tnt)){
 
-                printf("Check!! : %s\n",tempTreeNode->tnt);
+                // printf("Check!! : %s\n",tempTreeNode->tnt);
 
               switch (temp->tag)
               {
                 case 1:     tempTreeNode->val.i = temp->val.i;
-                            printf("Add Int %d\n",temp->val.i);
+                            tempTreeNode->tagUnion = 1;
+                            // printf("Add Int %d\n",temp->val.i);
                 break;
                 
                 case 2:     tempTreeNode->val.f = temp->val.f;
-                            printf("Add Float %f\n",temp->val.f);
+                            tempTreeNode->tagUnion = 2;
+                            // printf("Add Float %f\n",temp->val.f);
                 break;
                     
                 case 3:     tempTreeNode->val.b = temp->val.b;
-                            printf(temp->val.b ? "true\n" : "false\n");
+                            tempTreeNode->tagUnion = 3;
+                            // printf(temp->val.b ? "true\n" : "false\n");
                 break;
                 
                 case 4:     strcpy(tempTreeNode->val.s,temp->val.s);
-                            printf("Add Str %s\n",temp->val.s);
+                            tempTreeNode->tagUnion = 4;
+                            // printf("Add Str %s\n",temp->val.s);
                 break;
 
                 default:
@@ -1016,7 +1022,7 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
                 tempTreeNode->tag = headNext->tag;
                 tempTreeNode->next = NULL;
                 tempTreeNode->child = NULL;   
-                printf("Add2 %s\n",tempTreeNode->tnt);
+                // printf("Add2 %s\n",tempTreeNode->tnt);
                 ARRAY[index].pTreePointer = tempTreeNode;
                 //push(&top, headNext->tag, headNext->tnt );
                 headNext = headNext->next;
@@ -1036,7 +1042,7 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
     //if stack isn't empty
     if(isEmpty(top)==0){
         printf("Error in parsing! Stack isn't empty at the end! Parse Tree Not generated!\n");
-        return;
+        return NULL;
     }
 
 }
@@ -1100,6 +1106,19 @@ void inOrderParseTree(struct treeNode* root,FILE* parseTreeFile){
   
     // Print the current node's data 
     printf("%s ",root->tnt); 
+    // printf("%d ",root->tagUnion); 
+    if(root->tagUnion==1){
+        printf("tag %d\n",root->val.i); 
+    }
+    else if(root->tagUnion==2){
+        printf("tag %f\n",root->val.f); 
+    }
+    else if(root->tagUnion==3){
+        printf(root->val.b ? "tag true \n" : "tag false\n");
+    }
+    else if(root->tagUnion==4){
+        printf("tag %s \n",root->val.s);
+    }
     
     fprintf(parseTreeFile,"%s ",root->tnt);
     fflush(parseTreeFile);
@@ -1178,7 +1197,7 @@ void parserFree(){
 
 bool checkForValueToken(char* str){
 
-    if(strcmp(str,"INTEGER")==0 || strcmp(str,"REAL")==0 || strcmp(str,"BOOLEAN")==0 || strcmp(str,"ID")==0 || strcmp(str,"NUM")==0 || strcmp(str,"RNUM")==0)
+    if(strcmp(str,"ID")==0 || strcmp(str,"NUM")==0 || strcmp(str,"RNUM")==0)
     return true;
     
     return false;
@@ -1231,10 +1250,12 @@ void runParser(FILE* testFile, FILE* parseTreeFile){
     if(printFlag)
     printf("Parsing Input Source Started\n");    
 
-    parseInputSourceCode(head->next, Table, grammar, firstFollowSets,parseTreeFile);
+    struct treeNode* rootParseTree = parseInputSourceCode(head->next, Table, grammar, firstFollowSets,parseTreeFile);
     
     if(printFlag)
     printf("\nParser Complete\n");
+
+    inOrderParseTree(rootParseTree,parseTreeFile);
 
     /*
         To generate Files : ParseTable.txt

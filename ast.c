@@ -1,27 +1,51 @@
 #include "parser.h"
 #include "parserDef.h"
-#include "lexer.c"
+//#include "lexer.c"
 #include "ast.h"
+#include "lexerDef.h"
 
-struct astNode* makeAstNode(){
-    struct astNode* newNode = (struct astNode*) malloc(sizeof(struct ASTNode));
+struct astNode* makeAstNode(char name[], value val,int tag,struct astNode* child){
+    struct astNode* newNode = (struct astNode*) malloc(sizeof(struct astNode));
+    newNode->child = child;
+    newNode->tag = 0;
+    strcpy(newNode->name,name);
 
+    switch (tag)
+    {
+        case 1:     newNode->val.i = val.i;
+        break;
+        
+        case 2:     newNode->val.f = val.f;
+        break;
+            
+        case 3:     newNode->val.b = val.b;
+        break;
+        
+        case 4:     strcpy(newNode->val.s,val.s);
+        break;
+
+        default:
+            break;
+    }
+
+    return newNode;
 }
 
 struct astNode* generateAST(struct treeNode* root){
+    
+    printf("Yo\n");
     // tRoot - TreeNode , aRoot - astNode
     struct treeNode* temp;
     struct astNode* tempAstNode;
     struct astNode* childAstNode;
-
-
-    // check for null
+    value valAstNode;
+    // check for null   
     
     // <program>  -->  <moduleDeclarations> <otherModules><driverModule><otherModules>
     if(strcmp(root->tnt,"program")==0){
-        temp=root->child;
+        temp=root->child; // <moduleDeclarations>
         childAstNode=generateAST(temp);
-        temp = temp->next;
+        temp = temp->next; // <otherModules>
         tempAstNode = childAstNode;
         while(temp!=NULL){
             tempAstNode->next = generateAST(temp);
@@ -31,6 +55,7 @@ struct astNode* generateAST(struct treeNode* root){
 
         return(childAstNode);
     }
+
     // <moduleDeclarations>  -->  <moduleDeclaration><moduleDeclarations> 
     else if(strcmp(root->tnt,"moduleDeclarations")==0 && strcmp(root->child->tnt,"moduleDeclaration")==0){
         temp=root->child;
@@ -43,161 +68,179 @@ struct astNode* generateAST(struct treeNode* root){
             tempAstNode = tempAstNode->next;
         }
 
-        return(makeASTNode("moduleDeclarations","",childAstNode));
+        return(makeAstNode("moduleDeclarations",valAstNode,0,childAstNode));
     }
     
     // <moduleDeclarations>  -->  ε
     
     else if(strcmp(root->tnt,"moduleDeclarations")==0){
-        return(makeASTNode("moduleDeclarations","ε",NULL));
+        strcpy(valAstNode.s,"ε");
+        return(makeAstNode("moduleDeclarations",valAstNode,4,NULL));
     }
     
 
     // <moduleDeclaration>  -->  DECLARE MODULE ID SEMICOL 
     else if(strcmp(root->tnt,"moduleDeclaration")==0){
         temp=root->child;
-        temp=temp->next; //at module now
-        // Todo : Change in Parser.c 
-        //  Pass Function Name  
-        return(makeASTNode("moduleDeclaration",temp->val,NULL));
+        temp=temp->next; //at MODULE now
+        temp=temp->next; //at ID
+        strcpy(valAstNode.s,temp->val.s); 
+        childAstNode = makeAstNode("ID",valAstNode,4,NULL);
+
+        return(childAstNode);
     }
 
     // <otherModules>   -->  <module> <otherModules> 
     else if(strcmp(root->tnt,"otherModules")==0 && strcmp(root->child->tnt,"module")==0){
-        temp=root->child;
+        temp=root->child; // <module>
         childAstNode=generateAST(temp);
-        temp = temp->next;
-        tempAstNode = childAstNode;
-        while(temp!=NULL){
-            tempAstNode->next = generateAST(temp);
-            temp=temp->next;
-            tempAstNode = tempAstNode->next;
-        }
-        return(makeASTNode("otherModules","",childAstNode));
+        temp = temp->next; // <otherModules>
+        childAstNode->next = generateAST(temp);
+
+        return(makeAstNode("otherModules",valAstNode,0,childAstNode));
     }
 
     // <otherModules>   -->  ε
     else if(strcmp(root->tnt,"otherModules")==0){
-        return(makeASTNode("otherModules","ε",NULL));
+        strcpy(valAstNode.s,"ε");
+        return(makeAstNode("otherModules",valAstNode,4,NULL));
     }
 
     // <driverModule> -->  DRIVERDEF DRIVER PROGRAM DRIVERENDDEF <moduleDef>
     else if(strcmp(root->tnt,"driverModule")==0){
-        temp=root->child;
+        temp=root->child; // DRIVERDEF
+        temp = temp->next; // DRIVER
+        temp = temp->next; // PROGRAM
+        temp = temp->next; // DRIVERENDDEF
+        temp = temp->next; // <moduleDef>
         childAstNode=generateAST(temp);
-        temp = temp->next;
-        tempAstNode = childAstNode;
-        while(temp!=NULL){
-            if(strcmp(temp->tnt,"moduleDef")!=0){
-                temp=temp->next;
-                continue;
-            }
-            tempAstNode->next = generateAST(temp);
-            temp=temp->next;
-            tempAstNode = tempAstNode->next;
-        }
-        return(makeASTNode("driverModule","",childAstNode));
+
+        return(makeAstNode("driverModule",valAstNode,0,childAstNode));
     }
 
     // <module> -->  DEF MODULE ID ENDDEF TAKES INPUT SQBO <input_plist> SQBC SEMICOL <ret> <moduleDef>
     else if(strcmp(root->tnt,"module")==0){
-        temp=root->child;
-        
-        while(strcmp(temp->tnt,"input_plist")!=0){
-            temp=temp->next;
-        }
-        childAstNode=generateAST(temp);
-        temp=temp->next;
+        temp=root->child; // DEF
+        temp=root->child; // MODULE
+        temp=root->child; // ID
+        strcpy(valAstNode.s,temp->val.s);
+        childAstNode = makeAstNode("ID",valAstNode,4,NULL);
         tempAstNode=childAstNode;
-        while(temp!=NULL){
-            if(strcmp(temp->tnt,"ret")!=0 && strcmp(temp->tnt,"moduleDef")!=0){
-                temp=temp->next;
-                continue;
-            }
-            tempAstNode->next = generateAST(temp);
-            temp=temp->next;
-            tempAstNode = tempAstNode->next;
-        }
-        return(makeASTNode("module","",childAstNode));
+        temp=root->child; // ENDDEF
+        temp=root->child; // TAKES
+        temp=root->child; // INPUT
+        temp=root->child; // SQBO
+        
+        tempAstNode->next=generateAST(temp);
+
+        temp=temp->next; // SQBC
+        temp=temp->next; // SEMICOL
+        temp=temp->next; // <ret>
+        
+        tempAstNode->next = generateAST(temp);
+        tempAstNode = tempAstNode->next;
+        temp=temp->next; // <moduleDef>
+        tempAstNode->next = generateAST(temp);
+
+        return(makeAstNode("module",valAstNode,0,childAstNode));
     }
     // <ret>  -->  RETURNS SQBO <output_plist> SQBC SEMICOL
     else if(strcmp(root->tnt,"ret")==0 && strcmp(root->child->tnt,"RETURNS")==0){
         temp=root->child;
-        while(temp!=NULL){
-            if(strcmp(temp->tnt,"output_plist")==0){
-                return generateAST(temp);
-            }
-            temp==temp->next;
-        }
+        temp=temp->next;
+        temp=temp->next;
+        return generateAST(temp);
     }
 
     // <ret>  -->  ε
     else if(strcmp(root->tnt,"ret")==0){
-        return(makeASTNode("ret","ε",NULL));
+        strcpy(valAstNode.s,"ε");
+        return(makeAstNode("ret",valAstNode,4,NULL));
     }
 
     // <input_plist>  -->  ID COLON <dataType><N1>
     else if(strcmp(root->tnt,"input_plist")==0){
-        temp=root->child;
+        temp=root->child; // ID
+        strcpy(valAstNode.s,temp->val.s);
+        childAstNode = makeAstNode("ID",valAstNode,4,NULL);
+        tempAstNode = childAstNode;
         temp=temp->next;
         temp=temp->next;
-        childAstNode=generateAST(temp);
+        tempAstNode->next=generateAST(temp);
+        tempAstNode = tempAstNode ->next;
         temp=temp->next;
-        childAstNode->next=generateAST(temp);
-        return(makeASTNode("input_plist","",childAstNode));
+        tempAstNode->next=generateAST(temp);
+        return(makeAstNode("input_plist",valAstNode,0,childAstNode));
     }
     // <N1>  -->  COMMA ID COLON <dataType> <N1>
     else if(strcmp(root->tnt,"N1")==0 && strcmp(root->child->tnt,"COMMA")==0){
-        temp=root->child;
+        temp=root->child; // COMMMA
+        temp = temp->next; // ID
+        strcpy(valAstNode.s,temp->val.s);
+        childAstNode = makeAstNode("ID",valAstNode,4,NULL);
+        tempAstNode = childAstNode;
         temp = temp->next;
         temp = temp->next;
-        temp = temp->next;
-        childAstNode=generateAST(temp);
+        tempAstNode->next=generateAST(temp);
+        tempAstNode = tempAstNode ->next;
         temp = temp->next;
         childAstNode->next=generateAST(temp);
-        return(makeASTNode("N1","",childAstNode));
+        return(makeAstNode("N1",valAstNode,0,childAstNode));
     }
     // <N1>  -->  ε
     else if(strcmp(root->tnt,"N1")==0){
-        return(makeASTNode("N1","ε",NULL));
+        strcpy(valAstNode.s,"ε");
+        return(makeAstNode("N1",valAstNode,4,NULL));
     }
     // <output_plist>  -->  ID COLON <type><N2>
     else if(strcmp(root->tnt,"output_plist")==0){
-        temp=root->child;
+        temp=root->child; // ID
+        strcpy(valAstNode.s,temp->val.s);
+        childAstNode = makeAstNode("ID",valAstNode,4,NULL);
+        tempAstNode = childAstNode;
         temp=temp->next;
-        temp=temp->next;
-        childAstNode=generateAST(temp);
-        temp=temp->next;
-        childAstNode->next=generateAST(temp);
-        return(makeASTNode("output_plist","",childAstNode));
+        temp=temp->next; // <type>
+        tempAstNode->next=generateAST(temp);
+        tempAstNode = tempAstNode ->next;
+        temp=temp->next; // <N2>
+        tempAstNode->next=generateAST(temp);
+        return(makeAstNode("output_plist",valAstNode,0,childAstNode));
     }
     // <N2>  -->  COMMA ID COLON <type><N2>
     else if(strcmp(root->tnt,"N1")==0 && strcmp(root->child->tnt,"COMMA")==0){
         temp=root->child;
         temp = temp->next;
+        strcpy(valAstNode.s,temp->val.s);
+        childAstNode = makeAstNode("ID",valAstNode,4,NULL);
+        tempAstNode = childAstNode;
         temp = temp->next;
         temp = temp->next;
-        childAstNode=generateAST(temp);
+        tempAstNode->next=generateAST(temp);
+        tempAstNode = tempAstNode ->next;
         temp = temp->next;
-        childAstNode->next=generateAST(temp);
-        return(makeASTNode("N2","",childAstNode));
+        tempAstNode->next=generateAST(temp);
+        return(makeAstNode("N2",valAstNode,0,childAstNode));
     }
 
     // <N2>  -->  ε
     else if(strcmp(root->tnt,"N2")==0){
-        return(makeASTNode("N2","ε",NULL));
+        strcpy(valAstNode.s,"ε");
+        return(makeAstNode("N2",valAstNode,4,NULL));
     }
     // <dataType>  -->   INTEGER
     else if(strcmp(root->tnt,"dataType")==0 && strcmp(root->child->tnt,"INTEGER")==0){
-        return(makeASTNode("dataType","INTEGER",NULL));
+        valAstNode.i = root->child->val.i;
+        return(makeAstNode("dataType",valAstNode,1,NULL));
     }
     // <dataType>  -->   REAL
     else if(strcmp(root->tnt,"dataType")==0 && strcmp(root->child->tnt,"REAL")==0){
-        return(makeASTNode("dataType","REAL",NULL));
+        valAstNode.f = root->child->val.f;
+        return(makeAstNode("dataType",valAstNode,2,NULL));
     }
     // <dataType>  -->   BOOLEAN
     else if(strcmp(root->tnt,"dataType")==0 && strcmp(root->child->tnt,"BOOLEAN")==0){
-        return(makeASTNode("dataType","BOOLEAN",NULL));
+        valAstNode.b = root->child->val.b;
+        return(makeAstNode("dataType",valAstNode,3,NULL));
     }
     // <dataType>  -->   ARRAY SQBO <range_arrays> SQBC OF <type>
     else if(strcmp(root->tnt,"datatype")==0 && strcmp(root->child->tnt,"ARRAY")==0){
@@ -209,7 +252,7 @@ struct astNode* generateAST(struct treeNode* root){
         temp = temp->next;
         temp = temp->next;
         childAstNode->next=generateAST(temp);
-        return(makeASTNode("dataytype","",childAstNode));
+        return(makeAstNode("datatype",valAstNode,0,childAstNode));
     }
     // <range_arrays>  -->  <index> RANGEOP <index>
     else if(strcmp(root->tnt,"range_arrays")==0){
@@ -218,147 +261,155 @@ struct astNode* generateAST(struct treeNode* root){
         temp=temp->next;
         temp=temp->next;
         childAstNode->next=generateAST(temp);
-        return(makeASTNode("range_arrays","",childAstNode));
+        return(makeAstNode("range_arrays",valAstNode,0,childAstNode));
     }
     // <type>  -->  INTEGER
     else if(strcmp(root->tnt,"type")==0 && strcmp(root->child->tnt,"INTEGER")==0){
-        return(makeASTNode("type","INTEGER",NULL));
+        valAstNode.i = root->child->val.i;
+        return(makeAstNode("type",valAstNode,1,NULL));
     }
     // <type>  -->  REAL
     else if(strcmp(root->tnt,"type")==0 && strcmp(root->child->tnt,"REAL")==0){
-        return(makeASTNode("type","REAL",NULL));
+        valAstNode.f = root->child->val.f;
+        return(makeAstNode("type",valAstNode,2,NULL));
     }
     // <type>  -->  BOOLEAN
     else if(strcmp(root->tnt,"type")==0 && strcmp(root->child->tnt,"BOOLEAN")==0){
-        return(makeASTNode("type","BOOLEAN",NULL));
+        valAstNode.b = root->child->val.b;
+        return(makeAstNode("type",valAstNode,3,NULL));
     }
     // <moduleDef>   -->  START <statements> END
     else if(strcmp(root->tnt,"moduleDef")==0){
-        temp=root->child;
-        temp=temp->next;
-        return(generateAST(temp));
+        return(generateAST(root->child->next));
     }
     // <statements>  -->  <statement> <statements>  
     else if(strcmp(root->tnt,"statements")==0 && strcmp(root->child->tnt,"statement")==0){
-        return(makeASTNode("statements","ε",NULL));
+        temp = root->child;
+        childAstNode = generateAST(temp);
+        childAstNode->next = generateAST(temp->next);
+        return makeAstNode("statements",valAstNode,0,childAstNode);
+
     }
     // <statements>  -->  ε
     else if(strcmp(root->tnt,"statements")==0){
-        return(makeASTNode("statements","ε",NULL));
+        strcpy(valAstNode.s,"ε");
+        return(makeAstNode("statements",valAstNode,4,NULL));
     }
     // <statement>  -->  <ioStmt>  
     else if(strcmp(root->tnt,"statement")==0 && strcmp(root->child->tnt,"ioStmt")==0){
-        temp=root->child;
-        return(generateAST(temp));
+        return(generateAST(root->child));
     }
     // <statement>  -->  <simpleStmt>
     else if(strcmp(root->tnt,"statement")==0 && strcmp(root->child->tnt,"simpleStmt")==0){
-        temp=root->child;
-        return(generateAST(temp));
+        return(generateAST(root->child));
     }
     // <statement>  -->  <declareStmt>
     else if(strcmp(root->tnt,"statement")==0 && strcmp(root->child->tnt,"declareStmt")==0){
-        temp=root->child;
-        return(generateAST(temp));
+        return(generateAST(root->child));
     }
     // <statement>  -->  <conditionalStmt>
     else if(strcmp(root->tnt,"statement")==0 && strcmp(root->child->tnt,"conditionalStmt")==0){
-        temp=root->child;
-        return(generateAST(temp));
+        return(generateAST(root->child));
     }
     // <statement>  -->  <iterativeStmt>
     else if(strcmp(root->tnt,"statement")==0 && strcmp(root->child->tnt,"iterativeStmt")==0){
-        temp=root->child;
-        return(generateAST(temp));
+        return(generateAST(root->child));
     }
-    // <ioStmt>  -->  GET_VALUE BO ID BC SEMICOL
-    else if(strcmp(root->tnt,"ioStmt")==0 && strcmp(root->child->tnt,"GET_VALUE")==0){   
-        return(makeASTNode("ioStmt",ID.name,NULL));
+    // <ioStmt>  -->  GET VALUE BO ID BC SEMICOL
+    else if(strcmp(root->tnt,"ioStmt")==0 && strcmp(root->child->tnt,"GET")==0){  
+        temp =root->child; // GET
+        temp = temp->next; // VALUE
+        temp = temp->next; // BO
+        temp = temp->next; // ID
+        strcpy(valAstNode.s,temp->val.s);
+        childAstNode = makeAstNode("ID",valAstNode,4,NULL);
+        return childAstNode;
     }
     // <ioStmt>  -->  PRINT BO <var> BC SEMICOL
-    else if(strcmp(root->tnt,"ioStmt")==0 && strcmp(root->child->tnt,"GET_VALUE")==0){   
-        return(makeASTNode("ioStmt",ID.name,NULL));
+    else if(strcmp(root->tnt,"ioStmt")==0 && strcmp(root->child->tnt,"PRINT")==0){
+        return(makeAstNode("ioStmt",valAstNode,0,NULL));
     }
     // <var>  -->  <var_id_num>
     else if(strcmp(root->tnt,"var")==0 && strcmp(root->child->tnt,"var_id_num")==0){
-        temp=root->child;
-        return(generateAST(temp));
+        return(generateAST(root->child));
     }
     // <var>  -->  <boolConstt>
     else if(strcmp(root->tnt,"var")==0){
-        temp=root->child;
-        return(generateAST(temp));
+        return(generateAST(root->child));
     }
 
     // <var_id_num>  -->  ID <whichId>
     else if(strcmp(root->tnt,"var_id_num")==0 && strcmp(root->child->tnt,"ID")==0){
         temp=root->child;
+        strcpy(valAstNode.s,temp->val.s);
+        childAstNode = makeAstNode("ID",valAstNode,4,NULL);
         temp=temp->next;
-        childAstNode=makeASTNode(temp);
-        return(makeASTNode("var_id_num","id",childAstNode));
+        childAstNode->next = generateAST(temp);
+        return(makeAstNode("var_id_num",valAstNode,0,childAstNode));
     }
     // <var_id_num>  -->  NUM
     else if(strcmp(root->tnt,"var_id_num")==0 && strcmp(root->child->tnt,"NUM")==0){
-        return(makeASTNode("var_id_num","NUM",NULL));
+        valAstNode.i = root->child->val.i;
+        return(makeAstNode("var_id_num",valAstNode,1,NULL));
     }
 
     // <var_id_num>  -->  RNUM
     else if(strcmp(root->tnt,"var_id_num")==0 && strcmp(root->child->tnt,"RNUM")==0){
-        return(makeASTNode("var_id_num","RNUM",NULL));
+        valAstNode.f = root->child->val.f;
+        return(makeAstNode("var_id_num",valAstNode,2,NULL));
     }
 
     // <boolConstt>  -->  TRUE
     else if(strcmp(root->tnt,"boolConstt")==0 && strcmp(root->child->tnt,"TRUE")==0){
-        return(makeASTNode("boolConstt","TRUE",NULL));
+        valAstNode.b = root->child->val.b;
+        return(makeAstNode("boolConstt",valAstNode,3,NULL));
     }
     // <boolConstt>  -->  FALSE
     else if(strcmp(root->tnt,"boolConstt")==0 && strcmp(root->child->tnt,"FALSE")==0){
-        return(makeASTNode("boolConstt","FALSE",NULL));
+        valAstNode.b = root->child->val.b;
+        return(makeAstNode("boolConstt",valAstNode,3,NULL));
     }
     // <whichId>   -->  SQBO <index> SQBC
     else if(strcmp(root->tnt,"whichId")==0 && strcmp(root->child->tnt,"SQBO")==0){
         temp=root->child;
         temp=temp->next;
-        childAstNode=makeASTNode(temp);
-        return(makeASTNode("whichId","ε",childAstNode));
+        childAstNode=generateAST(temp);
+        return childAstNode;
     }
     // <whichId>   -->  ε
     else if(strcmp(root->tnt,"whichId")==0){
-        return(makeASTNode("whichId","ε",NULL));
+        strcpy(valAstNode.s,"ε");
+        return(makeAstNode("whichId",valAstNode,4,NULL));
     }
     // <simpleStmt>   -->  <assignmentStmt> 
     else if(strcmp(root->tnt,"simpleStmt")==0 && strcmp(root->child->tnt,"assignmentStmt")==0){
-        temp=root->child;
-        return(generateAST(temp));
+        return(generateAST(root->child));
     }
     // <simpleStmt>   -->  <moduleReuseStmt>
     else if(strcmp(root->tnt,"simpleStmt")==0){
-        temp=root->child;
-        return(generateAST(temp));
+        return(generateAST(root->child));
     }
     // <assignmentStmt>   -->   ID <whichStmt>
     else if(strcmp(root->tnt,"assignmentStmt")==0){
         temp=root->child;
-        //take id
+        strcpy(valAstNode.s,temp->val.s);
         temp=temp->next;
         childAstNode=generateAST(temp);
-        return(makeASTNode("assignmentStmt","id",childAstNode));
+        return(makeAstNode("assignmentStmt",valAstNode,4,childAstNode));
     }
     // <whichStmt>  -->  <lvalueIDStmt>
     else if(strcmp(root->tnt,"whichStmt")==0 && strcmp(root->child->tnt,"lvalueIDStmt")==0){
-        temp=root->child;
-        return(generateAST(temp));
+        childAstNode = generateAST(root->child);
+        // type same
+        return childAstNode;
     }
     // <whichStmt>  -->  <lvalueARRStmt>
     else if(strcmp(root->tnt,"whichStmt")==0){
-        temp=root->child;
-        return(generateAST(temp));
+        return(generateAST(root->child));
     }
     // <lvalueIDStmt>   -->  ASSIGNOP <expression> SEMICOL
     else if(strcmp(root->tnt,"lvalueIDStmt")==0){
-        temp=root->child;
-        childAstNode=generateAST(temp);
-        return(makeASTNode("lvalueIDStmt","",childAstNode));
+        return generateAST(root->child->next);
     }
     // <lvalueARRStmt>  -->  SQBO <index> SQBC ASSIGNOP <expression> SEMICOL
     else if(strcmp(root->tnt,"lvalueARRStmt")==0){
@@ -369,30 +420,37 @@ struct astNode* generateAST(struct treeNode* root){
         temp=temp->next;
         temp=temp->next;
         childAstNode->next=generateAST(temp);
-        return(makeASTNode("lvalueARRStmt","",childAstNode));
+        return(makeAstNode("lvalueARRStmt",valAstNode,0,childAstNode));
     }
     // <index>  -->  NUM
     else if(strcmp(root->tnt,"index")==0 && strcmp(root->child->tnt,"NUM")==0){
-        return(makeASTNode("index","NUM",NULL));
+         astNode.val.i = root->child->val.i;
+        return(makeAstNode("index",valAstNode,1,NULL));
     }
     // <index>  -->  ID
     else if(strcmp(root->tnt,"index")==0 && strcmp(root->child->tnt,"ID")==0){
-        return(makeASTNode("index","ID",NULL));
+        strcpy(valAstNode.s,root->child->val.s);
+        childAstNode = makeAstNode("ID",valAstNode,4,NULL);
+        return childAstNode;
     }
 
     // <moduleReuseStmt>  -->  <optional> USE MODULE ID WITH PARAMETERS <idList> SEMICOL
     else if(strcmp(root->tnt,"moduleReuseStmt")==0 && strcmp(root->child->tnt,"optional")==0){
-        temp=root->child;
+        temp=root->child; // <optional>
         childAstNode=generateAST(temp);
+        tempAstNode = childAstNode;
+        temp=temp->next; // USE
+        temp=temp->next; // MODULE
+        temp=temp->next; // ID
+        
+        strcpy(valAstNode.s,root->child->val.s);
+        tempAstNode->next = makeAstNode("ID",valAstNode,4,NULL);
+        tempAstNode=tempAstNode->next;
+        temp=temp->next; // WITH
+        temp=temp->next; // PARAMETERS
         temp=temp->next;
-        temp=temp->next;
-        temp=temp->next;
-        //take id
-        temp=temp->next;
-        temp=temp->next;
-        temp=temp->next;
-        childAstNode->next=generateAST(temp);
-        return(makeASTNode("moduleReuseStmt","id",childAstNode));
+        tempAstNode->next=generateAST(temp);
+        return(makeAstNode("moduleReuseStmt",valAstNode,0,childAstNode));
 
     }
     // <optional>  -->  SQBO <idList> SQBC ASSIGNOP
@@ -400,34 +458,44 @@ struct astNode* generateAST(struct treeNode* root){
         temp=root->child;
         temp=temp->next;
         childAstNode=generateAST(temp);
-        return(makeASTNode("optional","",childAstNode));
+        return childAstNode;
     }
     // <optional>  -->  ε
     else if(strcmp(root->tnt,"optional")==0){
-        return(makeASTNode("optional","ε",NULL));
+        strcpy(valAstNode.s,"ε");
+        return(makeAstNode("optional",valAstNode,4,NULL));
     }
 ////////////////////////////////////////////////////////////
    // <idList>  -->  ID <N3>
     else if(strcmp(root->tnt,"idList")==0){
 
         temp = root->child;
-        childAstNode = makeASTNode(temp->tnt,temp->value,NULL)// ID
+        strcpy(valAstNode.s,temp->val.s);
+
+        childAstNode = makeAstNode("ID",valAstNode,4,NULL);// ID
         childAstNode->next = generateAST(temp->next); // <N3>
-        return(childAstNode);
+        return makeAstNode("idList",valAstNode,0,childAstNode);
     }
 
     // <N3> -->  COMMA ID <N3>
     else if(strcmp(root->tnt,"N3")==0 && strcmp(root->child->tnt,"COMMA")==0){
         // COMMA Ignored
-        childAstNode = generateAST(temp);
+        
+        temp = root->child;
+        temp= temp->next;
+        
+        strcpy(valAstNode.s,temp->val.s);
+
+        childAstNode = makeAstNode("ID",valAstNode,4,NULL);
         childAstNode->next = generateAST(temp->next);
 
-        return(childAstNode);
+        return makeAstNode("N3",valAstNode,0,childAstNode);
     }
 
     // <N3> -->  ε
     else if(strcmp(root->tnt,"N3")==0){
-        return(makeASTNode("N3","ε",NULL));
+        strcpy(valAstNode.s,"ε");
+        return(makeAstNode("N3",valAstNode,4,NULL));
     }
 
     // <expression>  -->  <arithmeticOrBooleanExpr> 
@@ -441,52 +509,56 @@ struct astNode* generateAST(struct treeNode* root){
     }
 
     // <U>  -->  <unary_op> <new_NT>
-    else if(strcmp(root->tnt,"U")==0{
+    else if(strcmp(root->tnt,"U")==0){
         temp = root->child;
         childAstNode = generateAST(temp); // MINUS/PLUS Termianl Node return
         childAstNode->next = generateAST(temp->next);
-
-        // if(<U>.type != <U_1>.type)
-        // ERROR;
-        if (childAstNode.type != childAstNode.next.type)
-            reportError();
-
         return childAstNode;
     }
 
     // <new_NT>  -->  BO <arithmeticExpr> BC
-    else if(strcmp(root->tnt,"new_NT")==0 && strcmp(root->child->tnt,"BO")==0)){
-       
+    else if(strcmp(root->tnt,"new_NT")==0 && strcmp(root->child->tnt,"BO")==0){
+        return generateAST(root->child->next);
     }
 
     // <new_NT>  -->  <var_id_num>
     else if(strcmp(root->tnt,"new_NT")==0){
-       
+        return generateAST(root->child);
     }
 
     // <unary_op>  -->  PLUS
     else if(strcmp(root->tnt,"unary_op")==0 && strcmp(root->child->tnt,"PLUS")==0){
-       
+        strcpy(valAstNode.s,"+");
+        return makeAstNode("unary_op",valAstNode,4,NULL);
     }
 
     // <unary_op>  -->  MINUS
     else if(strcmp(root->tnt,"unary_op")==0 && strcmp(root->child->tnt,"MINUS")==0){
-       
+        strcpy(valAstNode.s,"-");
+        return makeAstNode("unary_op",valAstNode,4,NULL);
     }
 
     // <arithmeticOrBooleanExpr>  -->  <AnyTerm> <N7>
     else if(strcmp(root->tnt,"arithmeticOrBooleanExpr")==0){
-       
+        childAstNode = generateAST(root->child);
+        childAstNode->next = generateAST(root->child->next);
+
+        return makeAstNode("arithmeticOrBooleanExpr",valAstNode,0,childAstNode);
     }
 
     // <N7>  -->  <logicalOp> <AnyTerm> <N7>
     else if(strcmp(root->tnt,"N7")==0 && strcmp(root->child->tnt,"logicalOp")==0){
-       
+        childAstNode=generateAST(root->child);
+        childAstNode->next=generateAST(root->child->next);
+        childAstNode->next->next=generateAST(root->child->next->next);
+
+        return makeAstNode("N7",valAstNode,0,childAstNode);
     }
 
     // <N7>  -->  ε
     else if(strcmp(root->tnt,"N7")==0){
-       return(makeASTNode("N7","ε",NULL));
+        strcpy(valAstNode.s,"ε");
+        return(makeAstNode("N7",valAstNode,4,NULL));
     }
 
     // <AnyTerm>  -->  <arithmeticExpr> <N8>
@@ -494,7 +566,7 @@ struct astNode* generateAST(struct treeNode* root){
         temp = root->child;
         childAstNode = generateAST(temp);
         childAstNode->next = generateAST(temp->next);
-        return childAstNode; // TODO : Make AST Node
+        return makeAstNode("AnyTerm",valAstNode,0,childAstNode);
     }
 
     // <AnyTerm>  -->  <boolConstt>
@@ -511,16 +583,21 @@ struct astNode* generateAST(struct treeNode* root){
             tempAstNode = childAstNode;
             tempAstNode->next = generateAST(temp);
 
-            return makeASTNode("term","",childAstNode);;
+            return makeAstNode("term",valAstNode,0,childAstNode);;
         }
         // <N8>  -->  ε
         else{
-            return makeASTNode("N8","",NULL);
+            strcpy(valAstNode.s,"ε");
+            return(makeAstNode("N8",valAstNode,4,NULL));
         }
     }
 
 
     // <arithmeticExpr>  -->  <term> <N4>
+    else if(strcmp(root->tnt,"arithmeticExpr")){
+        childAstNode = generateAST(root->child);
+        childAstNode->next = generateAST(root->child->next);
+    } 
 
     else if(strcmp(root->tnt,"N4")){ 
 
@@ -537,11 +614,11 @@ struct astNode* generateAST(struct treeNode* root){
             temp = temp->next; // <N4>
             tempAstNode->next = generateAST(temp);
 
-            return childAstNode;
+            return makeAstNode("N4",valAstNode,0,childAstNode);;
         }
         // <N4>  -->  ε
         else{
-            return makeASTNode("N4","",NULL);
+            return makeAstNode("N4",valAstNode,0,NULL);
         }
     }
 
@@ -553,7 +630,7 @@ struct astNode* generateAST(struct treeNode* root){
         tempAstNode = childAstNode;
         tempAstNode->next = generateAST(temp);
 
-        return makeASTNode("term","",childAstNode);;
+        return makeAstNode("term",valAstNode,0,childAstNode);
     }
 
     else if(strcmp(root->tnt,"N5")){ 
@@ -571,11 +648,11 @@ struct astNode* generateAST(struct treeNode* root){
             temp = temp->next; // <N5>
             tempAstNode->next = generateAST(temp);
 
-            return childAstNode;
+            return makeAstNode("N5",valAstNode,0,childAstNode);
         }
         // <N5>  -->  ε 
         else{
-            return makeASTNode("N5","",NULL);
+            return makeAstNode("N5",valAstNode,0,NULL);
         }
     }
 
@@ -596,12 +673,14 @@ struct astNode* generateAST(struct treeNode* root){
 
         // <op1>  -->  PLUS
         if(strcmp(root->child->tnt,"PLUS")){
-            return makeASTNode("PLUS","+",NULL);
+            strcpy(valAstNode.s,"+");
+            return makeAstNode("op1",valAstNode,4,NULL);
         }
         
         // <op1>  -->  MINUS
         else if(strcmp(root->child->tnt,"MINUS")){
-            return makeASTNode("MINUS","-",NULL);
+            strcpy(valAstNode.s,"-");
+            return makeAstNode("op1",valAstNode,4,NULL);
         }
     }
     
@@ -609,24 +688,28 @@ struct astNode* generateAST(struct treeNode* root){
 
         // <op2>  -->  MUL
         if(strcmp(root->child->tnt,"MUL")){
-            return makeASTNode("MUL","*",NULL);
+            strcpy(valAstNode.s,"*");
+            return makeAstNode("op2",valAstNode,4,NULL);
         }
         
         // <op2>  -->  DIV
         else if(strcmp(root->child->tnt,"DIV")){
-            return makeASTNode("DIV","/",NULL);
+            strcpy(valAstNode.s,"/");
+            return makeAstNode("op2",valAstNode,4,NULL);
         }
     }
 
     else if(strcmp(root->tnt,"logicalOp")){ 
         // <logicalOp>  -->  AND
         if(strcmp(root->child->tnt,"AND")){
-            return makeASTNode("AND","AND",NULL);
+            strcpy(valAstNode.s,"AND");
+            return makeAstNode("logicalOp",valAstNode,4,NULL);
         }
         
         // <logicalOp>  -->  OR
         else if(strcmp(root->child->tnt,"OR")){
-            return makeASTNode("OR","OR",NULL);
+            strcpy(valAstNode.s,"OR");
+            return makeAstNode("logicalOp",valAstNode,4,NULL);
         }
     }
 
@@ -635,30 +718,35 @@ struct astNode* generateAST(struct treeNode* root){
 
         // <relationalOp>  -->  LT
         if(strcmp(root->child->tnt,"LT")){
-            return makeASTNode("LT","<",NULL);
+            strcpy(valAstNode.s,"LT");
+            return makeAstNode("relationalOp",valAstNode,4,NULL);
         }
         // <relationalOp>  -->  LE
         else if(strcmp(root->child->tnt,"LE")){
-            return makeASTNode("LE","<=",NULL);
+            strcpy(valAstNode.s,"LE");
+            return makeAstNode("relationalOp",valAstNode,4,NULL);
         }
         // <relationalOp>  -->  GT
         else if(strcmp(root->child->tnt,"GT")){
-            return makeASTNode("GT",">",NULL);
+            strcpy(valAstNode.s,"GT");
+            return makeAstNode("relationalOp",valAstNode,4,NULL);
         }
         // <relationalOp>  -->  GE
         else if(strcmp(root->child->tnt,"GE")){
-            return makeASTNode("GE",">=",NULL);
+            strcpy(valAstNode.s,"GE");
+            return makeAstNode("relationalOp",valAstNode,4,NULL);
         }
         // <relationalOp>  -->  EQ
         else if(strcmp(root->child->tnt,"EQ")){
-            return makeASTNode("EQ","==",NULL);
+            strcpy(valAstNode.s,"EQ");
+            return makeAstNode("relationalOp",valAstNode,4,NULL);
         }
         // <relationalOp>  -->  NE
         else if(strcmp(root->child->tnt,"NE")){
-            return makeASTNode("NE","!=",NULL);
+            strcpy(valAstNode.s,"NE");
+            return makeAstNode("relationalOp",valAstNode,4,NULL);
         }
     }
-
 
     // <declareStmt>  -->  DECLARE <idList> COLON <dataType> SEMICOL
     else if(strcmp(root->tnt,"declareStmt")==0){
@@ -671,7 +759,7 @@ struct astNode* generateAST(struct treeNode* root){
         temp = temp->next;  // <dataType>
         tempAstNode->next = generateAST(temp);
         
-        return makeASTNode("declareStmt","",childAstNode);
+        return makeAstNode("declareStmt",valAstNode,0,childAstNode);
     }
 
     // <conditionalStmt>  -->  SWITCH BO ID BC START <caseStmts> <default> END
@@ -679,7 +767,8 @@ struct astNode* generateAST(struct treeNode* root){
         temp = root->child; // SWITCH
         temp = temp->next;  // BO
         temp = temp->next;  // ID
-        childAstNode = makeASTNode();
+        strcpy(valAstNode.s,temp->val.s);
+        childAstNode = makeAstNode("ID",valAstNode,4,NULL);
         tempAstNode = childAstNode;
 
         temp = temp->next;  // BC
@@ -693,7 +782,7 @@ struct astNode* generateAST(struct treeNode* root){
         tempAstNode->next = generateAST(temp);
         tempAstNode = tempAstNode->next;
 
-        return makeASTNode("conditionalStmt","",childAstNode);
+        return makeAstNode("conditionalStmt",valAstNode,0,childAstNode);
     }
 
     // <caseStmts>  -->  CASE <value> COLON <statements> BREAK SEMICOL <N9>
@@ -713,7 +802,7 @@ struct astNode* generateAST(struct treeNode* root){
         temp = temp->next;  // <N9>
         tempAstNode->next = generateAST(temp);
 
-        return makeASTNode("caseStmts","",childAstNode);
+        return makeAstNode("caseStmts",valAstNode,0,childAstNode);
     }
 
     // <N9> is <caseStmt_1>
@@ -724,31 +813,37 @@ struct astNode* generateAST(struct treeNode* root){
         childAstNode = generateAST(temp);
         temp = temp->next; // COLON
         temp = temp->next; // <statements>
-        
-        return makeASTNode(childAstNode)
+        childAstNode->next = generateAST(temp);
+        temp = temp->next; // 
+        temp = temp->next;
+        temp = temp->next; //<N9>
+        childAstNode->next->next = generateAST(temp);
+
+        return makeAstNode("N9",valAstNode,0,childAstNode);
     }
 
     // <N9>  -->  ε
     else if(strcmp(root->tnt,"N9")==0){
-        return(makeASTNode("N9","ε",NULL));
+        strcpy(valAstNode.s,"ε");
+        return(makeAstNode("N9",valAstNode,4,NULL));
     }
 
     // <value>  -->  NUM
     else if(strcmp(root->tnt,"value")==0 && strcmp(root->child->tnt,"NUM")==0){
-        temp = root->child;
-        return(makeASTNode("NUM",temp->val,NULL));
+        valAstNode.i = root->child->val.i;
+        return(makeAstNode("value",valAstNode,1,NULL));
     }
 
     // <value>  -->  TRUE
     else if(strcmp(root->tnt,"value")==0 && strcmp(root->child->tnt,"TRUE")==0){
-        temp = root->child;
-        return(makeASTNode("TRUE",temp->val,NULL));
+        valAstNode.b = root->child->val.b;
+        return(makeAstNode("value",valAstNode,3,NULL));
     }
 
     // <value>  -->  FALSE
     else if(strcmp(root->tnt,"value")==0 && strcmp(root->child->tnt,"FALSE")==0){
-        temp = root->child;
-        return(makeASTNode("NUM",temp->val,NULL));
+        valAstNode.b = root->child->val.b;
+        return(makeAstNode("value",valAstNode,3,NULL));
     }
 
     // <default>  -->  DEFAULT COLON <statements> BREAK SEMICOL
@@ -761,7 +856,8 @@ struct astNode* generateAST(struct treeNode* root){
 
     // <default>  -->  ε 
     else if(strcmp(root->tnt,"default")==0){
-        return(makeASTNode("default","ε",NULL));
+        strcpy(valAstNode.s,"ε");
+        return(makeAstNode("default",valAstNode,4,NULL));
     }
 
     // <iterativeStmt>  -->  FOR BO ID IN <range> BC START <statements> END
@@ -769,7 +865,8 @@ struct astNode* generateAST(struct treeNode* root){
         temp = root->child; // FOR
         temp = temp->next; // BO
         temp = temp->next; // ID
-        childAstNode = makeASTNode("ID",temp->val,NULL);
+        strcpy(valAstNode.s,temp->val.s);
+        childAstNode = makeAstNode("ID",valAstNode,4,NULL);
         tempAstNode = childAstNode;
 
         temp = temp->next; // <range>
@@ -782,7 +879,8 @@ struct astNode* generateAST(struct treeNode* root){
         temp = temp->next; // <statements>
         tempAstNode->next = generateAST(temp);
 
-        return makeASTNode("iterativeStmt","FOR",childAstNode);
+        strcpy(valAstNode.s,"FOR");
+        return makeAstNode("iterativeStmt",valAstNode,4,childAstNode);
 
     }
 
@@ -795,22 +893,86 @@ struct astNode* generateAST(struct treeNode* root){
         tempAstNode = childAstNode;
         temp = temp->next; // BC
         temp = temp->next; // START
+        temp = temp->next; // <statements>
         tempAstNode->next = generateAST(temp);
 
-        return makeASTNode("iterativeStmt","WHILE",childAstNode);
+        strcpy(valAstNode.s,"WHILE");
+        return makeAstNode("iterativeStmt",valAstNode,4,childAstNode);
     }
 
 
     // <range>  -->  NUM RANGEOP NUM
     else if(strcmp(root->tnt,"range")==0){
         temp = root->child; // NUM
-        childAstNode = makeASTNode("NUM",temp->val,NULL); // pass value of NUM and type (TerminalNode)
-        tempAstNode = childAstNode;
+        valAstNode.i = temp->val.i;
+        childAstNode = makeAstNode("NUM",valAstNode,1,NULL); // pass value of NUM and type (TerminalNode)
 
         temp = temp->next; // RANGEOP
-        tempAstNode->next = makeASTNode("NUM",temp->next->val,NULL);
+        temp = temp->next; // NUM
+        valAstNode.i = temp->val.i;
+        childAstNode->next = makeAstNode("NUM",valAstNode,1,NULL); 
         
-        return makeASTNode("RANGEOP","",childAstNode);
+        return makeAstNode("RANGEOP",valAstNode,0,childAstNode);
     }
 
+}
+
+void runAST(FILE* testFile, FILE* parseTreeFile){
+    printf("Starting runAST\n");
+    parserFree();
+
+    FILE* fp = fopen("grammar.txt","r");
+
+    readGrammerTextFile(fp);
+
+    // printAllGrammar();
+
+    if(printFlag)
+    printf("\nComputing Firsts And Follows Started\n");
+
+    computeFirstAndFollow();
+
+    if(printFlag)
+    printf("\nComputing Firsts And Follows Ended\n\n");
+
+    if(printFlag)
+    printf("\nComputing Parse Table Started\n");
+
+    createParseTable();
+
+    if(printFlag)
+    printf("\nComputing Parse Table Ended\n\n");
+
+    populateKeywordTable();
+
+    programFile = testFile;
+    programFile = getStream(programFile);
+
+    if(first){
+        populateKeywordTable();
+        first = false;
+    }
+
+
+    while(true)
+    {
+        getNextToken();
+        if(currentToken->tokterm == 60)
+        break;
+    }
+    
+    if(printFlag)
+    printf("Parsing Input Source Started\n");    
+
+    struct treeNode* rootParseTree = parseInputSourceCode(head->next, Table, grammar, firstFollowSets,parseTreeFile);
+    
+    generateAST(rootParseTree);
+    if(printFlag)
+    printf("\nParser Complete\n");
+
+
+    /*
+        To generate Files : ParseTable.txt
+        Uncomment above lines
+    */
 }

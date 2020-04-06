@@ -15,6 +15,7 @@
 #include <math.h>
 #include <errno.h>
 #include "parser.c"
+#include "ast.c"
 
 #define FILELEN 10000
 
@@ -95,6 +96,12 @@ int main(int argc, char *argv[]){
                         printf("Total Clock ticks : %ld\n",ticks);
                         printf("Total time taken by parser : %f seconds\n", time_taken);
                         break;
+
+            case 5:     // AST
+                        printFlag = true;
+                        runAST(fp1,fp2);
+                        lexerFree();
+                        break;  
 
             default:
                     printf("\nEnter a Valid Choice!\n");

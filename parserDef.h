@@ -83,7 +83,6 @@ struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS];
 
 int Table[MAX_NON_TERMINALS][MAX_TERMINALS]; //stores the rule number
 
-
 // For Parse Tree and Syntax Verification
 
 struct treeNode{
@@ -92,6 +91,7 @@ struct treeNode{
     struct treeNode* child;
     struct treeNode* next;
     value val;
+    int tagUnion;
 };
 
 typedef struct StackNode { 
