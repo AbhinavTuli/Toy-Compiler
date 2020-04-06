@@ -3,6 +3,11 @@
 #include "lexer.c"
 #include "ast.h"
 
+struct astNode* makeAstNode(){
+    struct astNode* newNode = (struct astNode*) malloc(sizeof(struct ASTNode));
+
+}
+
 struct astNode* generateAST(struct treeNode* root){
     // tRoot - TreeNode , aRoot - astNode
     struct treeNode* temp;
@@ -54,7 +59,7 @@ struct astNode* generateAST(struct treeNode* root){
         temp=temp->next; //at module now
         // Todo : Change in Parser.c 
         //  Pass Function Name  
-        return(makeASTNode("moduleDeclaration",module.name,NULL));
+        return(makeASTNode("moduleDeclaration",temp->val,NULL));
     }
 
     // <otherModules>   -->  <module> <otherModules> 
@@ -229,7 +234,7 @@ struct astNode* generateAST(struct treeNode* root){
     }
     // <moduleDef>   -->  START <statements> END
     else if(strcmp(root->tnt,"moduleDef")==0){
-        temp=toot->child;
+        temp=root->child;
         temp=temp->next;
         return(generateAST(temp));
     }
@@ -402,37 +407,103 @@ struct astNode* generateAST(struct treeNode* root){
         return(makeASTNode("optional","ε",NULL));
     }
 ////////////////////////////////////////////////////////////
-    // <idList>  -->  ID <N3>
+   // <idList>  -->  ID <N3>
+    else if(strcmp(root->tnt,"idList")==0){
+
+        temp = root->child;
+        childAstNode = makeASTNode(temp->tnt,temp->value,NULL)// ID
+        childAstNode->next = generateAST(temp->next); // <N3>
+        return(childAstNode);
+    }
 
     // <N3> -->  COMMA ID <N3>
+    else if(strcmp(root->tnt,"N3")==0 && strcmp(root->child->tnt,"COMMA")==0){
+        // COMMA Ignored
+        childAstNode = generateAST(temp);
+        childAstNode->next = generateAST(temp->next);
+
+        return(childAstNode);
+    }
 
     // <N3> -->  ε
+    else if(strcmp(root->tnt,"N3")==0){
+        return(makeASTNode("N3","ε",NULL));
+    }
 
     // <expression>  -->  <arithmeticOrBooleanExpr> 
+    else if(strcmp(root->tnt,"expression")==0 && strcmp(root->child->tnt,"arithmeticOrBooleanExpr")==0){
+        return generateAST(root->child); 
+    }
 
     // <expression>  -->  <U>
+    else if(strcmp(root->tnt,"expression")==0 && strcmp(root->child->tnt,"U")==0){
+        return generateAST(root->child); 
+    }
 
     // <U>  -->  <unary_op> <new_NT>
+    else if(strcmp(root->tnt,"U")==0{
+        temp = root->child;
+        childAstNode = generateAST(temp); // MINUS/PLUS Termianl Node return
+        childAstNode->next = generateAST(temp->next);
+
+        // if(<U>.type != <U_1>.type)
+        // ERROR;
+        if (childAstNode.type != childAstNode.next.type)
+            reportError();
+
+        return childAstNode;
+    }
 
     // <new_NT>  -->  BO <arithmeticExpr> BC
+    else if(strcmp(root->tnt,"new_NT")==0 && strcmp(root->child->tnt,"BO")==0)){
+       
+    }
 
     // <new_NT>  -->  <var_id_num>
+    else if(strcmp(root->tnt,"new_NT")==0){
+       
+    }
 
     // <unary_op>  -->  PLUS
+    else if(strcmp(root->tnt,"unary_op")==0 && strcmp(root->child->tnt,"PLUS")==0){
+       
+    }
 
     // <unary_op>  -->  MINUS
+    else if(strcmp(root->tnt,"unary_op")==0 && strcmp(root->child->tnt,"MINUS")==0){
+       
+    }
 
     // <arithmeticOrBooleanExpr>  -->  <AnyTerm> <N7>
+    else if(strcmp(root->tnt,"arithmeticOrBooleanExpr")==0){
+       
+    }
 
     // <N7>  -->  <logicalOp> <AnyTerm> <N7>
+    else if(strcmp(root->tnt,"N7")==0 && strcmp(root->child->tnt,"logicalOp")==0){
+       
+    }
 
     // <N7>  -->  ε
+    else if(strcmp(root->tnt,"N7")==0){
+       return(makeASTNode("N7","ε",NULL));
+    }
 
     // <AnyTerm>  -->  <arithmeticExpr> <N8>
+    else if(strcmp(root->tnt,"AnyTerm")==0 && strcmp(root->child->tnt,"arithmeticExpr")==0){
+        temp = root->child;
+        childAstNode = generateAST(temp);
+        childAstNode->next = generateAST(temp->next);
+        return childAstNode; // TODO : Make AST Node
+    }
 
     // <AnyTerm>  -->  <boolConstt>
+    else if(strcmp(root->tnt,"AnyTerm")==0 && strcmp(root->child->tnt,"boolConstt")==0){
+       return generateAST(root->child);
+    }
 
     // <N8>  -->  <relationalOp> <arithmeticExpr>
+
 
     // <N8>  -->  ε
 
@@ -464,42 +535,188 @@ struct astNode* generateAST(struct treeNode* root){
 
     // <logicalOp>  -->  OR
 
-    // <relationalOp>  -->  LT
+    
 
-    // <relationalOp>  -->  LE
+    
 
-    // <relationalOp>  -->  GT
+    
 
-    // <relationalOp>  -->  GE
+    
 
-    // <relationalOp>  -->  EQ
+    
 
-    // <relationalOp>  -->  NE
+    
+    else if(strcmp(root->tnt,"relationalOp"){
+
+        // <relationalOp>  -->  LT
+        if(strcmp(root->tnt,"LT"){
+            return makeASTNode("LT","<",NULL);
+        }
+        // <relationalOp>  -->  LE
+        else if(strcmp(root->tnt,"LE"){
+            return makeASTNode("LE","<=",NULL);
+        }
+        // <relationalOp>  -->  GT
+        else if(strcmp(root->tnt,"GT"){
+            return makeASTNode("GT",">",NULL);
+        }
+        // <relationalOp>  -->  GE
+        else if(strcmp(root->tnt,"GE"){
+            return makeASTNode("GE",">=",NULL);
+        }
+        // <relationalOp>  -->  EQ
+        else if(strcmp(root->tnt,"EQ"){
+            return makeASTNode("EQ","==",NULL);
+        }
+        // <relationalOp>  -->  NE
+        else if(strcmp(root->tnt,"NE"){
+            return makeASTNode("NE","!=",NULL);
+        }
+    }
+
 
     // <declareStmt>  -->  DECLARE <idList> COLON <dataType> SEMICOL
+    else if(strcmp(root->tnt,"declareStmt")==0){
+        temp = root->child; // DECLARE
+        temp = temp->next;  // <idList>
+        childAstNode = generateAST(temp);
+        tempAstNode = childAstNode;
+
+        temp = temp->next;  // COLON
+        temp = temp->next;  // <dataType>
+        tempAstNode->next = generateAST(temp);
+        
+        return makeASTNode("declareStmt","",childAstNode);
+    }
 
     // <conditionalStmt>  -->  SWITCH BO ID BC START <caseStmts> <default> END
+    else if(strcmp(root->tnt,"conditionalStmt")==0){
+        temp = root->child; // SWITCH
+        temp = temp->next;  // BO
+        temp = temp->next;  // ID
+        childAstNode = makeASTNode();
+        tempAstNode = childAstNode;
+
+        temp = temp->next;  // BC
+        temp = temp->next;  // START
+        temp = temp->next;  // <caseStmts>
+
+        tempAstNode->next = generateAST(temp);
+        tempAstNode = tempAstNode->next;
+
+        temp = temp->next;  // <default>
+        tempAstNode->next = generateAST(temp);
+        tempAstNode = tempAstNode->next;
+
+        return makeASTNode("conditionalStmt","",childAstNode);
+    }
 
     // <caseStmts>  -->  CASE <value> COLON <statements> BREAK SEMICOL <N9>
+    else if(strcmp(root->tnt,"caseStmts")==0){
+        temp = root->child; // CASE
+        temp = temp->next;  // <value>
+        childAstNode = generateAST(temp);
+        tempAstNode = childAstNode;
 
+        temp = temp->next;  // COLON
+        temp = temp->next;  // <statements>
+        tempAstNode->next = generateAST(temp);
+        tempAstNode = tempAstNode->next;
+
+        temp = temp->next;  // BREAK
+        temp = temp->next;  // SEMICOL
+        temp = temp->next;  // <N9>
+        tempAstNode->next = generateAST(temp);
+
+        return makeASTNode("caseStmts","",childAstNode);
+    }
+
+    // <N9> is <caseStmt_1>
     // <N9>  -->  CASE <value> COLON <statements> BREAK SEMICOL <N9>
+    else if(strcmp(root->tnt,"N9")==0 && strcmp(root->child->tnt,"CASE")==0){
+        temp = root->child; // CASE
+        temp = temp->next;  // <value>
+        childAstNode = generateAST(temp);
+        temp = temp->next; // COLON
+        temp = temp->next; // <statements>
+        
+        return makeASTNode(childAstNode)
+    }
 
     // <N9>  -->  ε
+    else if(strcmp(root->tnt,"N9")==0){
+        return(makeASTNode("N9","ε",NULL));
+    }
 
     // <value>  -->  NUM
+    else if(strcmp(root->tnt,"value")==0 && strcmp(root->child->tnt,"NUM")==0){
+        temp = root->child;
+        return(makeASTNode("NUM",temp->val,NULL));
+    }
 
     // <value>  -->  TRUE
+    else if(strcmp(root->tnt,"value")==0 && strcmp(root->child->tnt,"TRUE")==0){
+        temp = root->child;
+        return(makeASTNode("TRUE",temp->val,NULL));
+    }
 
     // <value>  -->  FALSE
+    else if(strcmp(root->tnt,"value")==0 && strcmp(root->child->tnt,"FALSE")==0){
+        temp = root->child;
+        return(makeASTNode("NUM",temp->val,NULL));
+    }
 
     // <default>  -->  DEFAULT COLON <statements> BREAK SEMICOL
+    else if(strcmp(root->tnt,"default")==0 && strcmp(root->child->tnt,"DEFAULT")==0){
+        temp = root->child; // DEFAULT
+        temp = temp->next; // COLON
+        temp = temp->next; // <statements>
+        return generateAST(temp);
+    }
 
     // <default>  -->  ε 
+    else if(strcmp(root->tnt,"default")==0){
+        return(makeASTNode("default","ε",NULL));
+    }
 
     // <iterativeStmt>  -->  FOR BO ID IN <range> BC START <statements> END
+    else if(strcmp(root->tnt,"iterativeStmt")==0 && strcmp(root->child->tnt,"FOR")==0){
+        temp = root->child; // FOR
+        temp = temp->next; // BO
+        temp = temp->next; // ID
+        childAstNode = makeASTNode("ID",temp->val,NULL);
+        tempAstNode = childAstNode;
+
+        temp = temp->next; // <range>
+        tempAstNode->next = generateAST(temp);
+        tempAstNode = tempAstNode->next;
+
+        temp = temp->next; // BC
+        temp = temp->next; // START
+        
+        temp = temp->next; // <statements>
+        tempAstNode->next = generateAST(temp);
+
+        return childAstNode;
+
+    }
 
     // <iterativeStmt>  -->  WHILE BO <arithmeticOrBooleanExpr> BC START <statements> END
+    else if(strcmp(root->tnt,"iterativeStmt")==0 && strcmp(root->child->tnt,"WHILE")==0){
+       
+    }
+
 
     // <range>  -->  NUM RANGEOP NUM
+    else if(strcmp(root->tnt,"range")==0){
+        temp = root->child; // NUM
+        childAstNode = makeASTNode("NUM",temp->val,NULL); // pass value of NUM and type (TerminalNode)
+        tempAstNode = childAstNode;
+
+        temp = temp->next; // RANGEOP
+        tempAstNode->next = makeASTNode("NUM",temp->next->val,NULL);
+        
+        return makeASTNode("RANGEOP","",childAstNode);
+    }
 
 }
