@@ -502,74 +502,159 @@ struct astNode* generateAST(struct treeNode* root){
        return generateAST(root->child);
     }
 
-    // <N8>  -->  <relationalOp> <arithmeticExpr>
+    else if(strcmp(root->tnt,"N8")){ 
+        // <N8>  -->  <relationalOp> <arithmeticExpr>
+        if(strcmp(root->child->tnt,"relationalOp")){
+            temp = root->child; 
+            childAstNode = generateAST(temp);
+            temp = temp->next; 
+            tempAstNode = childAstNode;
+            tempAstNode->next = generateAST(temp);
 
+            return makeASTNode("term","",childAstNode);;
+        }
+        // <N8>  -->  ε
+        else{
+            return makeASTNode("N8","",NULL);
+        }
+    }
 
-    // <N8>  -->  ε
 
     // <arithmeticExpr>  -->  <term> <N4>
 
-    // <N4>  -->  <op1> <term> <N4>
+    else if(strcmp(root->tnt,"N4")){ 
 
-    // <N4>  -->  ε
+        // <N4>  -->  <op1> <term> <N4>
+        if(strcmp(root->child->tnt,"op1")){
+            temp = root->child; // <op1>
+            childAstNode = generateAST(temp);
+            tempAstNode = childAstNode;
+
+            temp = temp->next; // <factor>
+            tempAstNode->next = generateAST(temp);
+            tempAstNode = tempAstNode->next;
+
+            temp = temp->next; // <N4>
+            tempAstNode->next = generateAST(temp);
+
+            return childAstNode;
+        }
+        // <N4>  -->  ε
+        else{
+            return makeASTNode("N4","",NULL);
+        }
+    }
 
     // <term>  -->  <factor> <N5>
+    else if(strcmp(root->tnt,"term")){ 
+        temp = root->child; 
+        childAstNode = generateAST(temp);
+        temp = temp->next; 
+        tempAstNode = childAstNode;
+        tempAstNode->next = generateAST(temp);
 
-    // <N5>  -->  <op2> <factor> <N5>
+        return makeASTNode("term","",childAstNode);;
+    }
 
-    // <N5>  -->  ε
+    else if(strcmp(root->tnt,"N5")){ 
 
-    // <factor>  -->  BO <arithmeticOrBooleanExpr> BC  
+        // <N5>  -->  <op2> <factor> <N5> 
+        if(strcmp(root->child->tnt,"op2")){
+            temp = root->child; // <op2>
+            childAstNode = generateAST(temp);
+            tempAstNode = childAstNode;
 
-    // <factor>  -->  <var_id_num>
+            temp = temp->next; // <factor>
+            tempAstNode->next = generateAST(temp);
+            tempAstNode = tempAstNode->next;
 
-    // <op1>  -->  PLUS
+            temp = temp->next; // <N5>
+            tempAstNode->next = generateAST(temp);
 
-    // <op1>  -->  MINUS
+            return childAstNode;
+        }
+        // <N5>  -->  ε 
+        else{
+            return makeASTNode("N5","",NULL);
+        }
+    }
 
-    // <op2>  -->  MUL
+    else if(strcmp(root->tnt,"factor")){ 
 
-    // <op2>  -->  DIV
+        // <factor>  -->  BO <arithmeticOrBooleanExpr> BC  
+        if(strcmp(root->child->tnt,"BO")){
+            return generateAST(root->child->next);
+        }
+        // <factor>  -->  <var_id_num>
+        else{
+            return generateAST(root->child);
+        }
+    }
 
-    // <logicalOp>  -->  AND
 
-    // <logicalOp>  -->  OR
+    else if(strcmp(root->tnt,"op1")){ 
+
+        // <op1>  -->  PLUS
+        if(strcmp(root->child->tnt,"PLUS")){
+            return makeASTNode("PLUS","+",NULL);
+        }
+        
+        // <op1>  -->  MINUS
+        else if(strcmp(root->child->tnt,"MINUS")){
+            return makeASTNode("MINUS","-",NULL);
+        }
+    }
+    
+    else if(strcmp(root->tnt,"op2")){ 
+
+        // <op2>  -->  MUL
+        if(strcmp(root->child->tnt,"MUL")){
+            return makeASTNode("MUL","*",NULL);
+        }
+        
+        // <op2>  -->  DIV
+        else if(strcmp(root->child->tnt,"DIV")){
+            return makeASTNode("DIV","/",NULL);
+        }
+    }
+
+    else if(strcmp(root->tnt,"logicalOp")){ 
+        // <logicalOp>  -->  AND
+        if(strcmp(root->child->tnt,"AND")){
+            return makeASTNode("AND","AND",NULL);
+        }
+        
+        // <logicalOp>  -->  OR
+        else if(strcmp(root->child->tnt,"OR")){
+            return makeASTNode("OR","OR",NULL);
+        }
+    }
 
     
-
-    
-
-    
-
-    
-
-    
-
-    
-    else if(strcmp(root->tnt,"relationalOp"){
+    else if(strcmp(root->tnt,"relationalOp")){
 
         // <relationalOp>  -->  LT
-        if(strcmp(root->tnt,"LT"){
+        if(strcmp(root->child->tnt,"LT")){
             return makeASTNode("LT","<",NULL);
         }
         // <relationalOp>  -->  LE
-        else if(strcmp(root->tnt,"LE"){
+        else if(strcmp(root->child->tnt,"LE")){
             return makeASTNode("LE","<=",NULL);
         }
         // <relationalOp>  -->  GT
-        else if(strcmp(root->tnt,"GT"){
+        else if(strcmp(root->child->tnt,"GT")){
             return makeASTNode("GT",">",NULL);
         }
         // <relationalOp>  -->  GE
-        else if(strcmp(root->tnt,"GE"){
+        else if(strcmp(root->child->tnt,"GE")){
             return makeASTNode("GE",">=",NULL);
         }
         // <relationalOp>  -->  EQ
-        else if(strcmp(root->tnt,"EQ"){
+        else if(strcmp(root->child->tnt,"EQ")){
             return makeASTNode("EQ","==",NULL);
         }
         // <relationalOp>  -->  NE
-        else if(strcmp(root->tnt,"NE"){
+        else if(strcmp(root->child->tnt,"NE")){
             return makeASTNode("NE","!=",NULL);
         }
     }
@@ -697,13 +782,22 @@ struct astNode* generateAST(struct treeNode* root){
         temp = temp->next; // <statements>
         tempAstNode->next = generateAST(temp);
 
-        return childAstNode;
+        return makeASTNode("iterativeStmt","FOR",childAstNode);
 
     }
 
     // <iterativeStmt>  -->  WHILE BO <arithmeticOrBooleanExpr> BC START <statements> END
     else if(strcmp(root->tnt,"iterativeStmt")==0 && strcmp(root->child->tnt,"WHILE")==0){
-       
+        temp = root->child; // WHILE
+        temp = temp->next; // BO
+        temp = temp->next; // <arithmeticOrBooleanExpr>
+        childAstNode = generateAST(temp);
+        tempAstNode = childAstNode;
+        temp = temp->next; // BC
+        temp = temp->next; // START
+        tempAstNode->next = generateAST(temp);
+
+        return makeASTNode("iterativeStmt","WHILE",childAstNode);
     }
 
 
