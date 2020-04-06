@@ -45,7 +45,7 @@ typedef struct node1
 	term tokterm; 
 
 	value val;
-	int tag;
+	int tag; 
 
 	struct node1* prev;
 	struct node1* next;

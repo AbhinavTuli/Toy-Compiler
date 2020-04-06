@@ -1,4 +1,3 @@
-
 Rule 0  program	: moduleDeclarations otherModules driverModule otherModules 
 Rule 1  moduleDeclarations	: moduleDeclaration moduleDeclarations 
 Rule 2  moduleDeclarations	: ε 

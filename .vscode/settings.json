@@ -6,5 +6,6 @@
         "lexer.h": "c",
         "lexerdef.h": "c",
         "stdio.h": "c"
-    }
+    },
+    "python.pythonPath": "/opt/anaconda3/bin/python"
 }
