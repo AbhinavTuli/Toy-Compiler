@@ -101,7 +101,7 @@ token* createToken();
 // Stack Functions
 void printStack(lex* top);
 
-void push(lex** root, int data, char* str);
+void push(lex** root, int data, char* str,struct treeNode* pTreePointer);
 
 int pop(lex** root);
 
@@ -114,5 +114,6 @@ struct treeNode* createTreeNode();
 
 struct ruleToken* createNode();
 
+bool checkForValueToken(char* str);
 
 #endif

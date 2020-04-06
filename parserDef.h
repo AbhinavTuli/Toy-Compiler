@@ -15,6 +15,7 @@
 #include <math.h>
 #include <errno.h>
 #include <limits.h>
+#include "lexerDef.h"
 
 #ifndef PARSERDEF_H
 #define PARSERDEF_H
@@ -53,6 +54,8 @@ struct ruleToken* prevCurrentRuleTokenGlobal;
 struct ruleToken{
     int tag; // Non-terminal(0) or terminal(1)
     char tnt[NTSIZE];
+    struct treeNode* pTreePointer;
+    value val;
     struct ruleToken* next;
 };
 
@@ -88,12 +91,15 @@ struct treeNode{
     int tag; //0 for nt, 1 for T
     struct treeNode* child;
     struct treeNode* next;
+    value val;
 };
 
 typedef struct StackNode { 
 	int tag; 
     char tnt[NTSIZE];
 	struct StackNode* next; 
+    struct treeNode* pTreePointer;
+    value val;
 }lex; 
 
 lex* newNode(int data, char* str) 
@@ -102,6 +108,8 @@ lex* newNode(int data, char* str)
 	stackNode->tag = data;
     strcpy(stackNode-> tnt,str);
 	stackNode->next = NULL; 
+
+    struct treeNode* pTreePointer;
 	return stackNode; 
 } 
 

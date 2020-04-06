@@ -807,8 +807,8 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
     lex* top;
     top = (lex*)malloc(sizeof(lex));
     //push the $ , then start symbol on the stack 
-    push(&top, 1, terminals[getIndexOfTerminal("$")]);
-    push(&top, 0, nonterminals[0]);
+    push(&top, 1, terminals[getIndexOfTerminal("$")],NULL);
+    push(&top, 0, nonterminals[0],NULL);
     strcpy(root->tnt, nonterminals[0]);
     root->tag = 0;
 
@@ -861,7 +861,15 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
         if( strcmp(currLexeme, top->tnt)==0 )
         {
             //need to pop accoring to
-            // printf("Popping on match %s\n",top->tnt);
+            // printf("Popping on match %s , %s\n",top->tnt,tempTreeNode->tnt);
+            if(checkForValueToken(currLexeme)){
+                // Add Value to the TreeNode
+                if(top->pTreePointer!=NULL){
+                    top->pTreePointer->val = temp->val;
+                    printf("Add Value : %s\n",top->tnt);
+                } 
+            }
+
             pop(&top);
             temp=temp->next;
         }
@@ -954,11 +962,38 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
             tempTreeNode->tag = head.tag;
             tempTreeNode->next = NULL;
             tempTreeNode->child = NULL;
+            printf("Add %s\n",tempTreeNode->tnt);
 
-            
-            struct ruleToken* headNext = head.next;
+            if(checkForValueToken(tempTreeNode->tnt)){
 
-            struct ruleToken ARRAY[15]; 
+                printf("Check!! : %s\n",tempTreeNode->tnt);
+
+              switch (temp->tag)
+              {
+                case 1:     tempTreeNode->val.i = temp->val.i;
+                            printf("Add Int %d\n",temp->val.i);
+                break;
+                
+                case 2:     tempTreeNode->val.f = temp->val.f;
+                            printf("Add Float %f\n",temp->val.f);
+                break;
+                    
+                case 3:     tempTreeNode->val.b = temp->val.b;
+                            printf(temp->val.b ? "true\n" : "false\n");
+                break;
+                
+                case 4:     strcpy(tempTreeNode->val.s,temp->val.s);
+                            printf("Add Str %s\n",temp->val.s);
+                break;
+
+                default:
+                    break;
+              }
+            }
+
+            struct ruleToken* headNext = head.next;            
+
+            struct ruleToken ARRAY[25]; 
             struct ruleToken ZEROS;
             ZEROS.next = NULL;
             ZEROS.tag = 0;
@@ -981,8 +1016,8 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
                 tempTreeNode->tag = headNext->tag;
                 tempTreeNode->next = NULL;
                 tempTreeNode->child = NULL;   
-
-                
+                printf("Add2 %s\n",tempTreeNode->tnt);
+                ARRAY[index].pTreePointer = tempTreeNode;
                 //push(&top, headNext->tag, headNext->tnt );
                 headNext = headNext->next;
             }
@@ -991,7 +1026,8 @@ void parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINAL
             for(int i= index; i>=0; i--)
             {   
                 if(strcmp(ARRAY[i].tnt,"ε")){
-                    push(&top, ARRAY[i].tag, ARRAY[i].tnt );
+                    push(&top, ARRAY[i].tag, ARRAY[i].tnt,ARRAY[i].pTreePointer);
+                
                 }
             }
             
@@ -1023,10 +1059,11 @@ int isEmpty(lex* root)
     
 } 
 
-void push(lex** root, int data, char* str) 
+void push(lex** root, int data, char* str,struct treeNode* pTreePointer) 
 { 
 	lex* stackNode = newNode(data,str); 
 	stackNode->next = *root; 
+    stackNode->pTreePointer = pTreePointer;
 	*root = stackNode; 
 	//printf("%s pushed to stack\n", str); 
 } 
@@ -1137,6 +1174,14 @@ void parserFree(){
 
     memset(grammar, 0, MAX_NON_TERMINALS * sizeof(struct ntRules));
 
+}
+
+bool checkForValueToken(char* str){
+
+    if(strcmp(str,"INTEGER")==0 || strcmp(str,"REAL")==0 || strcmp(str,"BOOLEAN")==0 || strcmp(str,"ID")==0 || strcmp(str,"NUM")==0 || strcmp(str,"RNUM")==0)
+    return true;
+    
+    return false;
 }
 
 void runParser(FILE* testFile, FILE* parseTreeFile){
