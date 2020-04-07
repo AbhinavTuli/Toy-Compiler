@@ -231,7 +231,6 @@ struct astNode* generateAST(struct treeNode* root){
         temp = temp->next; // DRIVERENDDEF
         temp = temp->next; // <moduleDef>
         childAstNode=generateAST(temp);
-
         strcpy(tempName,"driverModule");
         return(makeAstNode(tempName,valAstNode,0,childAstNode));
     }
@@ -427,7 +426,12 @@ struct astNode* generateAST(struct treeNode* root){
     else if(strcmp(root->tnt,"statements")==0 && strcmp(root->child->tnt,"statement")==0){
         temp = root->child;
         childAstNode = generateAST(temp);
+
         childAstNode->next = generateAST(temp->next);
+
+        // printf("Check Stmts : %p\n", (void*)childAstNode);
+        // printf("Check Stmts2 : %p\n", (void*)childAstNode->next);
+
         strcpy(tempName,"statements");
         return makeAstNode(tempName,valAstNode,0,childAstNode);
 
@@ -458,8 +462,8 @@ struct astNode* generateAST(struct treeNode* root){
     else if(strcmp(root->tnt,"statement")==0 && strcmp(root->child->tnt,"iterativeStmt")==0){
         return(generateAST(root->child));
     }
-    // <ioStmt>  -->  GET VALUE BO ID BC SEMICOL
-    else if(strcmp(root->tnt,"ioStmt")==0 && strcmp(root->child->tnt,"GET")==0){  
+    // <ioStmt>  -->  GET_VALUE BO ID BC SEMICOL
+    else if(strcmp(root->tnt,"ioStmt")==0 && strcmp(root->child->tnt,"GET_VALUE")==0){  
         temp =root->child; // GET
         temp = temp->next; // VALUE
         temp = temp->next; // BO
@@ -647,7 +651,6 @@ struct astNode* generateAST(struct treeNode* root){
     // <N3> -->  COMMA ID <N3>
     else if(strcmp(root->tnt,"N3")==0 && strcmp(root->child->tnt,"COMMA")==0){
         // COMMA Ignored
-        
         temp = root->child; //COMMA
         temp= temp->next; //ID
         
@@ -655,6 +658,7 @@ struct astNode* generateAST(struct treeNode* root){
         strcpy(tempName,"ID");
         childAstNode = makeAstNode(tempName,valAstNode,4,NULL);
         childAstNode->next = generateAST(temp->next);
+
         strcpy(tempName,"N3");
         return makeAstNode(tempName,valAstNode,0,childAstNode);
     }
@@ -1138,6 +1142,7 @@ struct astNode* generateAST(struct treeNode* root){
         return makeAstNode(tempName,valAstNode,0,childAstNode);
     }
 
+    printf("Not Reached :  %s\n",root->tnt);
 }
 
 void runAST(FILE* testFile, FILE* parseTreeFile){
