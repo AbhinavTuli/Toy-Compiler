@@ -21,7 +21,7 @@ void printLevelOrder(struct astNode* root)
 /* Print nodes at a given level */
 void printGivenLevel(struct astNode* root, int level) 
 { 
-    printf("level is %d\n", level);
+    // printf("level is %d\n", level);
     if (root == NULL) 
         return; 
     if (level == 1) 
@@ -108,6 +108,7 @@ struct astNode* makeAstNode(char* name, value val,int tag,struct astNode* child)
     struct astNode* newNode = (struct astNode*) malloc(sizeof(struct astNode));
     newNode->child = child;
     newNode->tag = tag;
+    newNode->next = NULL;
     //printf("Check!! : %s\n",name);
     strcpy(newNode->name,name);
     // printf("Check!! : %s\n",newNode->name);
@@ -137,7 +138,7 @@ struct astNode* generateAST(struct treeNode* root){
         printf("ERROR!\n");
         return NULL;
     }
-    printf("AST: %s\n",root->tnt);
+    // printf("AST: %s\n",root->tnt);
     // tRoot - TreeNode , aRoot - astNode
     struct treeNode* temp;
     struct astNode* tempAstNode;
@@ -372,7 +373,8 @@ struct astNode* generateAST(struct treeNode* root){
         return(makeAstNode(tempName,valAstNode,3,NULL));
     }
     // <dataType>  -->   ARRAY SQBO <range_arrays> SQBC OF <type>
-    else if(strcmp(root->tnt,"datatype")==0 && strcmp(root->child->tnt,"ARRAY")==0){
+    else if(strcmp(root->tnt,"dataType")==0 && strcmp(root->child->tnt,"ARRAY")==0){
+        printf("Datatype ARRAY\n");
         temp=root->child; //ARRAY
         temp = temp->next; //SQBO
         temp = temp->next; //<range_arrays>
@@ -946,12 +948,16 @@ struct astNode* generateAST(struct treeNode* root){
         temp = temp->next;  // COLON
         printf("DeclareStmt2 : %s\n",temp->tnt);
         temp = temp->next;  // <dataType>
-        printf("DeclareStmt3 : %s\n",temp->tnt);
+        printf("DeclareStmt3 : %s , %s\n",temp->tnt,temp->child->tnt);
         childAstNode->next = generateAST(temp);
         // if(childAstNode->next==NULL)
         // printf("ERROR!");
         printf("DeclareStmt4 : %s\n",childAstNode->name);
-        printf("DeclareStmt5 : %s\n",childAstNode->next->name);
+
+        printf("%p\n", (void*)childAstNode);
+        printf("%p\n", (void*)childAstNode->next);
+
+        // printf("DeclareStmt5 : %\n",childAstNode->next);
         strcpy(tempName,"declareStmt");
         return makeAstNode(tempName,valAstNode,0,childAstNode);
     }
@@ -1178,7 +1184,6 @@ void runAST(FILE* testFile, FILE* parseTreeFile){
     generateAST(rootParseTree);
     if(printFlag)
     printf("\nParser Complete\n");
-
 
     /*
         To generate Files : ParseTable.txt
