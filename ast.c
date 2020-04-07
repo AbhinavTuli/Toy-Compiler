@@ -3,13 +3,15 @@
 #include "ast.h"
 #include "lexerDef.h"
 
+int noAstNodes = 0;
+
 void printGivenLevel(struct astNode* root, int level); 
 int height(struct astNode* node); 
 
 void printLevelOrder(struct astNode* root) 
 { 
     //printf("Level order Called\n");
-    int h = 50;
+    int h = 25;
     int i; 
     for (i=1; i<=h; i++) {
         printGivenLevel(root, i); 
@@ -24,8 +26,11 @@ void printGivenLevel(struct astNode* root, int level)
     // printf("level is %d\n", level);
     if (root == NULL) 
         return; 
-    if (level == 1) 
+
+    if (level == 1) {
+        noAstNodes++;
         printf("%s ", root->name); 
+    }
 
     // if(root->tag==4)
     // printf("(Tag%s)",root->val.s);
@@ -138,7 +143,7 @@ struct astNode* generateAST(struct treeNode* root){
         printf("ERROR!\n");
         return NULL;
     }
-    // printf("AST: %s\n",root->tnt);
+    printf("AST: %s\n",root->tnt);
     // tRoot - TreeNode , aRoot - astNode
     struct treeNode* temp;
     struct astNode* tempAstNode;
@@ -374,7 +379,7 @@ struct astNode* generateAST(struct treeNode* root){
     }
     // <dataType>  -->   ARRAY SQBO <range_arrays> SQBC OF <type>
     else if(strcmp(root->tnt,"dataType")==0 && strcmp(root->child->tnt,"ARRAY")==0){
-        printf("Datatype ARRAY\n");
+        // printf("Datatype ARRAY\n");
         temp=root->child; //ARRAY
         temp = temp->next; //SQBO
         temp = temp->next; //<range_arrays>
@@ -486,6 +491,7 @@ struct astNode* generateAST(struct treeNode* root){
     else if(strcmp(root->tnt,"var_id_num")==0 && strcmp(root->child->tnt,"ID")==0){
         temp=root->child; //ID
         strcpy(valAstNode.s,temp->val.s);
+        strcpy(tempName,"ID");
         childAstNode = makeAstNode(tempName,valAstNode,4,NULL);
         temp=temp->next; //<whichId>
         childAstNode->next = generateAST(temp);
@@ -941,22 +947,25 @@ struct astNode* generateAST(struct treeNode* root){
     // <declareStmt>  -->  DECLARE <idList> COLON <dataType> SEMICOL
     else if(strcmp(root->tnt,"declareStmt")==0){
         temp = root->child; // DECLARE
-        printf("DeclareStmt0 : %s\n",temp->tnt);
+        // printf("DeclareStmt0 : %s\n",temp->tnt);
         temp = temp->next;  // <idList>
-        printf("DeclareStmt1 : %s\n",temp->tnt);
+        // printf("DeclareStmt1 : %s\n",temp->tnt);
         childAstNode = generateAST(temp);
 
         temp = temp->next;  // COLON
-        printf("DeclareStmt2 : %s\n",temp->tnt);
+        // printf("DeclareStmt2 : %s\n",temp->tnt);
         temp = temp->next;  // <dataType>
-        printf("DeclareStmt3 : %s , %s\n",temp->tnt,temp->child->tnt);
+        // printf("DeclareStmt3 : %s , %s\n",temp->tnt,temp->child->tnt);
         childAstNode->next = generateAST(temp);
+
+        // insertDataType(childAstNode,getDataType(childAstNode->next));
+
         // if(childAstNode->next==NULL)
         // printf("ERROR!");
-        printf("DeclareStmt4 : %s\n",childAstNode->name);
+        // printf("DeclareStmt4 : %s\n",childAstNode->name);
 
-        printf("%p\n", (void*)childAstNode);
-        printf("%p\n", (void*)childAstNode->next);
+        // printf("%p\n", (void*)childAstNode);
+        // printf("%p\n", (void*)childAstNode->next);
 
         // printf("DeclareStmt5 : %\n",childAstNode->next);
         strcpy(tempName,"declareStmt");
@@ -1073,6 +1082,7 @@ struct astNode* generateAST(struct treeNode* root){
         temp = temp->next; // BO
         temp = temp->next; // ID
         strcpy(valAstNode.s,temp->val.s);
+        strcpy(tempName,"ID");
         childAstNode = makeAstNode(tempName,valAstNode,4,NULL);
         temp = temp->next; // IN
         
@@ -1181,10 +1191,13 @@ void runAST(FILE* testFile, FILE* parseTreeFile){
     
     inOrderParseTree(rootParseTree,parseTreeFile);    
 
+    printf("\nParseTreeComputed\n");
+
     printLevelOrder(generateAST(rootParseTree));
-    generateAST(rootParseTree);
+    //generateAST(rootParseTree);
     if(printFlag)
-    printf("\nParser Complete\n");
+    printf("\nAST Complete\n");
+    printf("ASTNodes : %d\n",noAstNodes);
 
     /*
         To generate Files : ParseTable.txt

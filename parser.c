@@ -1107,18 +1107,18 @@ void inOrderParseTree(struct treeNode* root,FILE* parseTreeFile){
     // Print the current node's data 
     printf("%s ",root->tnt); 
     // printf("%d ",root->tagUnion); 
-    if(root->tagUnion==1){
-        printf("tag %d\n",root->val.i); 
-    }
-    else if(root->tagUnion==2){
-        printf("tag %f\n",root->val.f); 
-    }
-    else if(root->tagUnion==3){
-        printf(root->val.b ? "tag true \n" : "tag false\n");
-    }
-    else if(root->tagUnion==4){
-        printf("tag %s \n",root->val.s);
-    }
+    // if(root->tagUnion==1){
+    //     printf("tag %d\n",root->val.i); 
+    // }
+    // else if(root->tagUnion==2){
+    //     printf("tag %f\n",root->val.f); 
+    // }
+    // else if(root->tagUnion==3){
+    //     printf(root->val.b ? "tag true \n" : "tag false\n");
+    // }
+    // else if(root->tagUnion==4){
+    //     printf("tag %s \n",root->val.s);
+    // }
     
     fprintf(parseTreeFile,"%s ",root->tnt);
     fflush(parseTreeFile);

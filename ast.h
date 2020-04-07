@@ -5,6 +5,7 @@
 
 struct astNode{
     char name[50];
+    char type[50];
 
     int tag;
     value val;
@@ -14,3 +15,4 @@ struct astNode{
 } astNode;
 
 #endif
+
