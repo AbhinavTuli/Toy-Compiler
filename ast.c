@@ -719,13 +719,13 @@ struct astNode* generateAST(struct treeNode* root){
 
     // <N7>  -->  ε
     else if(strcmp(root->tnt,"N7")==0){
-        printf("Yo1\n");
+        // printf("Yo1\n");
         strcpy(valAstNode.s,"ε");
-        printf("Yo2\n");
+        // printf("Yo2\n");
         strcpy(tempName,"N7");
-        printf("Yo3\n");
+        // printf("Yo3\n");
         childAstNode=makeAstNode(tempName,valAstNode,4,NULL);
-        printf("Yo4\n");
+        // printf("Yo4\n");
         return(childAstNode);
     }
 
@@ -1168,7 +1168,7 @@ void runAST(FILE* testFile, FILE* parseTreeFile){
     
     inOrderParseTree(rootParseTree,parseTreeFile);    
 
-    //printLevelOrder(generateAST(rootParseTree));
+    printLevelOrder(generateAST(rootParseTree));
     generateAST(rootParseTree);
     if(printFlag)
     printf("\nParser Complete\n");
