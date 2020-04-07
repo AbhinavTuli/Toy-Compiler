@@ -1,0 +1,2 @@
+strcpy(tempName,"ID");
+strcpy(tempName,"");
