@@ -938,14 +938,20 @@ struct astNode* generateAST(struct treeNode* root){
     // <declareStmt>  -->  DECLARE <idList> COLON <dataType> SEMICOL
     else if(strcmp(root->tnt,"declareStmt")==0){
         temp = root->child; // DECLARE
+        printf("DeclareStmt0 : %s\n",temp->tnt);
         temp = temp->next;  // <idList>
-        ;
+        printf("DeclareStmt1 : %s\n",temp->tnt);
         childAstNode = generateAST(temp);
-        tempAstNode = childAstNode;
 
         temp = temp->next;  // COLON
+        printf("DeclareStmt2 : %s\n",temp->tnt);
         temp = temp->next;  // <dataType>
-        tempAstNode->next = generateAST(temp);
+        printf("DeclareStmt3 : %s\n",temp->tnt);
+        childAstNode->next = generateAST(temp);
+        // if(childAstNode->next==NULL)
+        // printf("ERROR!");
+        printf("DeclareStmt4 : %s\n",childAstNode->name);
+        printf("DeclareStmt5 : %s\n",childAstNode->next->name);
         strcpy(tempName,"declareStmt");
         return makeAstNode(tempName,valAstNode,0,childAstNode);
     }
