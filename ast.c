@@ -543,6 +543,7 @@ struct astNode* generateAST(struct treeNode* root){
     else if(strcmp(root->tnt,"assignmentStmt")==0){
         temp=root->child; //ID
         strcpy(valAstNode.s,temp->val.s);
+        strcpy(tempName,"ID");
         childAstNode = makeAstNode(tempName,valAstNode,4,NULL);
         temp=temp->next; //<whichStmt>
         childAstNode->next=generateAST(temp);
