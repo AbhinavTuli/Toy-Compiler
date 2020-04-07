@@ -137,7 +137,7 @@ struct astNode* generateAST(struct treeNode* root){
         printf("ERROR!\n");
         return NULL;
     }
-    printf("gen %s\n",root->tnt);
+    printf("AST: %s\n",root->tnt);
     // tRoot - TreeNode , aRoot - astNode
     struct treeNode* temp;
     struct astNode* tempAstNode;
@@ -541,7 +541,7 @@ struct astNode* generateAST(struct treeNode* root){
     else if(strcmp(root->tnt,"assignmentStmt")==0){
         temp=root->child; //ID
         strcpy(valAstNode.s,temp->val.s);
-        childAstNode=generateAST(temp);
+        childAstNode = makeAstNode(tempName,valAstNode,4,NULL);
         temp=temp->next; //<whichStmt>
         childAstNode->next=generateAST(temp);
         strcpy(tempName,"assignmentStmt");
