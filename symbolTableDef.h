@@ -9,6 +9,7 @@
 #define VARTABLESIZE 20 // size of variable symbol table
 
 typedef struct variableTableEntry{
+	bool isEmpty;
 	char *key;					// the name of the variable
 	
 	bool isArray; 				// true if array false if not
@@ -22,23 +23,24 @@ typedef struct variableTableEntry{
 } variableTableEntry;
 
 typedef struct variableTable {
-	variableTableEntry* varNode;  	// pointer to a dynamically allocated list of size(below) to variableTableEntries
+	variableTableEntry* table;  	// pointer to a dynamically allocated list of size(below) to variableTableEntries
 	int size;						//	size of array
 	
 	int count;						// order number in the list of children
-	variableTable* parent;
-	variableTable* child;
-	variableTable* next;
+	struct variableTable* parent;
+	struct variableTable* child;
+	struct variableTable* next;
 } variableTable;
 
 typedef struct parameter{
 	bool isArray;
 	int tag;
 	int lowerBound, upperBound;
-	parameter* next;
+	struct parameter* next;
 }parameter;
 
 typedef struct functionTableEntry {
+	bool isEmpty;
 	char *key;                  		// name of function
 	parameter *inputList, *outputList;  // pointers to heads of lists of input and output parameters, NULL if empty
 	int numInput, numOutput;			// number of input parameters, number of output lists
@@ -49,7 +51,7 @@ typedef struct functionTableEntry {
 } functionTableEntry;
 
 typedef struct functionTable {
-	functionTableEntry* funcNode;
+	functionTableEntry* table;
 	int size;
 }functionTable;
 
