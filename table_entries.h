@@ -1,11 +1,13 @@
+#include "lexerDef.h"
+
 // for functions : 
 typedef struct _functionTableEntry {
-	char *key;                  //
-	token id;                   // defined in lexer ?
+	char *key;                  	//
+	token id;                 	  	// defined in lexer ?
 	typeInfo *inputPars, *outputPars;
-	int frameSize;              //total sizes of all local variables+parameters
-	int numInput, numOutput;    // number of input and output pars
-	idTable lidt;               //local ID table
+	int frameSize;              	//total sizes of all local variables+parameters
+	int numInput, numOutput;    	// number of input and output pars
+	idTable lidt;               	//local ID table
 } functionTableEntry;
 
 
@@ -15,7 +17,7 @@ typedef struct _idTableEntry {
 	token id;
 	gterm dataType;
 	int size;
-	int offset;				  //offset of variable within scope of this table
+	int offset; //offset of variable within scope of this table
 	recordTableEntry *rptr;
 } idTableEntry;
 

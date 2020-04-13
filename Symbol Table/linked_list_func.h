@@ -1,5 +1,3 @@
-//
-
 
 typedef struct _nodeFunc {													
 	functionTableEntry e;									// a single function, all its details, its key, arguments,etce

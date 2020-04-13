@@ -4,8 +4,6 @@
 #include "table_func.h"
 
 
-
-
 //for a variable entry in the ST(global or local), 
 typedef struct variable_Entry
 {
@@ -22,8 +20,9 @@ typedef struct variable_Entry
 typedef struct function_Entry
 {
     char map[20];
-    char ret_type[20];
-    
+    char ret_type[20];                      // return type of function, is this supposed to be a single value or what?
+    int numinput, numoutput; 
+    function_table ft; 
 }func_Entry;
 
 
@@ -32,41 +31,29 @@ typedef struct function_Entry
 // }GT;
 
 
-typedef struct table_Entry{
+typedef struct table_Entry
+{
     char map[20];
-    bool check;                                             // check for variabl/function 
-    entry e; 
+    bool check;                                             // check for variable - 0/function - 1
+    entry e;
 }tableEntry;
 
 
 // Entry in table(can be global/local)
-typedef union entry { 
-    variable_Entry var; 
-    function_Entry func;
+typedef union entry 
+{ 
+    var_Entry var; 
+    func_Entry func;
 }entry; 
 
 
 // Local Function table : 
-typedef struct function_table{
-
+typedef struct function_table
+{
     linkedListFunc *bins;											// Purpose??? linkedlist of functions? or nesting? 
 	int size;          	 											// number of bins - size of all elements?
 	int total;          											// total number of elements
 }function_table;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 typedef struct _globalVar {

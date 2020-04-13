@@ -3,6 +3,7 @@
 #include <stdlib.h>
 // #include "hash_function.h"
 
+
 functionTable createFT(int size) {
 	functionTable ft;
 	ft.size=size;

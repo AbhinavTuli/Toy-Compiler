@@ -2,13 +2,12 @@
 // Eqiuivalent modules in table_id and table_rec
 
 #include "table_entries.h"
-
-// Undefined structures : linkedListFunc, FunctionTableEntry, 
+#include "linked_list_func.h" 
 
 
 typedef struct _functionTable {
 	linkedListFunc *bins;											// Purpose??? linkedlist of functions? or nesting? 
-	int size;          	 											// number of bins - number of functions? 
+	int size;          	 											// number of bins - size of all elements?
 	int total;          											// total number of elements
 } functionTable;
 
