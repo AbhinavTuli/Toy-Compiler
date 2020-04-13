@@ -744,6 +744,7 @@ struct treeNode* createTreeNode()
     struct treeNode* temp;
     temp = (struct treeNode*)malloc(sizeof(struct treeNode));
     temp->next = NULL;
+    temp->lineno = -5;
     strcpy(temp->tnt, "");
     temp->child = NULL;
     temp->tag = 0;
@@ -868,6 +869,7 @@ struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][
                 if(top->pTreePointer!=NULL){
                     top->pTreePointer->val = temp->val;
                     top->pTreePointer->tagUnion = temp->tag;
+                    top->lineno = temp->lineno; // Input LineNo
                     // printf("Add Value : %s\n",top->tnt);
                 } 
             }
@@ -964,6 +966,7 @@ struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][
             tempTreeNode->tag = head.tag;
             tempTreeNode->next = NULL;
             tempTreeNode->child = NULL;
+            tempTreeNode->lineno = temp->lineno;
             // printf("Add %s\n",tempTreeNode->tnt);
 
             if(checkForValueToken(tempTreeNode->tnt)){
@@ -1021,7 +1024,8 @@ struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][
                 strcpy(tempTreeNode->tnt, headNext->tnt);
                 tempTreeNode->tag = headNext->tag;
                 tempTreeNode->next = NULL;
-                tempTreeNode->child = NULL;   
+                tempTreeNode->child = NULL;
+                tempTreeNode->lineno = temp->lineno; 
                 // printf("Add2 %s\n",tempTreeNode->tnt);
                 ARRAY[index].pTreePointer = tempTreeNode;
                 //push(&top, headNext->tag, headNext->tnt );
@@ -1069,6 +1073,7 @@ void push(lex** root, int data, char* str,struct treeNode* pTreePointer)
 { 
 	lex* stackNode = newNode(data,str); 
 	stackNode->next = *root; 
+    // stackNode->lineno = pTreePointer->lineno;
     stackNode->pTreePointer = pTreePointer;
 	*root = stackNode; 
 	//printf("%s pushed to stack\n", str); 
@@ -1105,6 +1110,9 @@ void inOrderParseTree(struct treeNode* root,FILE* parseTreeFile){
         temp=temp->next;
   
     // Print the current node's data 
+    if(root->tag==1)
+    printf("%s#%d ",root->tnt,root->lineno); 
+    else
     printf("%s ",root->tnt); 
     // printf("%d ",root->tagUnion); 
     // if(root->tagUnion==1){

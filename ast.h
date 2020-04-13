@@ -12,6 +12,8 @@ struct astNode{
     
     struct astNode* child;
     struct astNode* next;
+
+    int lineno;
 } astNode;
 
 #endif

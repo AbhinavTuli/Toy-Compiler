@@ -1,3 +1,0 @@
-<<<driver program>>>
-start
-end

@@ -1,1 +1,7 @@
 moduleDeclaration - ID
+
+gLineNo = temp->lineno;
+
+gLineNo = root->lineno;
+
+gLineNo = root->child->lineno;

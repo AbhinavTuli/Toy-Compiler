@@ -92,6 +92,8 @@ struct treeNode{
     struct treeNode* next;
     value val;
     int tagUnion;
+
+    int lineno;
 };
 
 typedef struct StackNode { 
@@ -100,6 +102,7 @@ typedef struct StackNode {
 	struct StackNode* next; 
     struct treeNode* pTreePointer;
     value val;
+    int lineno;
 }lex; 
 
 lex* newNode(int data, char* str) 
