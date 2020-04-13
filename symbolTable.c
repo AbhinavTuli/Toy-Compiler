@@ -2,22 +2,31 @@
 #include "symbolTableDef.h"
 
 void constructST(struct astNode* root){
-        assert(root->name=="program");
+        assert(strcmp(root->name,"program"));
         struct astNode *node = root->child;
         struct astNode *parent;
         node=root->child;    
-                           
+        
+        // initializing entry in the global function table, 
+        //we can create ` table when we encounter the complete function definition and return error in case definition is not present. 
+        
+
         while(strcmp(node->val.s,"ε")!=0){                                    // at module declarations, initialize function table!!!
-        assert(root->name=="moduleDeclarations");
-            if(node->child==NULL){
+        assert(strcmp(root->name,"moduleDeclarations"));
+        if(node->child==NULL)
+            {
                 node=node->next; 
                 break; 
             }
-            else{
-                                        
-            }
+        astNode *childnode = node->child;
+        if (strcmp(childnode->name,"ID") && (childnode->next==NULL))
+        {
+            /* code to  initialize entry in the global function table*/
         }
-        
+        // else if()
+
+        }
+            
         while(1){                                    //  otherModules-- possible module definition without prior declaration
         assert(root->name=="otherModules");
         if(node->child==NULL)
