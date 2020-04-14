@@ -13,11 +13,14 @@ typedef struct variableTableEntry{
 	char *key;					// the name of the variable
 	
 	bool isArray; 				// true if array false if not
-	int lowerBound, upperBound;	// lower and upper bounds of array, to be only used when isArray is true else both set to -1
+	bool isArrayStatic;			// true if static array false if not
+	bool rangeVariables;		// true if range variables false if number lexemes
+	int lowerBound, upperBound;	// lower and upper bounds of array (inclusive)
 
 	int tag;					// 1-integer, 2-float, 3-bool
-	int size;					// size
+	int width;					// size
 	int offset; 				// offset of variable within scope of this table
+	int nestingLevel;
 	
 
 } variableTableEntry;
