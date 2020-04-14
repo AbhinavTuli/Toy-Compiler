@@ -396,14 +396,14 @@ struct astNode* generateAST(struct treeNode* root){
     // <dataType>  -->   INTEGER
     else if(strcmp(root->tnt,"dataType")==0 && strcmp(root->child->tnt,"INTEGER")==0){
         valAstNode.i = root->child->val.i;
-        strcpy(tempName,"datatype");
+        strcpy(tempName,"dataType");
         gLineNo = root->child->lineno;
         return(makeAstNode(tempName,valAstNode,1,NULL));
     }
     // <dataType>  -->   REAL
     else if(strcmp(root->tnt,"dataType")==0 && strcmp(root->child->tnt,"REAL")==0){
         valAstNode.f = root->child->val.f;
-        strcpy(tempName,"datatype");
+        strcpy(tempName,"dataType");
         gLineNo = root->child->lineno;
         return(makeAstNode(tempName,valAstNode,2,NULL));
     }
@@ -425,7 +425,7 @@ struct astNode* generateAST(struct treeNode* root){
         temp = temp->next; //OF
         temp = temp->next; //<type>
         childAstNode->next=generateAST(temp);
-        strcpy(tempName,"datatype");
+        strcpy(tempName,"dataType");
         gLineNo = root->lineno;
         return(makeAstNode(tempName,valAstNode,0,childAstNode));
     }
@@ -463,7 +463,11 @@ struct astNode* generateAST(struct treeNode* root){
     }
     // <moduleDef>   -->  START <statements> END
     else if(strcmp(root->tnt,"moduleDef")==0){
-        return(generateAST(root->child->next));
+
+        strcpy(tempName,"moduleDef");
+        gLineNo = root->lineno;
+        return(makeAstNode(tempName,valAstNode,0,generateAST(root->child->next)));
+        // return(generateAST(root->child->next));
     }
     // <statements>  -->  <statement> <statements>  
     else if(strcmp(root->tnt,"statements")==0 && strcmp(root->child->tnt,"statement")==0){
@@ -491,23 +495,38 @@ struct astNode* generateAST(struct treeNode* root){
     }
     // <statement>  -->  <ioStmt>  
     else if(strcmp(root->tnt,"statement")==0 && strcmp(root->child->tnt,"ioStmt")==0){
-        return(generateAST(root->child));
+        strcpy(tempName,"ioStmt");
+        gLineNo = root->child->lineno;
+        return(makeAstNode(tempName,valAstNode,0,generateAST(root->child)));
+        // return(generateAST(root->child));
     }
     // <statement>  -->  <simpleStmt>
     else if(strcmp(root->tnt,"statement")==0 && strcmp(root->child->tnt,"simpleStmt")==0){
-        return(generateAST(root->child));
+        strcpy(tempName,"simpleStmt");
+        gLineNo = root->child->lineno;
+        return(makeAstNode(tempName,valAstNode,0,generateAST(root->child)));
+        // return(generateAST(root->child));
     }
     // <statement>  -->  <declareStmt>
     else if(strcmp(root->tnt,"statement")==0 && strcmp(root->child->tnt,"declareStmt")==0){
-        return(generateAST(root->child));
+        strcpy(tempName,"declareStmt");
+        gLineNo = root->child->lineno;
+        return(makeAstNode(tempName,valAstNode,0,generateAST(root->child)));
+        // return(generateAST(root->child));
     }
     // <statement>  -->  <conditionalStmt>
     else if(strcmp(root->tnt,"statement")==0 && strcmp(root->child->tnt,"conditionalStmt")==0){
-        return(generateAST(root->child));
+        strcpy(tempName,"conditionalStmt");
+        gLineNo = root->child->lineno;
+        return(makeAstNode(tempName,valAstNode,0,generateAST(root->child)));
+        // return(generateAST(root->child));
     }
     // <statement>  -->  <iterativeStmt>
     else if(strcmp(root->tnt,"statement")==0 && strcmp(root->child->tnt,"iterativeStmt")==0){
-        return(generateAST(root->child));
+        strcpy(tempName,"iterativeStmt");
+        gLineNo = root->child->lineno;
+        return(makeAstNode(tempName,valAstNode,0,generateAST(root->child)));
+        // return(generateAST(root->child));
     }
     // <ioStmt>  -->  GET_VALUE BO ID BC SEMICOL
     else if(strcmp(root->tnt,"ioStmt")==0 && strcmp(root->child->tnt,"GET_VALUE")==0){  
@@ -649,14 +668,14 @@ struct astNode* generateAST(struct treeNode* root){
     // <index>  -->  NUM
     else if(strcmp(root->tnt,"index")==0 && strcmp(root->child->tnt,"NUM")==0){
         astNode.val.i = root->child->val.i;
-        strcpy(tempName,"NUM");
+        strcpy(tempName,"index");
         gLineNo = root->child->lineno;
         return(makeAstNode(tempName,valAstNode,1,NULL));
     }
     // <index>  -->  ID
     else if(strcmp(root->tnt,"index")==0 && strcmp(root->child->tnt,"ID")==0){
         strcpy(valAstNode.s,root->child->val.s);
-        strcpy(tempName,"ID");
+        strcpy(tempName,"index");
         gLineNo = root->child->lineno;
         childAstNode = makeAstNode(tempName,valAstNode,4,NULL);
         return childAstNode;
