@@ -28,7 +28,7 @@ typedef struct variableTableEntry{
 typedef struct variableTable {
 	variableTableEntry* table;  	// pointer to a dynamically allocated list of size(below) to variableTableEntries
 	int size;						//	size of array
-	
+	struct functionTableEntry* funcPointer;
 	int count;						// order number in the list of children
 	struct variableTable* parent;
 	struct variableTable* child;

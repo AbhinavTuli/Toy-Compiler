@@ -30,8 +30,8 @@ void printGivenLevel(struct astNode* root, int level)
 
     if (level == 1) {
         noAstNodes++;
-        if(root->tag==1)
-        printf("%s#%d", root->name,root->lineno); 
+        if(root->tag==4)
+        printf("%s#%s  ", root->name,root->val.s); 
         else
         printf("%s ", root->name); 
     }
@@ -125,6 +125,7 @@ struct astNode* generateAST(struct treeNode* root){
     if(strcmp(root->tnt,"program")==0){
         strcpy(tempName,"moduleDeclarations");
         temp=root->child; // <moduleDeclarations>
+        // gLineNo = root->child->lineno;
         childAstNode=makeAstNode(tempName,valAstNode,0,generateAST(temp));
         temp = temp->next; // <otherModules>
         tempAstNode = childAstNode;
@@ -145,7 +146,6 @@ struct astNode* generateAST(struct treeNode* root){
         temp = temp->next; // <moduleDeclarations>
         tempAstNode = childAstNode;
         tempAstNode->next = generateAST(temp); 
-        gLineNo = root->child->lineno;
         return childAstNode;
     }
     

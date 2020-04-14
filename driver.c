@@ -21,8 +21,8 @@
 
 int main(int argc, char *argv[]){
 
-    strcpy(argv[1],"t7.txt");
-    strcpy(argv[2],"a.txt");
+    // strcpy(argv[1],"t7.txt");
+    // strcpy(argv[2],"a.txt");
     
     FILE* fp1;
     FILE* fp2;

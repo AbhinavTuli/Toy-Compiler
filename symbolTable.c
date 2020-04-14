@@ -186,6 +186,7 @@ variableTableEntry retrieveVarTable(variableTable *ptr, char* var)
 	}
 }
 
+
 void deleteVarTable(variableTable *ptr)
 {
 	free(ptr);
@@ -269,6 +270,24 @@ functionTableEntry retrieveFunTable(functionTable *ptr, char* func)
 	}
 }
 
+void deleteFromFuncTable(functionTable *ptr, char* func)
+{
+	int len = ptr->size;
+	int index = hash1(func)%len;
+
+	int i = 0;
+	while(i<len)
+	{
+		if(strcmp(ptr->table[index].key,func) == 0)
+		{
+			ptr->table[index].isEmpty = true;
+			return;
+		}
+
+		index = (index+1)%len;
+		i++;
+	}
+}
 void deleteFunTable(functionTable *ptr)
 {
 	free(ptr);
