@@ -3,40 +3,51 @@
 
 void constructST(struct astNode* root){
 
+        if(root==NULL)
+        {
+            // Report Error!
+            printf("Root is NULL");
+            exit(0);
+        }
+
         struct astNode* temp = root;
 
-        assert(strcmp(root->name,"program"));
-        struct astNode *node = root->child;
-        struct astNode *parent;
-        node=root->child;    
-        
-        // initializing entry in the global function table, 
-        //we can create ` table when we encounter the complete function definition and return error in case definition is not present. 
-        
-        // There are three possible cases with the moduleDeclaration - ε, moduleDeclaration moduleDeclarations and declare module
+        if(strcmp(root->name,"program")==0){
+            // <program>  -->  <moduleDeclarations> <otherModules><driverModule><otherModules>
+            temp = temp->child; // <moduleDeclarations>
+            constructST(temp);
+            temp = temp->next; // <otherModules>
+            constructST(temp);
+            temp = temp->next; // <driverModule>
+            constructST(temp);
+            temp = temp->next; // <otherModules>
+            constructST(temp);
 
-        while(strcmp(node->val.s,"ε")!=0){                                    // case 1-check if there is no module declaration!!!
-            assert(strcmp(root->name,"moduleDeclarations"));
-            if(node->child==NULL)
-            {
-                node=node->next; 
-                break; 
+            return; // Not necessary!!
+        }
+
+        if(strcmp(root->name,"moduleDeclarations")==0){
+           // <moduleDeclarations>  -->  <moduleDeclaration><moduleDeclarations> 
+           // <moduleDeclaration>  -->  DECLARE MODULE ID SEMICOL 
+
+           // <moduleDeclarations>  -->  ε
+            temp = temp->child; // ID or NULL
+
+            while(temp!=NULL){
+                // TODO : Wil get Module ID from here!
+                temp = temp->next; // ID or NULL;
             }
 
-            astNode *childnode = node->child;
-        
-            if (strcmp(childnode->name,"ID") && (childnode->next==NULL))                // case 3-declare Module!!!
-            {
-                /* code to  initialize entry in the global function table*/
-                break;
-            }
+            return;
+        }
 
-            else if(strcmp(childnode->name,"moduleDeclaration"))
-            {
-                //  code to reach end of module declarations
-                
-            }
-
+        if(strcmp(root->name,"driverModule")==0){
+            temp = temp->child; // <moduleDef>
+            // <driverModule> -->  DRIVERDEF DRIVER PROGRAM DRIVERENDDEF <moduleDef>
+            // <moduleDef>   -->  START <statements> END
+            // <statements>  -->  <statement> <statements>  
+            // ...
+            constructST(temp); // if for moduleDef written below!
         }
 
 
@@ -180,7 +191,6 @@ void constructST(struct astNode* root){
                         // <arithmeticExpr>  -->  <term> <N4>
                         // <N4>  -->  <op1> <term> <N4>
                         // <N4>  -->  ε
-                        
                         // <term>  -->  <factor> <N5>
                         // <factor>  -->  BO <arithmeticOrBooleanExpr> BC  
                         // <factor>  -->  <var_id_num>
@@ -201,55 +211,110 @@ void constructST(struct astNode* root){
                 // <simpleStmt>   -->  <moduleReuseStmt>
                 // <moduleReuseStmt>  -->  <optional> USE MODULE ID WITH PARAMETERS <idList> SEMICOL
             }
-        }
+        } // simpleStmt Ends
 
         if(strcmp(root->name,"declareStmt")==0){
-        }
+            // <declareStmt>  -->  DECLARE <idList> COLON <dataType> SEMICOL
+            // TODO : Get dataType from right <dataType> and set Ids type to that! ADD to Symbol Table(Nothing to add here)
+
+            temp = temp->child; // <idList>
+            temp = temp->next; // <dataType>
+            int datatype;
+
+            if(temp->child==NULL){
+                // Not an Array 
+                datatype = temp->tag; 
+                /*
+                    1 - INTEGER
+                    2 - REAL/FLOAT
+                    3 - BOOLEAN
+                */
+                temp = root->child; // <idList>
+                //<idList>  -->  ID <N3>
+                temp = temp->child; // ID
+                
+                while(temp!=NULL){
+
+                    // TODO: Now temp is a linked list of IDs - Add them to Symbol Table
+                    temp = temp->next;
+                }
+
+            }else{
+                // <dataType>  -->   ARRAY SQBO <range_arrays> SQBC OF <type>
+                // <range_arrays>  -->  <index> RANGEOP <index>
+                temp = temp->child; // <range_arrays>  -->  <index> RANGEOP <index>
+
+                datatype = temp->next->tag; // <type> -> tag
+
+                temp = temp->child; // <index>
+                int low_tag,high_tag;
+
+                low_tag = temp->tag; // 1 or 4
+                high_tag =  temp->next->tag;
+                
+                // If 4, it's an ID 
+                // If 1, it's an Integer
+
+
+                // TODO : How to handle dynamic and static arrays?
+
+
+                temp = root->child; // <idList>
+                //<idList>  -->  ID <N3>
+                temp = temp->child; // ID
+
+                while(temp!=NULL){
+
+                    // TODO: Now temp is a linked list of IDs - Add them to Symbol Table
+                    temp = temp->next;
+                }
+
+                // <type>  -->  INTEGER
+                // <type>  -->  REAL
+                // <type>  -->  BOOLEAN
+            }
+
+        } // declareStmt Ends
 
         if(strcmp(root->name,"conditionalStmt")==0){
-        }
+             // <conditionalStmt>  -->  SWITCH BO ID BC START <caseStmts> <default> END
+             // <caseStmts>  -->  CASE <value> COLON <statements> BREAK SEMICOL <N9>
+            
+            temp = temp->child; // <caseStmts>
+
+            // <value>  -->  NUM
+            // <value>  -->  TRUE
+            // <value>  -->  FALSE
+
+            // <N9>  -->  CASE <value> COLON <statements> BREAK SEMICOL <N9>
+
+
+
+
+            temp = temp->next;  // <default>
+             // <default>  -->  DEFAULT COLON <statements> BREAK SEMICOL
+             // <default>  -->  ε 
+
+        } // conditionalStmt Ends
 
         if(strcmp(root->name,"iterativeStmt")==0){
-        }
 
-        // while(1){                                    //  otherModules-- possible module definition without prior declaration
-        // // assert(root->name=="otherModules");
-        // if(node->child==NULL)
-        //     {
-        //         node=node->next;
-        //         break;
-        //     }
-        // }        
+            // <iterativeStmt>  -->  FOR BO ID IN <range> BC START <statements> END
+            temp = temp->child; // <ID>
+            // TODO : ID for iterativeStmt 
+            temp = temp->next; // <range>
+            // <range>  -->  NUM1 RANGEOP NUM2
+            int low,high;
+            temp = temp->child; 
 
-        while(1){                                    // driverModule-- create driver function table from here!!!
-        assert(root->name=="driverModule"); 
-        if(node->child==NULL)
-            {
-                node = node->next;
-                break;
-            }
-        }
+            low = temp->val.i;  // NUM1
+            high = temp->next->val.i; // NUM2
 
-        while(1){                                    //  otherModules-- possible module definition without prior declaration
-        assert(root->name=="otherModules");
-        if(node->child==NULL)
-            {
-                break;
-            }
-        }                
+            temp = root->child; // <ID>
+            temp = temp->next;  // <range>
+            temp = temp->next;  // <statements>
 
+            constructST(temp);
+        } // iterativeStmt Ends
 
-        // while(){
-        //     if((node->child)->child==NULL)
-        //         parent = node; 
-        //     node=node->child;
-        //     if(node->next!=NULL)
-        //         {
-        //             node = node->next; 
-        //             continue;      
-        //         }
-        //         else{
-        //             node = parent; 
-        //         }
-        // }
 }

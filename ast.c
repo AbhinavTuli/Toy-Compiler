@@ -76,43 +76,6 @@ int height(struct astNode* node)
     return maxh;
 } 
 
-// void inOrderAST(struct astNode* root){
-//     if (root == NULL) 
-//         return; 
-//     struct astNode* temp=root->child;
-//     // Total children count 
-      
-//     // Print leftmost child
-//     inOrderAST(temp);
-//     if(temp!=NULL)
-//         temp=temp->next;
-  
-//     // Print the current node's data 
-//     printf("%s ",root->name); 
-//     // printf("%d ",root->tagUnion); 
-//     // if(root->tagUnion==1){
-//     //     printf("tag %d\n",root->val.i); 
-//     // }
-//     // else if(root->tagUnion==2){
-//     //     printf("tag %f\n",root->val.f); 
-//     // }
-//     // else if(root->tagUnion==3){
-//     //     printf(root->val.b ? "tag true \n" : "tag false\n");
-//     // }
-//     // else if(root->tagUnion==4){
-//     //     printf("tag %s \n",root->val.s);
-//     // }
-    
-//     //fprintf(parseTreeFile,"%s ",root->tnt);
-//     //fflush(parseTreeFile);
-  
-//     // Print all other children
-//     while(temp!=NULL){
-//             inOrderAST(temp);
-//             temp=temp->next;
-//     } 
-// }
-
 struct astNode* makeAstNode(char* name, value val,int tag,struct astNode* child){
     struct astNode* newNode = (struct astNode*) malloc(sizeof(struct astNode));
     newNode->child = child;
@@ -176,13 +139,13 @@ struct astNode* generateAST(struct treeNode* root){
 
     // <moduleDeclarations>  -->  <moduleDeclaration><moduleDeclarations> 
     else if(strcmp(root->tnt,"moduleDeclarations")==0 && strcmp(root->child->tnt,"moduleDeclaration")==0){
-        temp=root->child;
+        temp=root->child; // <moduleDeclaration>
         childAstNode=generateAST(temp);
-        temp = temp->next;
+        temp = temp->next; // <moduleDeclarations>
         tempAstNode = childAstNode;
         while(temp!=NULL){
-            tempAstNode->next = generateAST(temp);
-            temp=temp->next;
+            tempAstNode->next = generateAST(temp); 
+            temp=temp->next; // 
             tempAstNode = tempAstNode->next;
         }
 
@@ -1278,7 +1241,7 @@ struct astNode* generateAST(struct treeNode* root){
         strcpy(tempName,"NUM");
         gLineNo = temp->lineno;
         childAstNode->next = makeAstNode(tempName,valAstNode,1,NULL); 
-        strcpy(tempName,"RANGEOP");
+        strcpy(tempName,"range");
         gLineNo = root->lineno;
         return makeAstNode(tempName,valAstNode,0,childAstNode);
     }

@@ -5,3 +5,7 @@ gLineNo = temp->lineno;
 gLineNo = root->lineno;
 
 gLineNo = root->child->lineno;
+
+if(strcmp(root->name,"")==0){
+
+}
