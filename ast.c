@@ -123,8 +123,9 @@ struct astNode* generateAST(struct treeNode* root){
     
     // <program>  -->  <moduleDeclarations> <otherModules><driverModule><otherModules>
     if(strcmp(root->tnt,"program")==0){
+        strcpy(tempName,"moduleDeclarations");
         temp=root->child; // <moduleDeclarations>
-        childAstNode=generateAST(temp);
+        childAstNode=makeAstNode(tempName,valAstNode,0,generateAST(temp));
         temp = temp->next; // <otherModules>
         tempAstNode = childAstNode;
         while(temp!=NULL){
@@ -143,15 +144,9 @@ struct astNode* generateAST(struct treeNode* root){
         childAstNode=generateAST(temp);
         temp = temp->next; // <moduleDeclarations>
         tempAstNode = childAstNode;
-        while(temp!=NULL){
-            tempAstNode->next = generateAST(temp); 
-            temp=temp->next; // 
-            tempAstNode = tempAstNode->next;
-        }
-
-        strcpy(tempName,"moduleDeclarations");
+        tempAstNode->next = generateAST(temp); 
         gLineNo = root->child->lineno;
-        return(makeAstNode(tempName,valAstNode,0,childAstNode));
+        return childAstNode;
     }
     
     // <moduleDeclarations>  -->  ε
