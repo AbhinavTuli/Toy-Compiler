@@ -14,8 +14,10 @@
 #include <stdbool.h>
 #include <math.h>
 #include <errno.h>
+#include "symbolTable.c"
 #include "parser.c"
 #include "ast.c"
+#include "constructST.c"
 
 #define FILELEN 10000
 
@@ -105,6 +107,12 @@ int main(int argc, char *argv[]){
                         runAST(fp1,fp2);
                         lexerFree();
                         break;  
+
+            case 6:     // Symbol Table
+                        printFlag = true;
+                        runConstructST(fp1,fp2);
+                        lexerFree();
+                        break;
 
             default:
                     printf("\nEnter a Valid Choice!\n");

@@ -9,3 +9,5 @@ gLineNo = root->child->lineno;
 if(strcmp(root->name,"")==0){
 
 }
+
+struct expNode* exp = generateExpression(temp);

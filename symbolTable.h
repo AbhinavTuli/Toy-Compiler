@@ -29,6 +29,8 @@ void insertInFunTable(functionTable *ptr, char* func, parameter* inputL, paramet
 
 bool searchInFunTable(functionTable *ptr, char* func);
 
+void deleteFromFuncTable(functionTable *ptr, char* func);
+
 functionTableEntry retrieveFunTable(functionTable *ptr, char* func);
 
 void deleteFunTable(functionTable *ptr);
