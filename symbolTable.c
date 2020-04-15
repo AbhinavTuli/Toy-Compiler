@@ -26,13 +26,49 @@ variableTable* initializeVarTable()
 void printVarTable(variableTable* ptr)
 {
 	int len = ptr->size;
+	printf("index \tvarname \twidth \tis_array \tstatic/dynamic \trangevars \ttype \tnesting_level\n\n");
 	for(int i = 0; i<len;i++)
 	{
 		if(ptr->table[i].isEmpty)
-			printf("index=%d, EMPTY\n",i);
+			printf("%d\tEMPTY\n",i);
 		else
 		{
-			printf("index=%d, var name is %s\n",i,ptr->table[i].key);
+			printf("%d\t%s      \t%d\t",i,ptr->table[i].key,ptr->table[i].width);
+			if(ptr->table[i].isArray)
+			{
+				printf("YES\t\t");
+				if(ptr->table[i].isArrayStatic)
+					printf("STATIC    \t");
+				else
+					printf("DYNAMIC   \t");
+
+				if(!ptr->table[i].rangeVariables)
+					printf("[%d,%d]\t",ptr->table[i].lowerBound,ptr->table[i].upperBound);
+				else
+					printf("----\t");
+
+				if(ptr->table[i].tag==1)
+					printf("\tInt\t");
+				if(ptr->table[i].tag==2)
+					printf("\tReal\t");
+				if(ptr->table[i].tag==3)
+					printf("\tBool\t");
+
+				printf("\t%d\n",ptr->table[i].nestingLevel);
+			}
+			else
+			{
+				printf("NO\t\t----\t\t----\t");
+
+				if(ptr->table[i].tag==1)
+					printf("\tInt\t");
+				if(ptr->table[i].tag==2)
+					printf("\tReal\t");
+				if(ptr->table[i].tag==3)
+					printf("\tBool\t");
+
+				printf("\t%d\n",ptr->table[i].nestingLevel);
+			}
 		}
 	}
 }
@@ -47,7 +83,7 @@ int hash1(char * str) {
     return hash;
 }
 
-void insertInVarTable(variableTable *ptr, char* var, bool isArray, int tag)
+void insertInVarTable(variableTable *ptr, char* var, bool isArray, int tag, int nestingLevel)
 {
 	int tableSize = ptr->size;
 	int index = hash1(var)%tableSize;
@@ -59,6 +95,14 @@ void insertInVarTable(variableTable *ptr, char* var, bool isArray, int tag)
 		ptr->table[index].key = var;
 		ptr->table[index].isArray = isArray;
 		ptr->table[index].tag = tag;
+		ptr->table[index].nestingLevel = nestingLevel;
+
+		if(tag==1)
+			ptr->table[index].width = 2;
+		else if(tag==2)
+			ptr->table[index].width = 4;
+		else if(tag==3)
+			ptr->table[index].width = 1;				
 	}
 	else
 	{
@@ -70,6 +114,35 @@ void insertInVarTable(variableTable *ptr, char* var, bool isArray, int tag)
 		ptr->table[index].key = var;
 		ptr->table[index].isArray = isArray;
 		ptr->table[index].tag = tag;
+		ptr->table[index].nestingLevel = nestingLevel;
+
+		if(tag==1)
+			ptr->table[index].width = 2;
+		else if(tag==2)
+			ptr->table[index].width = 4;
+		else if(tag==3)
+			ptr->table[index].width = 1;
+	}
+}
+
+void updateArrayVar(variableTable *ptr, char* var, bool isArrayStatic, bool rangeVariables, int lB, int uB)
+{
+	int len = ptr->size;
+	int index = hash1(var)%len;
+
+	while(strcmp(ptr->table[index].key,var) != 0)
+		index = (index + 1)%len;
+
+	ptr->table[index].isArrayStatic = isArrayStatic;
+	ptr->table[index].rangeVariables = rangeVariables;
+
+	if(!rangeVariables)
+	{
+		//printf("%d ---- %d\n",lB,uB);
+		ptr->table[index].lowerBound = lB;
+		ptr->table[index].upperBound = uB;
+
+		ptr->table[index].width = ptr->table[index].width*(uB-lB+1);
 	}
 }
 
@@ -112,6 +185,7 @@ variableTableEntry retrieveVarTable(variableTable *ptr, char* var)
 		i++;
 	}
 }
+
 
 void deleteVarTable(variableTable *ptr)
 {
@@ -196,6 +270,24 @@ functionTableEntry retrieveFunTable(functionTable *ptr, char* func)
 	}
 }
 
+void deleteFromFuncTable(functionTable *ptr, char* func)
+{
+	int len = ptr->size;
+	int index = hash1(func)%len;
+
+	int i = 0;
+	while(i<len)
+	{
+		if(strcmp(ptr->table[index].key,func) == 0)
+		{
+			ptr->table[index].isEmpty = true;
+			return;
+		}
+
+		index = (index+1)%len;
+		i++;
+	}
+}
 void deleteFunTable(functionTable *ptr)
 {
 	free(ptr);
@@ -242,3 +334,22 @@ void main()
 } 
 
 */ 
+
+/*
+void main()
+{
+	
+	variableTable* newTable = initializeVarTable();
+	insertInVarTable(newTable,"var1int",false,1,0);
+	insertInVarTable(newTable,"var2float",false,2,0);
+	insertInVarTable(newTable,"var3bool",false,3,0);
+
+	insertInVarTable(newTable,"arr1int",true,1,0);
+	updateArrayVar(newTable,"arr1int",true,false,3,5);
+	insertInVarTable(newTable,"arr2float",true,2,0);
+	updateArrayVar(newTable,"arr2float",true,false,6,10);
+	insertInVarTable(newTable,"arr3bool",true,3,0);
+	updateArrayVar(newTable,"arr3bool",true,true,-1,-1);
+
+	printVarTable(newTable);
+} */

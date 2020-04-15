@@ -11,7 +11,9 @@ void printVarTable(variableTable* ptr);
 
 int hash1(char * str);
 
-void insertInVarTable(variableTable *ptr, char* var, bool isArray, int tag);
+void insertInVarTable(variableTable *ptr, char* var, bool isArray, int tag, int nestingLevel);
+
+void updateArrayVar(variableTable *ptr, char* var, bool isArrayStatic, bool rangeVariables, int lB, int uB);
 
 bool searchInVarTable(variableTable *ptr, char* var);
 
@@ -26,6 +28,8 @@ void printFunTable(functionTable* ptr);
 void insertInFunTable(functionTable *ptr, char* func, parameter* inputL, parameter* outputL);
 
 bool searchInFunTable(functionTable *ptr, char* func);
+
+void deleteFromFuncTable(functionTable *ptr, char* func);
 
 functionTableEntry retrieveFunTable(functionTable *ptr, char* func);
 
