@@ -6,6 +6,7 @@
 functionTable* globalFuncTable;
 variableTable* currentVarTable;
 variableTable* driverVarTable;
+int globalNestingLevel = 0;
 
 struct expNode* expRoot;    // Expression Node
 
@@ -654,6 +655,7 @@ void constructST(struct astNode* root){
                 // Not an Array 
                 // printf("Check2\n");
                 datatype = temp->tag; 
+                //printf(" DECLARE - %d\n",datatype);
                 /*
                     1 - INTEGER
                     2 - REAL/FLOAT
@@ -665,7 +667,12 @@ void constructST(struct astNode* root){
                 // printf("Check22\n");
                 while(temp!=NULL){
                     
-                    // TODO: Now temp is a linked list of IDs - Add them to Symbol Table
+                    // DONE: Now temp is a linked list of IDs - Add them to Symbol Table
+                    //printf("DECLARE - IDS - %s\n",temp->val.s);
+                    char varName[40];
+                    strcpy(varName,temp->val.s);
+
+                    insertInVarTable(currentVarTable,varName,false,datatype,globalNestingLevel); // TODO - Check for errors
                     temp = temp->next;
                 }
 
@@ -708,7 +715,21 @@ void constructST(struct astNode* root){
 
                 while(temp!=NULL){
 
-                    // TODO: Now temp is a linked list of IDs - Add them to Symbol Table
+                    // DONE: Now temp is a linked list of IDs - Add them to Symbol Table
+                    char varName[40];
+                    strcpy(varName,temp->val.s);
+
+                    if(low_tag==1) // STATIC ARRAY
+                    {
+                        insertInVarTable(currentVarTable,varName,true,datatype,globalNestingLevel);
+                        updateArrayVarStatic(currentVarTable,varName,low,high);
+                    }
+
+                    if(low_tag==4)
+                    {
+                        insertInVarTable(currentVarTable,varName,true,datatype,globalNestingLevel);
+                        updateArrayVarDynamic(currentVarTable,varName,lowId,highId);
+                    }
                     temp = temp->next;
                 }
 
@@ -717,12 +738,35 @@ void constructST(struct astNode* root){
                 // <type>  -->  BOOLEAN
             }
 
+            //printVarTable(currentVarTable);
+
         } // declareStmt Ends
 
         if(strcmp(root->name,"conditionalStmt")==0){
-             // <conditionalStmt>  -->  SWITCH BO ID BC START <caseStmts> <default> END
-             // TODO : Create another var table for conditionalStmt
-             // <caseStmts>  -->  CASE <value> COLON <statements> BREAK SEMICOL <N9>
+            // <conditionalStmt>  -->  SWITCH BO ID BC START <caseStmts> <default> END
+            // DONE : Create another var table for conditionalStmt
+            variableTable* tempTable = currentVarTable;
+            globalNestingLevel++;
+            if(tempTable->child == NULL)
+            {
+                variableTable* newTable = initializeVarTable();
+                newTable->parent = tempTable;
+                tempTable->child = newTable;
+                currentVarTable = newTable;
+            }
+            else
+            {
+                variableTable* traverse = tempTable->child;
+
+                while(traverse->next != NULL)
+                    traverse = traverse->next;
+
+                variableTable* newTable = initializeVarTable();
+                traverse->next = newTable;
+                newTable->parent = tempTable;
+                currentVarTable = newTable;
+            }
+            // <caseStmts>  -->  CASE <value> COLON <statements> BREAK SEMICOL <N9>
             
             temp = temp->child; // <caseStmts>
             
@@ -746,13 +790,37 @@ void constructST(struct astNode* root){
              // <default>  -->  DEFAULT COLON <statements> BREAK SEMICOL
              // <default>  -->  ε 
 
-            // TODO : Change Scope!
+            // DONE : Change Scope!
+            currentVarTable = tempTable;
+            globalNestingLevel--;
         } // conditionalStmt Ends
 
         if(strcmp(root->name,"iterativeStmt")==0){
 
             // <iterativeStmt>  -->  FOR BO ID IN <range> BC START <statements> END
             // <iterativeStmt>  -->  WHILE BO <arithmeticOrBooleanExpr> BC START <statements> END
+
+            variableTable* tempTable = currentVarTable;
+            globalNestingLevel++;
+            if(tempTable->child == NULL)
+            {
+                variableTable* newTable = initializeVarTable();
+                newTable->parent = tempTable;
+                tempTable->child = newTable;
+                currentVarTable = newTable;
+            }
+            else
+            {
+                variableTable* traverse = tempTable->child;
+
+                while(traverse->next != NULL)
+                    traverse = traverse->next;
+
+                variableTable* newTable = initializeVarTable();
+                traverse->next = newTable;
+                newTable->parent = tempTable;
+                currentVarTable = newTable;
+            }
 
             if(strcmp(root->val.s,"FOR")==0){
                 temp = temp->child; // <ID>
@@ -770,16 +838,22 @@ void constructST(struct astNode* root){
                 temp = temp->next;  // <statements>
 
                 constructST(temp);
+                printf("FOR ENDS\n");
             }
+
             else if(strcmp(root->val.s,"WHILE")==0){
                 temp = temp->child; // <arithmeticOrBooleanExpr>
                 struct expNode* exp = generateExpression(temp);
                 // TODO : Type Checking!
                 temp = temp->next;  // <statements>
                 constructST(temp);
+                printf("WHILE ENDS\n");
             }
 
-            // TODO : Change Scope!
+            // DONE : Change Scope!
+            //printVarTable(currentVarTable);
+            currentVarTable = tempTable;
+            globalNestingLevel--;
         } // iterativeStmt Ends
 
 }
