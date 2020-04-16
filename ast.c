@@ -642,7 +642,7 @@ struct astNode* generateAST(struct treeNode* root){
     }
     // <index>  -->  NUM
     else if(strcmp(root->tnt,"index")==0 && strcmp(root->child->tnt,"NUM")==0){
-        astNode.val.i = root->child->val.i;
+        valAstNode.i = root->child->val.i;
         strcpy(tempName,"index");
         gLineNo = root->child->lineno;
         return(makeAstNode(tempName,valAstNode,1,NULL));
