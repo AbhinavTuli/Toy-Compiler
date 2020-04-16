@@ -10,12 +10,12 @@
 
 typedef struct variableTableEntry{
 	bool isEmpty;
-	char *key;					// the name of the variable
+	char key[30];					// the name of the variable
 	
 	bool isArray; 				// true if array false if not
 	bool isArrayStatic;			// true if static array false if not
-	bool rangeVariables;		// true if range variables false if number lexemes
-	int lowerBound, upperBound;	// lower and upper bounds of array (inclusive)
+	int lowerBound, upperBound;	// lower and upper bounds of array (inclusive) - numeric
+	char lowerBoundID[20], upperBoundID[20]; // lower and upper bounds of array (inclusive) - numeric
 
 	int tag;					// 1-integer, 2-float, 3-bool
 	int width;					// size
@@ -44,7 +44,7 @@ typedef struct parameter{
 
 typedef struct functionTableEntry {
 	bool isEmpty;
-	char *key;                  		// name of function
+	char key[30];                  		// name of function
 	parameter *inputList, *outputList;  // pointers to heads of lists of input and output parameters, NULL if empty
 	int numInput, numOutput;			// number of input parameters, number of output lists
 

@@ -13,7 +13,9 @@ int hash1(char * str);
 
 void insertInVarTable(variableTable *ptr, char* var, bool isArray, int tag, int nestingLevel);
 
-void updateArrayVar(variableTable *ptr, char* var, bool isArrayStatic, bool rangeVariables, int lB, int uB);
+void updateArrayVarStatic(variableTable *ptr, char* var, int lB, int uB);
+
+void updateArrayVarDynamic(variableTable *ptr, char* var, char* lB, char* uB);
 
 bool searchInVarTable(variableTable *ptr, char* var);
 

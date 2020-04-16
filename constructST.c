@@ -267,10 +267,16 @@ void constructST(struct astNode* root){
             temp = temp->child; // ID or NULL
 
             while(temp!=NULL){
-                // TODO : Wil get Module ID from here!
+                // DONE - Wil get Module ID from here!
                 char funcName[40];
                 strcpy(funcName,temp->val.s);
-                // insertInFunTable(globalFuncTable,funcName,NULL,NULL); // TODO - take care of input and output list
+                //printf("%s\n",funcName);
+                
+                if(strcmp("ε",funcName)!=0)
+                    insertInFunTable(globalFuncTable,funcName,NULL,NULL);
+
+                //printFunTable(globalFuncTable); // TODO - take care of input and output list
+                //TODO - redeclaration error
                 temp = temp->next; // ID or NULL;
             }
 
@@ -283,6 +289,8 @@ void constructST(struct astNode* root){
             // <moduleDef>   -->  START <statements> END
             // <statements>  -->  <statement> <statements>  
             // ...
+
+            //DONE
             currentVarTable = driverVarTable;
             constructST(temp); // if for moduleDef written below!
         }
@@ -301,23 +309,38 @@ void constructST(struct astNode* root){
             // <module> -->  DEF MODULE ID ENDDEF TAKES INPUT SQBO <input_plist> SQBC SEMICOL <ret> <moduleDef>
         
             temp = temp->child; // ID
+            char funcName[40];
+            strcpy(funcName,temp->val.s);
 
-            if(otherModPos==1){
-                // Simply Add to Global Func Table
+            if(otherModPos==1)
+            {
+                //TODO - Redeclaration
+                //DONE - Simply Add to Global Func Table
+                //printf("%s\n",funcName);
+                insertInFunTable(globalFuncTable,funcName,NULL,NULL); // TODO - check for errors, take care of input and output lists
+                //printFunTable(globalFuncTable);
 
-            }else{
-                // Check if definition was prev there or not! If not, then error will be printed!
-
+            }else if(otherModPos==2){
+                // DONE - Check if definition was prev there or not! If not, then error will be printed!
+                
+                if(!searchInFunTable(globalFuncTable,funcName))
+                    printf("Error\n"); // TODO - Proper naming of error
+                //printf("%s\n",funcName);
+                //printFunTable(globalFuncTable);
             }
 
-            // TODO : currentVarTable = current var table of curr Function!
+            // DONE: currentVarTable = current var table of curr Function!
+            currentVarTable = (retrieveFunTable(globalFuncTable,funcName)).localVarTable;
+            //printVarTable(currentVarTable);
 
-            // TODO:  Add this ID = temp->child to function table
             temp = temp->next; // <input_plist>
             // Code for input_plist
             // <input_plist>  -->  ID COLON <dataType><N1>
 
             temp = temp->child; // ID
+            char idName[40];
+            strcpy(idName,temp->val.s);
+            //printf("INPUTINPUTINPUT - %s\n",idName);
             // TODO:  Add this ID = temp->child to function table (input)  with type at temp->next
             temp = temp->next; // <dataType>
             struct astNode* temp2 = temp;    // <N1>
@@ -325,11 +348,13 @@ void constructST(struct astNode* root){
             
             if(!checkIfArrayType(temp)){
                 // temp->tag;
+                insertInVarTable(currentVarTable,idName,false,temp->tag,0); // doing for function, nesting level will always be zero. // TODO - check for errors
+                //printVarTable(currentVarTable);
             }else{
                 // <dataType>  -->   ARRAY SQBO <range_arrays> SQBC OF <type>
                 // <range_arrays>  -->  <index> RANGEOP <index>
                 temp2 = temp2->child; // <range_arrays>
-                int type = temp2->next->tag;
+                int type = temp2->next->tag;    
                 int low,high;
                 char lowId[40], highId[40];
 
@@ -340,30 +365,69 @@ void constructST(struct astNode* root){
 
                 if(temp2->tag==1){
                     low = temp2->val.i;
-                    high = temp2->val.i;
+                    high = temp2->next->val.i;
+                    //printf("low = %d , high = %d \n",low,high);
+                    insertInVarTable(currentVarTable,idName,true,type,0);
+                    updateArrayVarStatic(currentVarTable,idName,low,high);
                 }else{
                     strcpy(lowId,temp2->val.s);
-                    strcpy(highId,temp2->val.s);
+                    strcpy(highId,temp2->next->val.s);
+
+                    insertInVarTable(currentVarTable,idName,true,type,0);
+                    updateArrayVarDynamic(currentVarTable,idName,lowId,highId);
                 }
             }
+
+            //printVarTable(currentVarTable);
 
             temp = temp->next;  // <N1> = ID <dataType> ID <dataType> ...
             // <N1>  -->  COMMA ID COLON <dataType> <N1>
             while(temp!=NULL){
                 // temp = ID
-
-                // TODO:  Add this ID = temp->child to function table (input)  with type at temp->next
+                //printf("VALUE N1 - %s \n",temp->val.s);
+                strcpy(idName,temp->val.s);
+                // DONE:  Add this ID = temp->child to function table (input)  with type at temp->next
                 temp = temp->next; // <dataType>
+                temp2 = temp;
 
                 if(!checkIfArrayType(temp)){
-                // temp->tag;
+                    // temp->tag;
+                    insertInVarTable(currentVarTable,idName,false,temp->tag,0); // doing for function, nesting level will always be zero. // TODO - check for errors
+                    //printVarTable(currentVarTable);
                 }
                 else{
+                    temp2 = temp2->child; // <range_arrays>
+                    int type = temp2->next->tag;    
+                    int low,high;
+                    char lowId[40], highId[40];
 
+                    // printf("Check51 : %d!\n",temp->tag);
+
+                    temp2 = temp2->child;
+
+
+                    if(temp2->tag==1)
+                    {
+                        low = temp2->val.i;
+                        high = temp2->next->val.i;
+                        //printf("low = %d , high = %d \n",low,high);
+                        insertInVarTable(currentVarTable,idName,true,type,0);
+                        updateArrayVarStatic(currentVarTable,idName,low,high);
+                    }
+
+                    else
+                    {
+                        strcpy(lowId,temp2->val.s);
+                        strcpy(highId,temp2->next->val.s);
+
+                        insertInVarTable(currentVarTable,idName,true,type,0);
+                        updateArrayVarDynamic(currentVarTable,idName,lowId,highId);
+                    }
                 }  
                 temp = temp->next; // N1 or NULL
             }
 
+            //printVarTable(currentVarTable);
             // Code for input_plist ends
 
             // printf("Check7\n");
@@ -382,54 +446,105 @@ void constructST(struct astNode* root){
                 if(temp->child!=NULL){
                 
                 temp = temp->child; // ID
+                char idName[40];
+                strcpy(idName,temp->val.s);
+                //printf("OUTPUT VAR - %s\n",temp->val.s);
+                
                 // TODO:  Add this ID = temp->child to function table (output)  with type at temp->next
                 // printf("Check9 : %s\n",temp->name);
                 temp = temp->next; // <type>
+                temp2 = temp;
+
+                if(!checkIfArrayType(temp))
+                {
+                    insertInVarTable(currentVarTable,idName,false,temp->tag,0); 
+                    // doing for function, nesting level will always be zero. // TODO - check for errors
+                }
+                else
+                {
+                    temp2 = temp2->child; // <range_arrays>
+                    int type = temp2->next->tag;    
+                    int low,high;
+                    char lowId[40], highId[40];
+
+                    // printf("Check51 : %d!\n",temp->tag);
+
+                    temp2 = temp2->child;
+
+
+                    if(temp2->tag==1)
+                    {
+                        low = temp2->val.i;
+                        high = temp2->next->val.i;
+                        //printf("low = %d , high = %d \n",low,high);
+                        insertInVarTable(currentVarTable,idName,true,type,0);
+                        updateArrayVarStatic(currentVarTable,idName,low,high);
+                    }
+
+                    else
+                    {
+                        strcpy(lowId,temp2->val.s);
+                        strcpy(highId,temp2->next->val.s);
+
+                        insertInVarTable(currentVarTable,idName,true,type,0);
+                        updateArrayVarDynamic(currentVarTable,idName,lowId,highId);
+                    }
+                }
                 // printf("Check10 : %s\n",temp->name);
                 temp = temp->next; // <N2> = ID <type> ID <type> ...
                 while(temp!=NULL){
                     // TODO:  Add this ID = temp->child to function table (output)  with type at temp->next
                     // temp is ID
+                    strcpy(idName,temp->val.s);
                     temp = temp->next; // <type>
+                    temp2 = temp;
+
+                    if(!checkIfArrayType(temp))
+                    {
+                        insertInVarTable(currentVarTable,idName,false,temp->tag,0); 
+                        // doing for function, nesting level will always be zero. // TODO - check for errors
+                    }
+                    
+                    else
+                    {
+                        temp2 = temp2->child; // <range_arrays>
+                        int type = temp2->next->tag;    
+                        int low,high;
+                        char lowId[40], highId[40];
+
+                        // printf("Check51 : %d!\n",temp->tag);
+
+                        temp2 = temp2->child;
+
+                        if(temp2->tag==1)
+                        {
+                            low = temp2->val.i;
+                            high = temp2->next->val.i;
+                            //printf("low = %d , high = %d \n",low,high);
+                            insertInVarTable(currentVarTable,idName,true,type,0);
+                            updateArrayVarStatic(currentVarTable,idName,low,high);
+                        }
+
+                        else
+                        {
+                            strcpy(lowId,temp2->val.s);
+                            strcpy(highId,temp2->next->val.s);
+
+                            insertInVarTable(currentVarTable,idName,true,type,0);
+                            updateArrayVarDynamic(currentVarTable,idName,lowId,highId);
+                        }
+                    }
+
                     temp = temp->next; // ID or NULL
                 }
-                    // Code for output_plist ends
+                printVarTable(currentVarTable);
+                   // Code for output_plist ends
                 }
 
 
             temp = root->child; // ID
             temp = temp->next->next->next; // <moduleDef>  
             constructST(temp);
-        }
-
-        if(strcmp(root->name,"input_plist")==0){
-            // <input_plist>  -->  ID COLON <dataType><N1>
-
-            temp = temp->child; // ID
-            // TODO:  Add this ID = temp->child to function table (input)  with type at temp->next
-            temp = temp->next; // <dataType>
-            temp = temp->next; // <N1>
-            while(temp!=NULL){
-                temp = temp->next; // ID
-                // TODO:  Add this ID = temp->child to function table (input)  with type at temp->next
-                temp = temp->next; // <dataType>
-                temp = temp->next; // N1 or NULL
-            }
-        }
-
-        if(strcmp(root->name,"output_plist")==0){
-            // <output_plist>  -->  ID COLON <type><N2>
-
-            temp = temp->child; // ID
-            // TODO:  Add this ID = temp->child to function table (output)  with type at temp->next
-            temp = temp->next; // <type>
-            temp = temp->next; // <N2>
-            while(temp!=NULL){
-                temp = temp->next; // ID
-                // TODO:  Add this ID = temp->child to function table (output)  with type at temp->next
-                temp = temp->next; // <type>
-                temp = temp->next; // N2 or NULL
-            }
         }
 
         if(strcmp(root->name,"moduleDef")==0){
@@ -672,6 +787,8 @@ void constructST(struct astNode* root){
 void runConstructST(FILE* testFile, FILE* parseTreeFile){
     driverVarTable = initializeVarTable();
     globalFuncTable = initializeFunTable();
+    currentVarTable = driverVarTable;
+    printFunTable(globalFuncTable);
 
     // Same as runAst
     printf("Starting runAST\n");

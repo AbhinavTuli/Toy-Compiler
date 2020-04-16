@@ -33,7 +33,7 @@ void printVarTable(variableTable* ptr)
 			printf("%d\tEMPTY\n",i);
 		else
 		{
-			printf("%d\t%s      \t%d\t",i,ptr->table[i].key,ptr->table[i].width);
+			printf("%d\t%s       \t%d\t",i,ptr->table[i].key,ptr->table[i].width);
 			if(ptr->table[i].isArray)
 			{
 				printf("YES\t\t");
@@ -42,10 +42,10 @@ void printVarTable(variableTable* ptr)
 				else
 					printf("DYNAMIC   \t");
 
-				if(!ptr->table[i].rangeVariables)
+				if(ptr->table[i].isArrayStatic)
 					printf("[%d,%d]\t",ptr->table[i].lowerBound,ptr->table[i].upperBound);
 				else
-					printf("----\t");
+					printf("[%s,%s]\t",ptr->table[i].lowerBoundID,ptr->table[i].upperBoundID);
 
 				if(ptr->table[i].tag==1)
 					printf("\tInt\t");
@@ -92,7 +92,7 @@ void insertInVarTable(variableTable *ptr, char* var, bool isArray, int tag, int 
 	if(ptr->table[index].isEmpty)
 	{
 		ptr->table[index].isEmpty = false;
-		ptr->table[index].key = var;
+		strcpy(ptr->table[index].key,var);
 		ptr->table[index].isArray = isArray;
 		ptr->table[index].tag = tag;
 		ptr->table[index].nestingLevel = nestingLevel;
@@ -111,7 +111,7 @@ void insertInVarTable(variableTable *ptr, char* var, bool isArray, int tag, int 
 			index = (index+1)%tableSize;
 
 		ptr->table[index].isEmpty = false;
-		ptr->table[index].key = var;
+		strcpy(ptr->table[index].key,var);
 		ptr->table[index].isArray = isArray;
 		ptr->table[index].tag = tag;
 		ptr->table[index].nestingLevel = nestingLevel;
@@ -125,7 +125,7 @@ void insertInVarTable(variableTable *ptr, char* var, bool isArray, int tag, int 
 	}
 }
 
-void updateArrayVar(variableTable *ptr, char* var, bool isArrayStatic, bool rangeVariables, int lB, int uB)
+void updateArrayVarStatic(variableTable *ptr, char* var, int lB, int uB)
 {
 	int len = ptr->size;
 	int index = hash1(var)%len;
@@ -133,17 +133,32 @@ void updateArrayVar(variableTable *ptr, char* var, bool isArrayStatic, bool rang
 	while(strcmp(ptr->table[index].key,var) != 0)
 		index = (index + 1)%len;
 
-	ptr->table[index].isArrayStatic = isArrayStatic;
-	ptr->table[index].rangeVariables = rangeVariables;
+	ptr->table[index].isArrayStatic = true;
+	//ptr->table[index].rangeVariables = rangeVariables;
 
-	if(!rangeVariables)
-	{
 		//printf("%d ---- %d\n",lB,uB);
 		ptr->table[index].lowerBound = lB;
 		ptr->table[index].upperBound = uB;
 
 		ptr->table[index].width = ptr->table[index].width*(uB-lB+1);
-	}
+}
+
+void updateArrayVarDynamic(variableTable *ptr, char* var, char* lB, char* uB)
+{
+	int len = ptr->size;
+	int index = hash1(var)%len;
+
+	while(strcmp(ptr->table[index].key,var) != 0)
+		index = (index + 1)%len;
+
+	ptr->table[index].isArrayStatic = false;
+	//ptr->table[index].rangeVariables = rangeVariables;
+
+		//printf("%d ---- %d\n",lB,uB);
+		strcpy(ptr->table[index].lowerBoundID,lB);
+		strcpy(ptr->table[index].upperBoundID,uB);
+
+		ptr->table[index].width = -1;
 }
 
 bool searchInVarTable(variableTable *ptr, char* var)
@@ -223,13 +238,13 @@ void insertInFunTable(functionTable *ptr, char* func, parameter* inputL, paramet
 {
 	int len = ptr->size;
 	int index = hash1(func)%len;
-	//printf("%d \n",index);
+	//printf("COUNT count%d \n",index);
 
 	while(!ptr->table[index].isEmpty)
 		index = (index+1)%len;
-
+	//printf("COUNT count%d \n",index);
 	ptr->table[index].isEmpty = false;
-	ptr->table[index].key = func;
+	strcpy(ptr->table[index].key,func);
 	ptr->table[index].inputList = inputL;
 	ptr->table[index].outputList = outputL;
 	// Have to add the sizes of the input and output lists here
