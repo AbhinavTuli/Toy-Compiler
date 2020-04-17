@@ -7,7 +7,6 @@ start
 	declare index:integer;
 	declare t:boolean;
 	sum:=0.0;
-	**
 	for(index in  1..15)
 	start
 		t:= index<=n;
@@ -22,7 +21,6 @@ start
 		end
 	end
 	print(sum);
-	**
 end
 <<<driver program>>>
 start

@@ -1,13 +1,48 @@
-moduleDeclaration - ID
+<expression>  -->  <arithmeticOrBooleanExpr> 
+<expression>  -->  <U>
 
-gLineNo = temp->lineno;
+<arithmeticOrBooleanExpr>  -->  <AnyTerm> <N7>
+<AnyTerm>  -->  <arithmeticExpr> <N8>
+<AnyTerm>  -->  <boolConstt>
 
-gLineNo = root->lineno;
+<arithmeticExpr>  -->  <term> <N4>
 
-gLineNo = root->child->lineno;
+<term>  -->  <factor> <N5>
 
-if(strcmp(root->name,"")==0){
+<factor>  -->  BO <arithmeticOrBooleanExpr> BC  
+<factor>  -->  <var_id_num>
 
-}
+<N4>  -->  <op1> <term> <N4>
+<N4>  -->  ε
 
-struct expNode* exp = generateExpression(temp);
+<N5>  -->  <op2> <factor> <N5> 
+<N5>  -->  ε 
+
+<N7>  -->  <logicalOp> <AnyTerm> <N7>
+<N7>  -->  ε
+
+<N8>  -->  <relationalOp> <arithmeticExpr>
+<N8>  -->  ε
+
+
+<var_id_num>  -->  ID <whichId>
+<var_id_num>  -->  NUM
+<var_id_num>  -->  RNUM
+
+<boolConstt>  -->  TRUE
+<boolConstt>  -->  FALSE
+
+<op1>  -->  PLUS
+<op1>  -->  MINUS
+<op2>  -->  MUL
+<op2>  -->  DIV
+
+<logicalOp>  -->  AND
+<logicalOp>  -->  OR
+
+<relationalOp>  -->  LT
+<relationalOp>  -->  LE
+<relationalOp>  -->  GT
+<relationalOp>  -->  GE
+<relationalOp>  -->  EQ
+<relationalOp>  -->  NE

@@ -379,7 +379,7 @@ token* checkLT(){
         return retTokenSTR("<<",DEF);
     }
     else{
-        return retTokenSTR("<",GT);
+        return retTokenSTR("<",LT);
     }
 }
 

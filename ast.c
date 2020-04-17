@@ -111,14 +111,14 @@ struct astNode* generateAST(struct treeNode* root){
         printf("ERROR!\n");
         return NULL;
     }
-    // printf("AST: %s\n",root->tnt);
+    printf("AST: %s\n",root->tnt);
     // tRoot - TreeNode , aRoot - astNode
     struct treeNode* temp;
     struct astNode* tempAstNode;
     struct astNode* childAstNode;
     value valAstNode;
     
-    char tempName[30];
+    char tempName[50];
     // check for null   
     
     // <program>  -->  <moduleDeclarations> <otherModules><driverModule><otherModules>
@@ -771,7 +771,11 @@ struct astNode* generateAST(struct treeNode* root){
 
     // <new_NT>  -->  BO <arithmeticExpr> BC
     else if(strcmp(root->tnt,"new_NT")==0 && strcmp(root->child->tnt,"BO")==0){
-        return generateAST(root->child->next);
+        strcpy(tempName,"arithmeticExprBracket");
+        gLineNo = root->child->lineno;
+        childAstNode = generateAST(root->child->next);
+        return makeAstNode(tempName,valAstNode,0,childAstNode);
+        // return generateAST(root->child->next);
     }
 
     // <new_NT>  -->  <var_id_num>
@@ -793,6 +797,15 @@ struct astNode* generateAST(struct treeNode* root){
         strcpy(tempName,"unary_op");
         gLineNo = root->child->lineno;
         return makeAstNode(tempName,valAstNode,4,NULL);
+    }
+
+    // <arithmeticOrBooleanExpr>  -->  <AnyTerm> <N7>
+    else if(strcmp(root->tnt,"arithmeticOrBooleanExpr")==0){
+        childAstNode = generateAST(root->child);
+        childAstNode->next = generateAST(root->child->next);
+        strcpy(tempName,"arithmeticOrBooleanExpr");
+        gLineNo = root->lineno;
+        return makeAstNode(tempName,valAstNode,0,childAstNode);
     }
 
     // <arithmeticOrBooleanExpr>  -->  <AnyTerm> <N7>
@@ -945,9 +958,10 @@ struct astNode* generateAST(struct treeNode* root){
 
         // <factor>  -->  BO <arithmeticOrBooleanExpr> BC  
         if(strcmp(root->child->tnt,"BO")==0){
-            // strcpy(tempName,"arithmeticOrBooleanExpr");
-            // return makeAstNode(tempName,valAstNode,0,generateAST(root->child->next));
-            return generateAST(root->child->next);
+            strcpy(tempName,"arithmeticOrBooleanExprBracket");
+            return makeAstNode(tempName,valAstNode,0,generateAST(root->child->next));
+            
+            // return generateAST(root->child->next);
         }
         // <factor>  -->  <var_id_num>
         else{

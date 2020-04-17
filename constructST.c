@@ -16,6 +16,54 @@ arr_index tempArrIndex;
 
 int otherModPos;
 
+void printExpression(struct expNode* root){
+
+    printf("Expression : \t");
+
+    while(root!=NULL){
+
+        switch (root->tag)
+        {
+        case 0:
+            printf("%s ",root->name);
+            break;
+        
+        case 1:
+            printf("NUM ");
+            break;
+
+        case 2:
+            printf("RNUM ");
+            break;
+
+        case 3:
+            printf("BOOL ");
+            break;
+
+
+        case 4:
+            printf("%s ",root->name);
+            break;
+
+        case 5:
+            if(root->isDynamic)
+            printf("%s[%s] ",root->name,root->index.s);
+            else
+            printf("%s[%d] ",root->name,root->index.i);
+            break;
+
+        default:
+            break;
+        }
+
+
+        root = root->next;
+    }
+
+
+    printf("\n\n");
+}
+
 bool checkIfArrayType(struct astNode* node){
 
     if(node->child==NULL)
@@ -49,6 +97,7 @@ struct expNode* makeExpNode(int tag,char* name,bool isDynamic,arr_index index){
 struct expNode* generateExpression(struct astNode* temp){
 
     struct astNode* root = temp;
+
     printf("GeneratingExpression : %s\n",root->name);
 
     if(temp==NULL){
@@ -58,6 +107,7 @@ struct expNode* generateExpression(struct astNode* temp){
     }
 
     struct expNode* exp;
+    struct expNode* expTemp;
 
     if(strcmp(root->name,"assignmentStmt")==0){
         // <assignmentStmt>   -->   ID <whichStmt>
@@ -96,8 +146,7 @@ struct expNode* generateExpression(struct astNode* temp){
             exp->next = generateExpression(temp);
         }
     }
-
-    if(strcmp(root->name,"lvalueIDStmt")==0){
+    else if(strcmp(root->name,"lvalueIDStmt")==0){
         // <lvalueIDStmt>   -->  ASSIGNOP <expression> SEMICOL
         temp = temp->child; // ASSIGNOP
         strcpy(tempStr,temp->val.s);
@@ -106,87 +155,110 @@ struct expNode* generateExpression(struct astNode* temp){
         temp = temp->next; // <expression>
         exp->next = generateExpression(temp);
     }
-
-    if(strcmp(root->name,"U")==0){
+    else if(strcmp(root->name,"U")==0){
         temp = temp->child;  // unary_op
         strcpy(tempStr,temp->val.s);
         exp = makeExpNode(0,tempStr,false,tempArrIndex);
         temp=temp->next;  //  new_NT
         exp->next = generateExpression(temp);
     }
-
-    if(strcmp(root->name,"arithmeticOrBooleanExpr")==0){
+    else if(strcmp(root->name,"arithmeticOrBooleanExpr")==0){
         temp = temp->child;
         exp = generateExpression(temp); // Anyterm
         temp = temp->next;  
         if(temp!=NULL)
         exp->next = generateExpression(temp);   // N7
     }
-
-    if(strcmp(root->name,"N7")==0){
+    else if(strcmp(root->name,"arithmeticOrBooleanExprBracket")==0){
+        temp = temp->child; // arithmeticOrBooleanExpr
+        exp = generateExpression(temp);
+    }
+    else if(strcmp(root->name,"N7")==0){
         temp = temp->child; 
         strcpy(tempStr,temp->val.s); // logicalOp
         exp = makeExpNode(0,tempStr,false,tempArrIndex);
-        temp = temp->next;  
-        exp->next = generateExpression(temp); // AnyTerm
+        temp = temp->next;
+        expTemp = exp;
+        while(expTemp->next!=NULL){
+                expTemp = expTemp->next;
+        }
+        expTemp->next = generateExpression(temp); // AnyTerm
         temp=temp->next;
-        if(temp!=NULL)
-        exp->next->next = generateExpression(temp); // N7
+        expTemp = expTemp->next;
+        if(temp!=NULL){
+            while(expTemp->next!=NULL){
+                expTemp = expTemp->next;
+            }
+            expTemp->next = generateExpression(temp); // N7
+        }
+        
     }
 
-    if(strcmp(root->name,"boolConstt")==0){
+    else if(strcmp(root->name,"boolConstt")==0){
         exp = makeExpNode(3,NULL,false,tempArrIndex);
     }
-
-    if(strcmp(root->name,"AnyTerm")==0){
+    else if(strcmp(root->name,"AnyTerm")==0){
         temp = temp->child; // arithmeticExpr
         exp = generateExpression(temp);
         temp = temp->next;  
-        if(temp!=NULL)
-        exp->next = generateExpression(temp); // N8
+        expTemp = exp;
+        if(temp!=NULL){
+            while(expTemp->next!=NULL){
+                expTemp = expTemp->next;
+            }
+            expTemp->next = generateExpression(temp); // N8
+        }
     }
-
-    if(strcmp(root->name,"arithmeticExpr")==0){
+    else if(strcmp(root->name,"arithmeticExpr")==0){
         temp = temp->child; // term
         exp = generateExpression(temp);
         temp = temp->next;  
-        if(temp!=NULL)
-        exp->next = generateExpression(temp); // N4
+        expTemp = exp;
+        if(temp!=NULL){
+            while(expTemp->next!=NULL){
+                expTemp = expTemp->next;
+            }
+            expTemp->next = generateExpression(temp); // N4
+        }
     }
-
-    if(strcmp(root->name,"N4")==0){
+    else if(strcmp(root->name,"arithmeticExprBracket")==0){
+        temp = temp->child;
+        exp = generateExpression(temp);
+    }
+    else if(strcmp(root->name,"N4")==0){
         temp = temp->child; // op1
         strcpy(tempStr,temp->val.s); // op1
         exp = makeExpNode(0,tempStr,false,tempArrIndex);
         temp = temp->next;  
         exp->next = generateExpression(temp); // term
         temp=temp->next;
-        if(temp!=NULL)
-        exp->next->next = generateExpression(temp); // N4
+        expTemp = exp->next;
+        if(temp!=NULL){
+            while(expTemp->next!=NULL){
+                expTemp = expTemp->next;
+            }
+            expTemp->next = generateExpression(temp); // N4
+        }
     }
-
-    if(strcmp(root->name,"N8")==0){
+    else if(strcmp(root->name,"N8")==0){
         temp = temp->child; // relationalOp
         exp = generateExpression(temp);
         temp = temp->next;  
         exp->next = generateExpression(temp); // arithmeticExpr
     }
-
-    if(strcmp(root->name,"relationalOp")==0){
+    else if(strcmp(root->name,"relationalOp")==0){
         strcpy(tempStr,temp->val.s);
         exp = makeExpNode(0,tempStr,false,tempArrIndex);
     }
-
-    if(strcmp(root->name,"term")==0){
+    else if(strcmp(root->name,"term")==0){
         temp = temp->child; // factor = arithmeticOrBooleanExpr/ var_id_num
         exp = generateExpression(temp);
         temp = temp->next;  
         if(temp!=NULL)
         exp->next = generateExpression(temp); // N5
-
+        if(exp->next!=NULL)
     }
-
-    if(strcmp(root->name,"N5")==0){
+    else if(strcmp(root->name,"N5")==0){
         temp = temp->child; // op2
         strcpy(tempStr,temp->val.s); // op2
         exp = makeExpNode(0,tempStr,false,tempArrIndex);
@@ -194,10 +266,9 @@ struct expNode* generateExpression(struct astNode* temp){
         exp->next = generateExpression(temp); // factor
         temp=temp->next;
         if(temp!=NULL)
-        exp->next->next = generateExpression(temp); // N5
+        (exp->next)->next = generateExpression(temp); // N5
     }
-
-    if(strcmp(root->name,"var_id_num")==0){
+    else if(strcmp(root->name,"var_id_num")==0){
         if(temp->child==NULL){
             if(temp->tag==1)
             exp = makeExpNode(1,NULL,false,tempArrIndex);
@@ -225,8 +296,10 @@ struct expNode* generateExpression(struct astNode* temp){
             }
         }
     }
-    printf("GeneratingExpression Ends: %s\n",root->name);
-
+    // printf("GeneratingExpression Ends: %s\n",root->name);
+    else{
+        // do nothin
+    }
     return exp;
 }
 
@@ -237,6 +310,7 @@ void constructST(struct astNode* root){
 
         if(root==NULL)
         {
+            return;
             // Report Error!
             printf("Root is NULL");
             exit(0);
@@ -538,7 +612,7 @@ void constructST(struct astNode* root){
 
                     temp = temp->next; // ID or NULL
                 }
-                printVarTable(currentVarTable);
+                // printVarTable(currentVarTable);
                    // Code for output_plist ends
                 }
 
@@ -550,14 +624,24 @@ void constructST(struct astNode* root){
 
         if(strcmp(root->name,"moduleDef")==0){
             // <moduleDef>   -->  START <statements> END
-            // <statements>  -->  <statement> <statements>  
             temp = temp->child; // <statement>
+            constructST(temp);
             while(temp!=NULL){
                 // TODO : Start Different Scope!
                 constructST(temp);
                 temp = temp->next;
             }
         }
+
+        if(strcmp(root->name,"statements")==0){
+            // <statements>  -->  <statement> <statements>  
+            temp = temp->child;
+            while(temp!=NULL){
+                constructST(temp);
+                temp = temp->next;
+            }
+        }
+
 
         if(strcmp(root->name,"ioStmt1")==0){
             // Input Stmt
@@ -590,6 +674,7 @@ void constructST(struct astNode* root){
                 // TODO : Check if the ID type on RHS matches! 
                 // printf("Check1 : %s\n",temp->name);
                 struct expNode* exp = generateExpression(temp);
+                printExpression(exp);
             }
             
             if(strcmp(temp->name,"moduleReuseStmt")==0){
@@ -823,6 +908,7 @@ void constructST(struct astNode* root){
             }
 
             if(strcmp(root->val.s,"FOR")==0){
+
                 temp = temp->child; // <ID>
                 // TODO : ID for iterativeStmt 
                 temp = temp->next; // <range>
@@ -844,6 +930,7 @@ void constructST(struct astNode* root){
             else if(strcmp(root->val.s,"WHILE")==0){
                 temp = temp->child; // <arithmeticOrBooleanExpr>
                 struct expNode* exp = generateExpression(temp);
+                printExpression(exp);
                 // TODO : Type Checking!
                 temp = temp->next;  // <statements>
                 constructST(temp);

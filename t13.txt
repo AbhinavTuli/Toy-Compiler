@@ -1,0 +1,5 @@
+<<<driver program>>>
+start
+declare num, k:integer;
+k:=(3*5)+2;
+end
