@@ -216,7 +216,11 @@ functionTable* initializeFunTable()
 	t->size = FUNCTABLESIZE;
 
 	for(int i = 0; i<FUNCTABLESIZE;i++)
+	{
 		t->table[i].isEmpty = true;
+		//t->table[i].inputList = NULL;
+		//t->table[i].outputList = NULL;
+	}
 
 	return t;
 }
@@ -269,7 +273,7 @@ bool searchInFunTable(functionTable *ptr, char* func)
 	return false;
 }
 
-functionTableEntry retrieveFunTable(functionTable *ptr, char* func)
+functionTableEntry* retrieveFunTable(functionTable *ptr, char* func)
 {
 	int len = ptr->size;
 	int index = hash1(func)%len;
@@ -278,7 +282,10 @@ functionTableEntry retrieveFunTable(functionTable *ptr, char* func)
 	while(i<len)
 	{
 		if(strcmp(ptr->table[index].key,func) == 0)
-			return ptr->table[index];
+		{
+			functionTableEntry* f = &(ptr->table[index]);
+			return f;
+		}
 
 		index = (index+1)%len;
 		i++;
@@ -308,6 +315,136 @@ void deleteFunTable(functionTable *ptr)
 	free(ptr);
 }
 
+parameter* initializeParameter(char* varID, bool isArray, int tag)
+{
+	parameter* temp = (parameter *)malloc(sizeof(parameter));
+	strcpy(temp->key, varID);
+	temp->isArray = isArray;
+	temp->tag = tag;
+	temp->next = NULL;
+
+	return temp;
+}
+
+void updateParameterArrayStatic(parameter* p, int low, int high)
+{
+	p->isArrayStatic = true;
+	p->lowerBound = low;
+	p->upperBound = high;
+}
+
+void updateParameterArrayDynamic(parameter* p, char* low, char* high)
+{
+	p->isArrayStatic = false;
+	strcpy(p->lowerBoundID,low);
+	strcpy(p->upperBoundID,high);
+}
+
+void addParametertoList(parameter* head, parameter* node)
+{
+	if(head==NULL)
+	{
+		head = (parameter *)malloc(sizeof(parameter));
+		strcpy(head->key,node->key);
+		head->isArray = node->isArray;
+		head->tag = node->tag;
+		printf("%s\n",head->key);	
+		return;
+	}
+
+	parameter* traverse = head;
+	while(traverse->next != NULL)
+		traverse = traverse->next;
+
+	traverse->next = node;
+	return;
+}
+
+void printParameterList(parameter* head)
+{
+	if(head==NULL)
+	{
+		printf("LIST IS EMPTY\n");
+		return;
+	}
+
+	int i = 1;
+	while(head != NULL)
+	{
+		printf("Element %d, Var Name is %s, it is of type ",i,head->key);
+		if(head->isArray)
+		{
+			printf("array[");
+			if(head->tag == 1)
+				printf("integer], ");
+			else if(head->tag == 2)
+				printf("real], ");
+			else if(head->tag == 3)
+				printf("boolean], ");
+
+			if(head->isArrayStatic)
+				printf(" range is [%d,%d]\n",head->lowerBound,head->upperBound);
+			else
+				printf("DYNAMIC range is [%s,%s]\n",head->lowerBoundID,head->upperBoundID);
+		}
+		else
+		{
+			if(head->tag == 1)
+				printf("integer\n");
+			else if(head->tag == 2)
+				printf("real\n");
+			else if(head->tag == 3)
+				printf("boolean\n");
+		}
+
+		i++;
+		head = head->next;
+	}
+}
+
+/*
+void main()
+{
+	functionTable* t = initializeFunTable();
+	insertInFunTable(t,"f1",NULL,NULL);
+	insertInFunTable(t,"f2",NULL,NULL);
+	insertInFunTable(t,"f3",NULL,NULL);
+	insertInFunTable(t,"f4",NULL,NULL);
+	printFunTable(t);
+
+	//printParameterList(retrieveFunTable(t,"f1").outputList);
+
+	parameter* n1 = initializeParameter("v1",false,1);
+	//printf("%s , %d \n",n1->key,n1->tag);
+	parameter* n2 = initializeParameter("v2",false,2);
+	parameter* n3 = initializeParameter("v3",false,3);
+	parameter* n4 = initializeParameter("v4",true,1);
+	updateParameterArrayStatic(n4,5,10);
+	parameter* n5 = initializeParameter("v5",true,2);
+	updateParameterArrayStatic(n5,11,17);
+	parameter* n6 = initializeParameter("v6",true,3);
+	char a1[20] = "a";
+	char a2[20] = "b";
+	updateParameterArrayDynamic(n6,a1,a2);
+	
+	functionTableEntry* ftemp = retrieveFunTable(t,"f1");
+	//printf("%s\n",ftemp->key);
+	if(ftemp->outputList == NULL)
+		ftemp->outputList = n1;
+	addParametertoList(ftemp->outputList,n2);
+	addParametertoList(ftemp->outputList,n3);
+	addParametertoList(ftemp->outputList,n4);
+	addParametertoList(ftemp->outputList,n5);
+	addParametertoList(ftemp->outputList,n6);
+	//addParametertoList(retrieveFunTable(t,"f1").outputList,n2);
+	//addParametertoList(retrieveFunTable(t,"f1").outputList,n3);
+	//addParametertoList(retrieveFunTable(t,"f1").outputList,n4);
+	//addParametertoList(retrieveFunTable(t,"f1").outputList,n5);
+	//addParametertoList(retrieveFunTable(t,"f1").outputList,n6);
+	//printf("%s\n",ftemp->outputList->key);
+	printParameterList(ftemp->outputList);
+}
+*/ 
 /*
 void main()
 {

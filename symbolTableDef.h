@@ -36,9 +36,12 @@ typedef struct variableTable {
 } variableTable;
 
 typedef struct parameter{
-	bool isArray;
+	char key[30];
 	int tag;
+	bool isArray;
+	bool isArrayStatic;
 	int lowerBound, upperBound;
+	char lowerBoundID[30], upperBoundID[30];
 	struct parameter* next;
 }parameter;
 

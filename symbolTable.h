@@ -33,8 +33,18 @@ bool searchInFunTable(functionTable *ptr, char* func);
 
 void deleteFromFuncTable(functionTable *ptr, char* func);
 
-functionTableEntry retrieveFunTable(functionTable *ptr, char* func);
+functionTableEntry* retrieveFunTable(functionTable *ptr, char* func);
 
 void deleteFunTable(functionTable *ptr);
+
+parameter* initializeParameter(char* varID, bool isArray, int tag);
+
+void updateParameterArrayStatic(parameter* p, int low, int high);
+
+void updateParameterArrayDynamic(parameter* p, char* low, char* high);
+
+void addParametertoList(parameter* head, parameter* node);
+
+void printParameterList(parameter* head);
 
 #endif
