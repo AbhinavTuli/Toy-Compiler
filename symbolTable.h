@@ -47,4 +47,8 @@ void addParametertoList(parameter* head, parameter* node);
 
 void printParameterList(parameter* head);
 
+void printAllTables(functionTable *ptr, variableTable* driver);
+
+bool searchNested(variableTable* ptr, char* varname);
+
 #endif

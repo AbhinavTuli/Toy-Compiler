@@ -967,6 +967,7 @@ void constructST(struct astNode* root){
 
             if(strcmp(root->val.s,"FOR")==0){
 
+                printf("FOR STARTS\n");
                 temp = temp->child; // <ID>
                 // TODO : ID for iterativeStmt 
                 temp = temp->next; // <range>
@@ -988,6 +989,7 @@ void constructST(struct astNode* root){
             }
 
             else if(strcmp(root->val.s,"WHILE")==0){
+                printf("WHILE STARTS\n");
                 temp = temp->child; // <arithmeticOrBooleanExpr>
                 struct expNode* exp = generateExpression(temp);
                 printExpression(exp);
@@ -998,7 +1000,7 @@ void constructST(struct astNode* root){
             }
 
             // DONE : Change Scope!
-            //printVarTable(currentVarTable);
+            printVarTable(currentVarTable);
             currentVarTable = tempTable;
             globalNestingLevel--;
         } // iterativeStmt Ends
@@ -1075,4 +1077,7 @@ void runConstructST(FILE* testFile, FILE* parseTreeFile){
     printf("\nGenerating Symbol Table\n");
     
     constructST(rootAstNode);
+
+    printAllTables(globalFuncTable, driverVarTable);
+
 }

@@ -26,11 +26,12 @@ variableTable* initializeVarTable()
 void printVarTable(variableTable* ptr)
 {
 	int len = ptr->size;
+	int allempty = 0;
 	printf("index \tvarname \twidth \tis_array \tstatic/dynamic \trangevars \ttype \tnesting_level\n\n");
 	for(int i = 0; i<len;i++)
 	{
 		if(ptr->table[i].isEmpty)
-			printf("%d\tEMPTY\n",i);
+			allempty++;
 		else
 		{
 			printf("%d\t%s       \t%d\t",i,ptr->table[i].key,ptr->table[i].width);
@@ -71,6 +72,9 @@ void printVarTable(variableTable* ptr)
 			}
 		}
 	}
+
+	if(allempty == len)
+		printf("THIS VAR TABLE IS EMPTY\n");
 }
 
 int hash1(char * str) {
@@ -402,6 +406,65 @@ void printParameterList(parameter* head)
 	}
 }
 
+void printAllTables(functionTable *ptr, variableTable* driver)
+{
+	int len = ptr->size;
+
+	for(int i = 0; i<len; i++)
+	{
+		if(!ptr->table[i].isEmpty)
+		{
+			printf(" MODULE name is %s\n",ptr->table[i].key);
+			printParameterList(ptr->table[i].inputList);
+			printParameterList(ptr->table[i].outputList);
+
+			variableTable* temp = ptr->table[i].localVarTable;
+			while(temp!=NULL)
+			{
+				variableTable* traverse = temp;
+				
+				while(traverse!=NULL)
+				{
+					printf("LOCAL VAR TABLE\n");
+					printVarTable(traverse);
+					traverse = traverse->next;
+				}
+
+				temp = temp->child;
+			}
+		}
+	}
+
+	printf(" DRIVER MODULE \n");
+	variableTable* temp = driver;
+		
+		while(temp!=NULL)
+		{
+			variableTable* traverse = temp;
+				
+			while(traverse!=NULL)
+			{
+				printf("LOCAL VAR TABLE\n");
+				printVarTable(traverse);
+				traverse = traverse->next;
+			}
+
+			temp = temp->child;
+		}
+}
+
+bool searchNested(variableTable* ptr, char* varname)
+{
+	while(ptr!=NULL)
+	{
+		if(searchInVarTable(ptr,varname))
+			return true;
+
+		ptr = ptr->parent;
+	}
+
+	return false;
+}
 /*
 void main()
 {

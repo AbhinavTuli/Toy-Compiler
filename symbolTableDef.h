@@ -22,13 +22,16 @@ typedef struct variableTableEntry{
 	int offset; 				// offset of variable within scope of this table
 	int nestingLevel;
 	
-
 } variableTableEntry;
 
 typedef struct variableTable {
 	variableTableEntry* table;  	// pointer to a dynamically allocated list of size(below) to variableTableEntries
 	int size;						//	size of array
-	struct functionTableEntry* funcPointer;
+	//struct functionTableEntry* funcPointer;
+	char funcName[30];
+	int scopeStart;
+	int scopeEnd;
+	int typeOfTable;				// 1-function, 2-conditional, 3-for, 4-while
 	int count;						// order number in the list of children
 	struct variableTable* parent;
 	struct variableTable* child;
