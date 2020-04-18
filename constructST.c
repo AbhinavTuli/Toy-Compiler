@@ -253,10 +253,14 @@ struct expNode* generateExpression(struct astNode* temp){
     else if(strcmp(root->name,"term")==0){
         temp = temp->child; // factor = arithmeticOrBooleanExpr/ var_id_num
         exp = generateExpression(temp);
+        expTemp = exp;
         temp = temp->next;  
-        if(temp!=NULL)
-        exp->next = generateExpression(temp); // N5
-        if(exp->next!=NULL)
+        if(temp!=NULL){
+            while(expTemp->next!=NULL){
+                expTemp = expTemp->next;
+            }
+            expTemp->next = generateExpression(temp); // N5
+        }
     }
     else if(strcmp(root->name,"N5")==0){
         temp = temp->child; // op2
@@ -405,7 +409,7 @@ void constructST(struct astNode* root){
             }
 
             // DONE: currentVarTable = current var table of curr Function!
-            currentVarTable = (retrieveFunTable(globalFuncTable,funcName)).localVarTable;
+            currentVarTable = (retrieveFunTable(globalFuncTable,funcName))->localVarTable;
             //printVarTable(currentVarTable);
 
             temp = temp->next; // <input_plist>
