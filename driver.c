@@ -16,7 +16,7 @@
 #include <errno.h>
 #include "symbolTable.c"
 #include "parser.c"
-#include "astNew.c"
+#include "ast.c"
 #include "constructST.c"
 
 #define FILELEN 10000

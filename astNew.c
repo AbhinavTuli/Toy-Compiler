@@ -547,6 +547,8 @@ struct astNode* generateAST(struct treeNode* root){
 
             tempAstNode2->left = childAstNode;
             tempAstNode2->right = tempAstNode;
+
+            return tempAstNode2;
         }
     }
     // <var_id_num>  -->  NUM

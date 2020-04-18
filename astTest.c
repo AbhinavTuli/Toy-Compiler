@@ -19,9 +19,8 @@ void printLevelOrder(struct astNode* root)
         printGivenLevel(root, i); 
             printf("\n"); 
     }
-
 } 
-  
+
 /* Print nodes at a given level */
 void printGivenLevel(struct astNode* root, int level) 
 { 
@@ -803,30 +802,35 @@ struct astNode* generateAST(struct treeNode* root){
 
     // <arithmeticOrBooleanExpr>  -->  <AnyTerm> <N7>
     else if(strcmp(root->tnt,"arithmeticOrBooleanExpr")==0){
+        // left child
         childAstNode = generateAST(root->child);
-        childAstNode->next = generateAST(root->child->next);
-        strcpy(tempName,"arithmeticOrBooleanExpr");
-        gLineNo = root->lineno;
-        return makeAstNode(tempName,valAstNode,0,childAstNode);
-    }
+        // right child
+        tempAstNode = generateAST(root->child->next);
 
-    // <arithmeticOrBooleanExpr>  -->  <AnyTerm> <N7>
-    else if(strcmp(root->tnt,"arithmeticOrBooleanExpr")==0){
-        childAstNode = generateAST(root->child);
-        childAstNode->next = generateAST(root->child->next);
-        strcpy(tempName,"arithmeticOrBooleanExpr");
-        gLineNo = root->lineno;
-        return makeAstNode(tempName,valAstNode,0,childAstNode);
+        if(tempAstNode==NULL){
+            return childAstNode;
+        }else{
+
+            tempAstNode->left = childAstNode;
+            return tempAstNode;
+        }
     }
 
     // <N7>  -->  <logicalOp> <AnyTerm> <N7>
     else if(strcmp(root->tnt,"N7")==0 && strcmp(root->child->tnt,"logicalOp")==0){
         childAstNode=generateAST(root->child);
-        childAstNode->next=generateAST(root->child->next);
-        childAstNode->next->next=generateAST(root->child->next->next);
-        strcpy(tempName,"N7");
-        gLineNo = root->lineno;
-        return makeAstNode(tempName,valAstNode,0,childAstNode);
+        // logicalOp Right
+        tempAstNode1=generateAST(root->child->next); // AnyTerm
+        tempAstNode2=generateAST(root->child->next->next);  // N7
+
+        if(tempAstNode2!=NULL){
+            childAstNode->right = tempAstNode2; // logicalOp ka right N7
+            tempAstNode2->left = tempAstNode1;  // N7 ka left AnyTerm
+        }else{
+            childAstNode->right = tempAstNode1;
+        }
+
+        return childAstNode;
     }
 
     // <N7>  -->  ε
