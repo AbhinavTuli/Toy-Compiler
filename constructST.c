@@ -16,6 +16,28 @@ arr_index tempArrIndex;
 
 int otherModPos;
 
+// int getType(struct astNode* root){  // initially root is expression!
+    
+//     if(root==NULL)
+//         return 0;
+//     if(root->left==NULL && root->right==NULL){
+        
+//     }
+//     int l=getType(root->left);
+//     int r=getType(root->right);
+
+//     // TODO : ARRAY index
+
+//     if(l==-1 || r==-1){
+//         return -1;
+//     }
+//     if(r!=0 && l!=r){
+//         return -1;
+//     }
+//     return l;
+
+// }
+
 void printExpression(struct expNode* root){
 
     printf("Expression : \t");
@@ -94,251 +116,6 @@ struct expNode* makeExpNode(int tag,char* name,bool isDynamic,arr_index index){
     return node;
 }
 
-struct expNode* generateExpression(struct astNode* temp){
-
-    struct astNode* root = temp;
-
-    printf("GeneratingExpression : %s\n",root->name);
-
-    if(temp==NULL){
-         // Report Error!
-        printf("generateExpression : temp is NULL\n");
-        exit(0);
-    }
-
-    struct expNode* exp;
-    struct expNode* expTemp;
-
-    if(strcmp(root->name,"assignmentStmt")==0){
-        // <assignmentStmt>   -->   ID <whichStmt>
-        // <whichStmt>  -->  <lvalueIDStmt> 
-        // <whichStmt>  -->  <lvalueARRStmt>
-        temp = temp->child; // ID
-        strcpy(tempStr,temp->val.s);
-
-        if(strcmp(temp->next->name,"lvalueIDStmt")==0){
-            // <lvalueIDStmt>   -->  ASSIGNOP <expression> SEMICOL
-            exp = makeExpNode(4,tempStr,false,tempArrIndex);
-            temp = temp->next->child;
-            strcpy(tempStr,temp->val.s);
-            exp->next = makeExpNode(0,tempStr,false,tempArrIndex);  // ASSIGNOP
-            temp = temp->next;  // <expression>
-            exp->next->next = generateExpression(temp);
-        } 
-        else{
-            // <lvalueARRStmt>  -->  SQBO <index> SQBC ASSIGNOP <expression> SEMICOL
-            temp = temp->next;  // <lvalueARRStmt>
-            temp = temp->child; //  <index>
-
-            if(temp->next->tag==1){
-                    tempArrIndex.i = temp->val.i;    // Static Array
-                    exp = makeExpNode(5,tempStr,false,tempArrIndex);
-            }
-            else{
-                // Dynamic Array
-                strcpy(tempArrIndex.s,temp->val.s); // index ID
-                exp = makeExpNode(5,tempStr,true,tempArrIndex);
-            }   
-
-            temp = temp->next;  // ASSIGNOP
-            strcpy(tempStr,temp->val.s);
-            exp = makeExpNode(0,tempStr,false,tempArrIndex);
-
-            temp = temp->next; // <expression>
-            exp->next = generateExpression(temp);
-        }
-    }
-    // else if(strcmp(root->name,"lvalueIDStmt")==0){
-    //     // <lvalueIDStmt>   -->  ASSIGNOP <expression> SEMICOL
-    //     temp = temp->child; // ASSIGNOP
-    //     strcpy(tempStr,temp->val.s);
-    //     exp = makeExpNode(0,tempStr,false,tempArrIndex);
-
-    //     temp = temp->next; // <expression>
-    //     exp->next = generateExpression(temp);
-    // }
-    // else if(strcmp(root->name,"lvalueARRStmt")==0){
-    //     // <lvalueARRStmt>  -->  SQBO <index> SQBC ASSIGNOP <expression> SEMICOL
-    //     temp = temp->child; // <index>
-        
-    //     temp = temp->next;  // ASSIGNOP
-
-    //     temp = temp->next;  // <expression>
-
-    //     generateExpression(temp);
-
-    // }
-    else if(strcmp(root->name,"U")==0){
-        temp = temp->child;  // unary_op
-        strcpy(tempStr,temp->val.s);
-        exp = makeExpNode(0,tempStr,false,tempArrIndex);
-        temp=temp->next;  //  new_NT
-        exp->next = generateExpression(temp);
-    }
-    else if(strcmp(root->name,"arithmeticOrBooleanExpr")==0){
-        temp = temp->child;
-        exp = generateExpression(temp); // Anyterm
-        temp = temp->next;  
-        if(temp!=NULL)
-        exp->next = generateExpression(temp);   // N7
-    }
-    else if(strcmp(root->name,"arithmeticOrBooleanExprBracket")==0){
-        strcpy(tempStr,"(");
-        exp = makeExpNode(0,tempStr,false,tempArrIndex);
-        temp = temp->child; // arithmeticOrBooleanExpr
-        exp->next = generateExpression(temp);
-        expTemp = exp->next;
-        while(expTemp->next!=NULL){
-            expTemp = expTemp->next;
-        }
-        strcpy(tempStr,")");
-        expTemp->next = makeExpNode(0,tempStr,false,tempArrIndex);
-    }
-    else if(strcmp(root->name,"N7")==0){
-        temp = temp->child; 
-        strcpy(tempStr,temp->val.s); // logicalOp
-        exp = makeExpNode(0,tempStr,false,tempArrIndex);
-        temp = temp->next;
-        expTemp = exp;
-        while(expTemp->next!=NULL){
-                expTemp = expTemp->next;
-        }
-        expTemp->next = generateExpression(temp); // AnyTerm
-        temp=temp->next;
-        expTemp = expTemp->next;
-        if(temp!=NULL){
-            while(expTemp->next!=NULL){
-                expTemp = expTemp->next;
-            }
-            expTemp->next = generateExpression(temp); // N7
-        }
-        
-    }
-
-    else if(strcmp(root->name,"boolConstt")==0){
-        exp = makeExpNode(3,NULL,false,tempArrIndex);
-    }
-    else if(strcmp(root->name,"AnyTerm")==0){
-        temp = temp->child; // arithmeticExpr
-        exp = generateExpression(temp);
-        temp = temp->next;  
-        expTemp = exp;
-        if(temp!=NULL){
-            while(expTemp->next!=NULL){
-                expTemp = expTemp->next;
-            }
-            expTemp->next = generateExpression(temp); // N8
-        }
-    }
-    else if(strcmp(root->name,"arithmeticExpr")==0){
-        temp = temp->child; // term
-        exp = generateExpression(temp);
-        temp = temp->next;  
-        expTemp = exp;
-        if(temp!=NULL){
-            while(expTemp->next!=NULL){
-                expTemp = expTemp->next;
-            }
-            expTemp->next = generateExpression(temp); // N4
-        }
-    }
-    else if(strcmp(root->name,"arithmeticExprBracket")==0){
-
-        strcpy(tempStr,"(");
-        exp = makeExpNode(0,tempStr,false,tempArrIndex);
-        temp = temp->child; // arithmeticExpr
-        exp->next = generateExpression(temp);
-        expTemp = exp->next;
-        while(expTemp->next!=NULL){
-            expTemp = expTemp->next;
-        }
-        strcpy(tempStr,")");
-        expTemp->next = makeExpNode(0,tempStr,false,tempArrIndex);
-        // temp = temp->child;
-        // exp = generateExpression(temp);
-    }
-    else if(strcmp(root->name,"N4")==0){
-        temp = temp->child; // op1
-        strcpy(tempStr,temp->val.s); // op1
-        exp = makeExpNode(0,tempStr,false,tempArrIndex);
-        temp = temp->next;  
-        exp->next = generateExpression(temp); // term
-        temp=temp->next;
-        expTemp = exp->next;
-        if(temp!=NULL){
-            while(expTemp->next!=NULL){
-                expTemp = expTemp->next;
-            }
-            expTemp->next = generateExpression(temp); // N4
-        }
-    }
-    else if(strcmp(root->name,"N8")==0){
-        temp = temp->child; // relationalOp
-        exp = generateExpression(temp);
-        temp = temp->next;  
-        exp->next = generateExpression(temp); // arithmeticExpr
-    }
-    else if(strcmp(root->name,"relationalOp")==0){
-        strcpy(tempStr,temp->val.s);
-        exp = makeExpNode(0,tempStr,false,tempArrIndex);
-    }
-    else if(strcmp(root->name,"term")==0){
-        temp = temp->child; // factor = arithmeticOrBooleanExpr/ var_id_num
-        exp = generateExpression(temp);
-        expTemp = exp;
-        temp = temp->next;  
-        if(temp!=NULL){
-            while(expTemp->next!=NULL){
-                expTemp = expTemp->next;
-            }
-            expTemp->next = generateExpression(temp); // N5
-        }
-    }
-    else if(strcmp(root->name,"N5")==0){
-        temp = temp->child; // op2
-        strcpy(tempStr,temp->val.s); // op2
-        exp = makeExpNode(0,tempStr,false,tempArrIndex);
-        temp = temp->next;  
-        exp->next = generateExpression(temp); // factor
-        temp=temp->next;
-        if(temp!=NULL)
-        (exp->next)->next = generateExpression(temp); // N5
-    }
-    else if(strcmp(root->name,"var_id_num")==0){
-        if(temp->child==NULL){
-            if(temp->tag==1)
-            exp = makeExpNode(1,NULL,false,tempArrIndex);
-            if(temp->tag==2)
-            exp = makeExpNode(2,NULL,false,tempArrIndex);
-        }
-        else{
-            temp = temp->child; // ID
-            if(temp->next==NULL){
-                strcpy(tempStr,temp->val.s);
-                exp = makeExpNode(4,tempStr,false,tempArrIndex); // Not array element
-            }     
-            else{
-                if(temp->next->tag==1){
-                    tempArrIndex.i = temp->next->val.i;    // Static Array
-                    strcpy(tempStr,temp->val.s); // ID
-                    exp = makeExpNode(5,tempStr,false,tempArrIndex);
-                }
-                else{
-                    // Dynamic Array
-                    strcpy(tempArrIndex.s,temp->next->val.s); // index ID
-                    strcpy(tempStr,temp->val.s); // ID
-                    exp = makeExpNode(5,tempStr,true,tempArrIndex);
-                }    
-            }
-        }
-    }
-    // printf("GeneratingExpression Ends: %s\n",root->name);
-    else{
-        // do nothin
-    }
-    return exp;
-}
-
 
 void constructST(struct astNode* root){
 
@@ -368,7 +145,7 @@ void constructST(struct astNode* root){
             constructST(temp); // Treat this in a different manner!
 
             return; // Not necessary!!
-        }
+        }   
 
         if(strcmp(root->name,"moduleDeclarations")==0){
            // <moduleDeclarations>  -->  <moduleDeclaration><moduleDeclarations> 
@@ -384,13 +161,20 @@ void constructST(struct astNode* root){
                 //printf("%s\n",funcName);
                 
                 if(strcmp("ε",funcName)!=0)
-                    insertInFunTable(globalFuncTable,funcName,NULL,NULL);
-
+                {
+                    if(searchInFunTable(globalFuncTable,funcName))
+                        printf("Error: Redeclaration of function %s at line number %d \n",funcName,temp->lineno);
+                    else{
+                        insertInFunTable(globalFuncTable,funcName,NULL,NULL);
+                        updateDefineBool(globalFuncTable,funcName,false);
+                    }
+                        
+                }
                 //printFunTable(globalFuncTable); // TODO - take care of input and output list
                 //TODO - redeclaration error
                 temp = temp->next; // ID or NULL;
             }
-
+            //printFunTable(globalFuncTable);
             return;
         }
 
@@ -426,16 +210,51 @@ void constructST(struct astNode* root){
             if(otherModPos==1)
             {
                 //TODO - Redeclaration
+                if(searchInFunTable(globalFuncTable,funcName) )
+                {
+                    // f1 func defin
+                    // f1 func defin  ERROR 
+                    functionTableEntry* ftemp = retrieveFunTable(globalFuncTable,funcName);
+                    if(ftemp->isDefined)
+                    {
+                        printf("Error: Redefinition of function %s at line number %d \n",funcName,temp->lineno);
+                        return; // Re-defined Function Skipped 
+                    }else{
+                        updateDefineBool(globalFuncTable,funcName,true);
+                    }
+                    
+                    // TODO1 : Tell Symbol Table that this function was first came by definition
+                    // f1 declare
+                    // f1 func defin NOT ERROR 
+                    
+                }
                 //DONE - Simply Add to Global Func Table
                 //printf("%s\n",funcName);
-                insertInFunTable(globalFuncTable,funcName,NULL,NULL); // TODO - check for errors, take care of input and output lists
+                else{
+                    insertInFunTable(globalFuncTable,funcName,NULL,NULL); // TODO - check for errors, take care of input and output lists
+                    updateDefineBool(globalFuncTable,funcName,true);
+                }    
                 //printFunTable(globalFuncTable);
 
             }else if(otherModPos==2){
                 // DONE - Check if definition was prev there or not! If not, then error will be printed!
                 
-                if(!searchInFunTable(globalFuncTable,funcName))
-                    printf("Error\n"); // TODO - Proper naming of error
+                if(!searchInFunTable(globalFuncTable,funcName)){
+
+                    printf("Error: On line number %d , Function %s Not Declared Before Driver.\n",temp->lineno,funcName);
+                    insertInFunTable(globalFuncTable,funcName,NULL,NULL); 
+                    updateDefineBool(globalFuncTable,funcName,true);
+
+                }else{
+                    functionTableEntry* ftemp = retrieveFunTable(globalFuncTable,funcName);
+                    if(ftemp->isDefined){
+                        printf("Error: On line number %d , Redefinition of function %s\n",temp->lineno,funcName);
+                        return; // Re-defined Function Skipped 
+                    }else{
+                        updateDefineBool(globalFuncTable,funcName,true);
+                    }
+
+                }
                 //printf("%s\n",funcName);
                 //printFunTable(globalFuncTable);
             }
@@ -448,7 +267,7 @@ void constructST(struct astNode* root){
             // Code for input_plist
             // <input_plist>  -->  ID COLON <dataType><N1>
 
-            temp = temp->child; // ID
+            temp = temp->child; // First ID
             char idName[40];
             strcpy(idName,temp->val.s);
             //printf("INPUTINPUTINPUT - %s\n",idName);
@@ -457,11 +276,14 @@ void constructST(struct astNode* root){
             struct astNode* temp2 = temp;    // <N1>
             // Datatype
             
-            if(!checkIfArrayType(temp)){
+            if(!checkIfArrayType(temp)){//NON ARRAY
                 // temp->tag;
                 insertInVarTable(currentVarTable,idName,false,temp->tag,0); // doing for function, nesting level will always be zero. // TODO - check for errors
+                functionTableEntry* ft = retrieveFunTable(globalFuncTable,funcName);
+                ft->inputList = initializeParameter(idName,false,temp->tag);
+                //printParameterList(ft->inputList);
                 //printVarTable(currentVarTable);
-            }else{
+            }else{//ARRAY
                 // <dataType>  -->   ARRAY SQBO <range_arrays> SQBC OF <type>
                 // <range_arrays>  -->  <index> RANGEOP <index>
                 temp2 = temp2->child; // <range_arrays>
@@ -474,18 +296,27 @@ void constructST(struct astNode* root){
                 temp2 = temp2->child;
 
 
-                if(temp2->tag==1){
+                if(temp2->tag==1){ //static
                     low = temp2->val.i;
                     high = temp2->next->val.i;
                     //printf("low = %d , high = %d \n",low,high);
                     insertInVarTable(currentVarTable,idName,true,type,0);
                     updateArrayVarStatic(currentVarTable,idName,low,high);
-                }else{
+
+                    functionTableEntry* ft = retrieveFunTable(globalFuncTable,funcName);
+                    ft->inputList = initializeParameter(idName,true,temp2->tag);
+                    updateParameterArrayStatic(ft->inputList,low,high);
+                
+                }else{ //dynamic
                     strcpy(lowId,temp2->val.s);
                     strcpy(highId,temp2->next->val.s);
 
                     insertInVarTable(currentVarTable,idName,true,type,0);
                     updateArrayVarDynamic(currentVarTable,idName,lowId,highId);
+
+                    functionTableEntry* ft = retrieveFunTable(globalFuncTable,funcName);
+                    ft->inputList = initializeParameter(idName,true,temp2->tag);
+                    updateParameterArrayDynamic(ft->inputList,lowId,highId);
                 }
             }
 
@@ -497,6 +328,15 @@ void constructST(struct astNode* root){
                 // temp = ID
                 //printf("VALUE N1 - %s \n",temp->val.s);
                 strcpy(idName,temp->val.s);
+
+                if(searchInVarTable(currentVarTable,idName))
+                {
+                    printf("Error: On line number-%d, Variable Name %s has already been used in input list.",temp->lineno,idName);
+                    temp = temp->next->next;
+                    continue;
+                }
+                // Redeclaration Error - Variable already defined!
+
                 // DONE:  Add this ID = temp->child to function table (input)  with type at temp->next
                 temp = temp->next; // <dataType>
                 temp2 = temp;
@@ -504,6 +344,9 @@ void constructST(struct astNode* root){
                 if(!checkIfArrayType(temp)){
                     // temp->tag;
                     insertInVarTable(currentVarTable,idName,false,temp->tag,0); // doing for function, nesting level will always be zero. // TODO - check for errors
+                    functionTableEntry* ft = retrieveFunTable(globalFuncTable,funcName);
+                    parameter* ptemp = initializeParameter(idName,false,temp->tag);
+                    addParametertoList(ft->inputList,ptemp);
                     //printVarTable(currentVarTable);
                 }
                 else{
@@ -524,8 +367,12 @@ void constructST(struct astNode* root){
                         //printf("low = %d , high = %d \n",low,high);
                         insertInVarTable(currentVarTable,idName,true,type,0);
                         updateArrayVarStatic(currentVarTable,idName,low,high);
-                    }
 
+                        functionTableEntry* ft = retrieveFunTable(globalFuncTable,funcName);
+                        parameter* ptemp = initializeParameter(idName,true,temp2->tag);
+                        updateParameterArrayStatic(ptemp,low,high);
+                        addParametertoList(ft->inputList,ptemp);
+                    }
                     else
                     {
                         strcpy(lowId,temp2->val.s);
@@ -533,6 +380,11 @@ void constructST(struct astNode* root){
 
                         insertInVarTable(currentVarTable,idName,true,type,0);
                         updateArrayVarDynamic(currentVarTable,idName,lowId,highId);
+
+                        functionTableEntry* ft = retrieveFunTable(globalFuncTable,funcName);
+                        parameter* ptemp = initializeParameter(idName,true,temp2->tag);
+                        updateParameterArrayDynamic(ptemp,lowId,highId);
+                        addParametertoList(ft->inputList,ptemp);
                     }
                 }  
                 temp = temp->next; // N1 or NULL
@@ -541,17 +393,15 @@ void constructST(struct astNode* root){
             //printVarTable(currentVarTable);
             // Code for input_plist ends
 
-            // printf("Check7\n");
             // <module> -->  DEF MODULE ID ENDDEF TAKES INPUT SQBO <input_plist> SQBC SEMICOL <ret> <moduleDef>
             temp = root->child; // ID
-            temp = temp->next->next;
-
-            // printf("Check8 : %s\n",temp->name);
+            temp = temp->next->next;    // <ret>
 
             // constructST(temp);
             // temp = temp->next; // <ret> = <output_plist>
             // Code for output_plist starts
             // <output_plist>  -->  ID COLON <type><N2>
+            // ID type ID type .....
             // <ret>  = <output_plist> -->  ε
 
                 if(temp->child!=NULL){
@@ -559,6 +409,8 @@ void constructST(struct astNode* root){
                 temp = temp->child; // ID
                 char idName[40];
                 strcpy(idName,temp->val.s);
+
+                
                 //printf("OUTPUT VAR - %s\n",temp->val.s);
                 
                 // TODO:  Add this ID = temp->child to function table (output)  with type at temp->next
@@ -709,15 +561,14 @@ void constructST(struct astNode* root){
             if(strcmp(temp->name,"assignmentStmt")==0){
                 // <assignmentStmt>   -->   ID <whichStmt>
                 // TODO : Check if the ID type on RHS matches! 
-                printf("Check1 : %s\n",temp->name);
-                struct expNode* exp = generateExpression(temp);
-                printExpression(exp);
+                // printf("Check1 : %s\n",temp->name);
+                // struct expNode* exp = generateExpression(temp);
+                // printExpression(exp);
+
             }
             
             if(strcmp(temp->name,"moduleReuseStmt")==0){
                 // <moduleReuseStmt>  -->  <optional> USE MODULE ID WITH PARAMETERS <idList> SEMICOL
-                
-                printf("Check2 : %s\n",temp->name);
 
                 temp = temp->child; // optional
                  //  TODO : Check if func parameters size and type are correct! 
@@ -738,7 +589,6 @@ void constructST(struct astNode* root){
                     return;
                 }
                 else{
-                    printf("Check10 : %s\n",temp->name);
                     // TODO : Return type of MODULE(ID) matches with L.H.S if optional isn't ε
                     // <optional>  -->  SQBO <idList> SQBC ASSIGNOP
                     temp = temp->child; // <idList>
@@ -756,9 +606,6 @@ void constructST(struct astNode* root){
 
                     temp = temp->next;  //  <idList>
                     temp = temp->child; // ID->ID->ID....
-
-                    printf("Check11 : %s\n",temp->name);
-
                     while(temp!=NULL){
                         // temp has an ID(parameter of function)
                         // TODO : Function Parameters
@@ -873,14 +720,10 @@ void constructST(struct astNode* root){
             // <conditionalStmt>  -->  SWITCH BO ID BC START <caseStmts> <default> END
             // DONE : Create another var table for conditionalStmt
 
-
-            printf("Check1\n");
-
             variableTable* tempTable = currentVarTable;
             globalNestingLevel++;
             if(tempTable->child == NULL)
             {
-                printf("Check2\n");
 
                 variableTable* newTable = initializeVarTable();
                 newTable->parent = tempTable;
@@ -889,7 +732,6 @@ void constructST(struct astNode* root){
             }
             else
             {
-                printf("Check3\n");
 
                 variableTable* traverse = tempTable->child;
 
@@ -905,10 +747,7 @@ void constructST(struct astNode* root){
             
             temp = temp->child; 
             temp = temp->next;  // <caseStmts>
-            printf("Check4 : %s\n",temp->name);
-
-            // printf("Check4\n");
-
+            
             while(temp!=NULL){
                 temp = temp->child; // <value>
                 // <value>  -->  NUM
@@ -924,10 +763,7 @@ void constructST(struct astNode* root){
                 // <N9>  -->  ε
             }
 
-            printf("Check5 : \n");
-
             temp = root->child->next;  // <default> = <statements>
-            printf("Check6 : %s\n",temp->name);
 
             constructST(temp);
              // <default>  -->  DEFAULT COLON <statements> BREAK SEMICOL
@@ -991,8 +827,8 @@ void constructST(struct astNode* root){
             else if(strcmp(root->val.s,"WHILE")==0){
                 printf("WHILE STARTS\n");
                 temp = temp->child; // <arithmeticOrBooleanExpr>
-                struct expNode* exp = generateExpression(temp);
-                printExpression(exp);
+                // struct expNode* exp = generateExpression(temp);
+                // printExpression(exp);
                 // TODO : Type Checking!
                 temp = temp->next;  // <statements>
                 constructST(temp);

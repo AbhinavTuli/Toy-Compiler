@@ -119,7 +119,6 @@ struct astNode* generateAST(struct treeNode* root){
     struct astNode* tempAstNode;
     struct astNode* tempAstNode1;
     struct astNode* tempAstNode2;
-    struct astNode* tempAstNode3;
 
 
     struct astNode* childAstNode;

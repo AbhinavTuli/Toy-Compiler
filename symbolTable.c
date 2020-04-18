@@ -189,7 +189,7 @@ bool searchInVarTable(variableTable *ptr, char* var)
 	return false;
 }
 
-variableTableEntry retrieveVarTable(variableTable *ptr, char* var)
+variableTableEntry* retrieveVarTable(variableTable *ptr, char* var)
 {
 	int tableSize = ptr->size;
 	int index = hash1(var)%tableSize;
@@ -198,7 +198,7 @@ variableTableEntry retrieveVarTable(variableTable *ptr, char* var)
 	while(i<tableSize)
 	{
 		if(strcmp(ptr->table[index].key,var) == 0)
-			return ptr->table[index];
+			return &(ptr->table[index]);
 
 		index = (index+1)%tableSize;
 		i++;
@@ -379,17 +379,19 @@ void printParameterList(parameter* head)
 		if(head->isArray)
 		{
 			printf("array[");
+			
+			//printf(" TEST %d TEST ",head->tag);
 			if(head->tag == 1)
 				printf("integer], ");
-			else if(head->tag == 2)
+			if(head->tag == 2)
 				printf("real], ");
-			else if(head->tag == 3)
+			if(head->tag == 3)
 				printf("boolean], ");
 
 			if(head->isArrayStatic)
-				printf(" range is [%d,%d]\n",head->lowerBound,head->upperBound);
+				printf("STATIC, range is [%d,%d]\n",head->lowerBound,head->upperBound);
 			else
-				printf("DYNAMIC range is [%s,%s]\n",head->lowerBoundID,head->upperBoundID);
+				printf("DYNAMIC, range is [%s,%s]\n",head->lowerBoundID,head->upperBoundID);
 		}
 		else
 		{
@@ -414,7 +416,7 @@ void printAllTables(functionTable *ptr, variableTable* driver)
 	{
 		if(!ptr->table[i].isEmpty)
 		{
-			printf(" MODULE name is %s\n",ptr->table[i].key);
+			printf("\nMODULE name is %s\n\n",ptr->table[i].key);
 			printParameterList(ptr->table[i].inputList);
 			printParameterList(ptr->table[i].outputList);
 
@@ -464,6 +466,24 @@ bool searchNested(variableTable* ptr, char* varname)
 	}
 
 	return false;
+}
+
+variableTableEntry* searchNestedRetrieve(variableTable* ptr, char* varname)
+{
+	while(ptr!=NULL)
+	{
+		if(searchInVarTable(ptr,varname))
+			return retrieveVarTable(ptr,varname);
+
+		ptr = ptr->parent;
+	}
+
+	return NULL;
+}
+void updateDefineBool(functionTable* ptr, char* funcName, bool isDefined)
+{
+	functionTableEntry* ftemp = retrieveFunTable(ptr,funcName);
+	ftemp->isDefined = isDefined;
 }
 /*
 void main()

@@ -50,6 +50,7 @@ typedef struct parameter{
 
 typedef struct functionTableEntry {
 	bool isEmpty;
+	bool isDefined;					//  True if was defined before, False if was not defined
 	char key[30];                  		// name of function
 	parameter *inputList, *outputList;  // pointers to heads of lists of input and output parameters, NULL if empty
 	int numInput, numOutput;			// number of input parameters, number of output lists

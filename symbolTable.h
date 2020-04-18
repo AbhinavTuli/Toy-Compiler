@@ -19,7 +19,7 @@ void updateArrayVarDynamic(variableTable *ptr, char* var, char* lB, char* uB);
 
 bool searchInVarTable(variableTable *ptr, char* var);
 
-variableTableEntry retrieveVarTable(variableTable *ptr, char* var);
+variableTableEntry* retrieveVarTable(variableTable *ptr, char* var);
 
 void deleteVarTable(variableTable *ptr);
 
@@ -50,5 +50,9 @@ void printParameterList(parameter* head);
 void printAllTables(functionTable *ptr, variableTable* driver);
 
 bool searchNested(variableTable* ptr, char* varname);
+
+variableTableEntry* searchNestedRetrieve(variableTable* ptr, char* varname);
+
+void updateDefineBool(functionTable* ptr, char* funcName, bool isDefined);
 
 #endif

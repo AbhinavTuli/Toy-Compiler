@@ -116,6 +116,7 @@ start
 	C:= D;				        **ERROR: type mismatch error**        
 end
 
+
 **
 variable_name	scope(module_name)	scope(line_numbers)	width	isArray	static_or_dynamic	range_lexemes	type_of_element	offset	nesting_level
 x		var_demo_array		8-31			2	no	---			---		integer		0	0
@@ -174,4 +175,3 @@ w 		driver			85-117			2	no	---			---		integer		109	1
 D		driver			85-117			43	yes	static			[20,40]		integer		111	1
 
 **
-
