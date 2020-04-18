@@ -1,0 +1,7 @@
+<<<driver program>>>
+start
+	**get_value(k);**
+	**use module readArr with parameters A,k;**
+	[s]:= use module arraySum with parameters A,k;
+	**print(s);**
+end

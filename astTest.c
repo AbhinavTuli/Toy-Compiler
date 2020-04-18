@@ -1091,16 +1091,7 @@ struct astNode* generateAST(struct treeNode* root){
         // printf("DeclareStmt3 : %s , %s\n",temp->tnt,temp->child->tnt);
         childAstNode->next = generateAST(temp);
 
-        // insertDataType(childAstNode,getDataType(childAstNode->next));
-
-        // if(childAstNode->next==NULL)
-        // printf("ERROR!");
-        // printf("DeclareStmt4 : %s\n",childAstNode->name);
-
-        // printf("%p\n", (void*)childAstNode);
-        // printf("%p\n", (void*)childAstNode->next);
-
-        // printf("DeclareStmt5 : %\n",childAstNode->next);
+      
         strcpy(tempName,"declareStmt");
         gLineNo = root->lineno;
         return makeAstNode(tempName,valAstNode,0,childAstNode);
@@ -1174,10 +1165,6 @@ struct astNode* generateAST(struct treeNode* root){
 
     // <N9>  -->  ε
     else if(strcmp(root->tnt,"N9")==0){
-        // strcpy(valAstNode.s,"ε");
-        // strcpy(tempName,"N9");
-        // gLineNo = root->lineno;
-        // return(makeAstNode(tempName,valAstNode,4,NULL));
         return NULL;
     }
 
@@ -1215,10 +1202,6 @@ struct astNode* generateAST(struct treeNode* root){
 
     // <default>  -->  ε 
     else if(strcmp(root->tnt,"default")==0){
-        // strcpy(valAstNode.s,"ε");
-        // strcpy(tempName,"default");
-        // gLineNo = root->lineno;
-        // return(makeAstNode(tempName,valAstNode,4,NULL));
         return NULL;
     }
 

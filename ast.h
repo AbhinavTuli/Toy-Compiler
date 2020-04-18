@@ -13,6 +13,9 @@ struct astNode{
     struct astNode* child;
     struct astNode* next;
 
+    struct astNode* left;
+    struct astNode* right;
+
     int lineno;
 } astNode;
 

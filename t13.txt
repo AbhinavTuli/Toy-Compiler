@@ -1,5 +1,6 @@
 <<<driver program>>>
 start
 declare num, k:integer;
-k:=(3*5)+2;
+**k:=((3*5<8+2)<(8+7))==(5*5/7<3);**
+k:= (true<false) and k or num;
 end

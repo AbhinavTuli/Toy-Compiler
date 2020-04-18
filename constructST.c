@@ -11,7 +11,7 @@ int globalNestingLevel = 0;
 struct expNode* expRoot;    // Expression Node
 
 // For generateAB_Expression
-char tempStr[40];
+char tempStr[50];
 arr_index tempArrIndex;
 
 int otherModPos;
@@ -113,19 +113,21 @@ struct expNode* generateExpression(struct astNode* temp){
         // <assignmentStmt>   -->   ID <whichStmt>
         // <whichStmt>  -->  <lvalueIDStmt> 
         // <whichStmt>  -->  <lvalueARRStmt>
-        temp = temp->child;
-        strcpy(tempStr,temp->val.s);    // ID 
-
+        temp = temp->child; // ID
+        strcpy(tempStr,temp->val.s);
 
         if(strcmp(temp->next->name,"lvalueIDStmt")==0){
             // <lvalueIDStmt>   -->  ASSIGNOP <expression> SEMICOL
             exp = makeExpNode(4,tempStr,false,tempArrIndex);
-            temp = temp->next;  // <whichStmt> = <lvalueIDStmt>
-            exp->next = generateExpression(temp);
+            temp = temp->next->child;
+            strcpy(tempStr,temp->val.s);
+            exp->next = makeExpNode(0,tempStr,false,tempArrIndex);  // ASSIGNOP
+            temp = temp->next;  // <expression>
+            exp->next->next = generateExpression(temp);
         } 
         else{
             // <lvalueARRStmt>  -->  SQBO <index> SQBC ASSIGNOP <expression> SEMICOL
-            temp = temp->child; // <lvalueARRStmt>
+            temp = temp->next;  // <lvalueARRStmt>
             temp = temp->child; //  <index>
 
             if(temp->next->tag==1){
@@ -146,15 +148,26 @@ struct expNode* generateExpression(struct astNode* temp){
             exp->next = generateExpression(temp);
         }
     }
-    else if(strcmp(root->name,"lvalueIDStmt")==0){
-        // <lvalueIDStmt>   -->  ASSIGNOP <expression> SEMICOL
-        temp = temp->child; // ASSIGNOP
-        strcpy(tempStr,temp->val.s);
-        exp = makeExpNode(0,tempStr,false,tempArrIndex);
+    // else if(strcmp(root->name,"lvalueIDStmt")==0){
+    //     // <lvalueIDStmt>   -->  ASSIGNOP <expression> SEMICOL
+    //     temp = temp->child; // ASSIGNOP
+    //     strcpy(tempStr,temp->val.s);
+    //     exp = makeExpNode(0,tempStr,false,tempArrIndex);
 
-        temp = temp->next; // <expression>
-        exp->next = generateExpression(temp);
-    }
+    //     temp = temp->next; // <expression>
+    //     exp->next = generateExpression(temp);
+    // }
+    // else if(strcmp(root->name,"lvalueARRStmt")==0){
+    //     // <lvalueARRStmt>  -->  SQBO <index> SQBC ASSIGNOP <expression> SEMICOL
+    //     temp = temp->child; // <index>
+        
+    //     temp = temp->next;  // ASSIGNOP
+
+    //     temp = temp->next;  // <expression>
+
+    //     generateExpression(temp);
+
+    // }
     else if(strcmp(root->name,"U")==0){
         temp = temp->child;  // unary_op
         strcpy(tempStr,temp->val.s);
@@ -170,8 +183,16 @@ struct expNode* generateExpression(struct astNode* temp){
         exp->next = generateExpression(temp);   // N7
     }
     else if(strcmp(root->name,"arithmeticOrBooleanExprBracket")==0){
+        strcpy(tempStr,"(");
+        exp = makeExpNode(0,tempStr,false,tempArrIndex);
         temp = temp->child; // arithmeticOrBooleanExpr
-        exp = generateExpression(temp);
+        exp->next = generateExpression(temp);
+        expTemp = exp->next;
+        while(expTemp->next!=NULL){
+            expTemp = expTemp->next;
+        }
+        strcpy(tempStr,")");
+        expTemp->next = makeExpNode(0,tempStr,false,tempArrIndex);
     }
     else if(strcmp(root->name,"N7")==0){
         temp = temp->child; 
@@ -222,8 +243,19 @@ struct expNode* generateExpression(struct astNode* temp){
         }
     }
     else if(strcmp(root->name,"arithmeticExprBracket")==0){
-        temp = temp->child;
-        exp = generateExpression(temp);
+
+        strcpy(tempStr,"(");
+        exp = makeExpNode(0,tempStr,false,tempArrIndex);
+        temp = temp->child; // arithmeticExpr
+        exp->next = generateExpression(temp);
+        expTemp = exp->next;
+        while(expTemp->next!=NULL){
+            expTemp = expTemp->next;
+        }
+        strcpy(tempStr,")");
+        expTemp->next = makeExpNode(0,tempStr,false,tempArrIndex);
+        // temp = temp->child;
+        // exp = generateExpression(temp);
     }
     else if(strcmp(root->name,"N4")==0){
         temp = temp->child; // op1
@@ -629,7 +661,6 @@ void constructST(struct astNode* root){
         if(strcmp(root->name,"moduleDef")==0){
             // <moduleDef>   -->  START <statements> END
             temp = temp->child; // <statement>
-            constructST(temp);
             while(temp!=NULL){
                 // TODO : Start Different Scope!
                 constructST(temp);
@@ -638,9 +669,11 @@ void constructST(struct astNode* root){
         }
 
         if(strcmp(root->name,"statements")==0){
-            // <statements>  -->  <statement> <statements>  
+            // <statements>  -->  <statement> <statements> 
+            
             temp = temp->child;
             while(temp!=NULL){
+                // printf("Statements Check %s\n",temp->name); 
                 constructST(temp);
                 temp = temp->next;
             }
@@ -676,7 +709,7 @@ void constructST(struct astNode* root){
             if(strcmp(temp->name,"assignmentStmt")==0){
                 // <assignmentStmt>   -->   ID <whichStmt>
                 // TODO : Check if the ID type on RHS matches! 
-                // printf("Check1 : %s\n",temp->name);
+                printf("Check1 : %s\n",temp->name);
                 struct expNode* exp = generateExpression(temp);
                 printExpression(exp);
             }
@@ -684,6 +717,8 @@ void constructST(struct astNode* root){
             if(strcmp(temp->name,"moduleReuseStmt")==0){
                 // <moduleReuseStmt>  -->  <optional> USE MODULE ID WITH PARAMETERS <idList> SEMICOL
                 
+                printf("Check2 : %s\n",temp->name);
+
                 temp = temp->child; // optional
                  //  TODO : Check if func parameters size and type are correct! 
 
@@ -703,6 +738,7 @@ void constructST(struct astNode* root){
                     return;
                 }
                 else{
+                    printf("Check10 : %s\n",temp->name);
                     // TODO : Return type of MODULE(ID) matches with L.H.S if optional isn't ε
                     // <optional>  -->  SQBO <idList> SQBC ASSIGNOP
                     temp = temp->child; // <idList>
@@ -712,20 +748,22 @@ void constructST(struct astNode* root){
                         // TODO : Return Storing Parameters
                         temp = temp->next;
                     }
+                }
 
-                    temp = root->child->child;  //moduleReuseStmt
+                    temp = root->child;  //moduleReuseStmt
                     temp = temp->child->next;   // ID
                     // TODO : This is the function ID
 
                     temp = temp->next;  //  <idList>
                     temp = temp->child; // ID->ID->ID....
 
+                    printf("Check11 : %s\n",temp->name);
+
                     while(temp!=NULL){
                         // temp has an ID(parameter of function)
                         // TODO : Function Parameters
                         temp = temp->next;
                     }
-                }
             }
         } // simpleStmt Ends
 
@@ -834,10 +872,16 @@ void constructST(struct astNode* root){
         if(strcmp(root->name,"conditionalStmt")==0){
             // <conditionalStmt>  -->  SWITCH BO ID BC START <caseStmts> <default> END
             // DONE : Create another var table for conditionalStmt
+
+
+            printf("Check1\n");
+
             variableTable* tempTable = currentVarTable;
             globalNestingLevel++;
             if(tempTable->child == NULL)
             {
+                printf("Check2\n");
+
                 variableTable* newTable = initializeVarTable();
                 newTable->parent = tempTable;
                 tempTable->child = newTable;
@@ -845,6 +889,8 @@ void constructST(struct astNode* root){
             }
             else
             {
+                printf("Check3\n");
+
                 variableTable* traverse = tempTable->child;
 
                 while(traverse->next != NULL)
@@ -857,8 +903,12 @@ void constructST(struct astNode* root){
             }
             // <caseStmts>  -->  CASE <value> COLON <statements> BREAK SEMICOL <N9>
             
-            temp = temp->child; // <caseStmts>
-            
+            temp = temp->child; 
+            temp = temp->next;  // <caseStmts>
+            printf("Check4 : %s\n",temp->name);
+
+            // printf("Check4\n");
+
             while(temp!=NULL){
                 temp = temp->child; // <value>
                 // <value>  -->  NUM
@@ -874,7 +924,11 @@ void constructST(struct astNode* root){
                 // <N9>  -->  ε
             }
 
+            printf("Check5 : \n");
+
             temp = root->child->next;  // <default> = <statements>
+            printf("Check6 : %s\n",temp->name);
+
             constructST(temp);
              // <default>  -->  DEFAULT COLON <statements> BREAK SEMICOL
              // <default>  -->  ε 
@@ -926,6 +980,8 @@ void constructST(struct astNode* root){
                 temp = root->child; // <ID>
                 temp = temp->next;  // <range>
                 temp = temp->next;  // <statements>
+
+                // printf("Check1 : %s\n",temp->name);
 
                 constructST(temp);
                 printf("FOR ENDS\n");
