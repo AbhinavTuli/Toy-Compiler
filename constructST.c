@@ -59,8 +59,7 @@ int getType(struct astNode* root){  // initially root is expression!
             printf("Unexpected %s\n",root->name);
         }
     }
-    int l=getType(root->left);
-    int r=getType(root->right);
+    
 
     // TODO : ARRAY index
     if(strcmp(root->name,"ARRAY_ELE")==0){
@@ -117,6 +116,9 @@ int getType(struct astNode* root){  // initially root is expression!
             return -1;            
         }
     }
+
+    int l=getType(root->left);
+    int r=getType(root->right);
 
     if(l==-1 || r==-1){
         return -1;
