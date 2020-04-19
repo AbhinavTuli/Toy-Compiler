@@ -16,6 +16,9 @@ arr_index tempArrIndex;
 
 int otherModPos;
 
+int pass = 1;
+
+
 int getType(struct astNode* root){  // initially root is expression!
     // 0,1,2,3,4 all good
     //type mismatch
@@ -218,6 +221,195 @@ struct expNode* makeExpNode(int tag,char* name,bool isDynamic,arr_index index){
     node->next = NULL;
 
     return node;
+}
+
+void constructST2(struct astNode* root){
+
+    printf("constructST2 : %s\n",root->name);
+
+    if(root==NULL){
+        return;
+        // Report Error!
+        printf("ConstructST2 : Root is NULL");
+        exit(0);
+    }
+
+    struct astNode* temp = root; // Using this for traversal
+
+    if(strcmp(root->name,"program")==0){
+            // <program>  -->  <moduleDeclarations> <otherModules><driverModule><otherModules>
+            temp = temp->child; // <moduleDeclarations>
+            constructST2(temp);
+            // otherModPos = 1;
+            temp = temp->next; // <otherModules1>
+            constructST2(temp);
+            temp = temp->next; // <driverModule>
+            constructST2(temp);
+            // otherModPos = 2;
+            temp = temp->next; // <otherModules2>
+            constructST2(temp); // Treat this in a different manner!
+            return; // Not necessary!!
+    }   
+    else if(strcmp(root->name,"moduleDeclarations")==0){
+           return;
+    }
+    else if(strcmp(root->name,"driverModule")==0){
+            temp = temp->child; // <moduleDef>
+            currentVarTable = driverVarTable;
+            constructST2(temp);
+    }
+    else if(strcmp(root->name,"otherModules")==0){
+            while(temp->child!=NULL){ 
+                constructST2(temp->child); 
+                temp = temp->child->next;
+            }
+    }
+    else if(strcmp(root->name,"module")==0){
+        // <module> -->  DEF MODULE ID ENDDEF TAKES INPUT SQBO <input_plist> SQBC SEMICOL <ret> <moduleDef>
+        temp = temp->child; // ID
+        currentVarTable = (retrieveFunTable(globalFuncTable,temp->val.s))->localVarTable;
+        temp = temp->next;  // <input_plist>
+        temp = temp->next;  // <ret>
+        temp = temp->next;  // <moduleDef>
+        constructST2(temp);
+    }
+    else if(strcmp(root->name,"moduleDef")==0){
+            // <moduleDef>   -->  START <statements> END
+            temp = temp->child; // <statement>
+            while(temp!=NULL){
+                // TODO : Start Different Scope!
+                constructST2(temp);
+                temp = temp->next;
+            }
+    }
+    else if(strcmp(root->name,"statements")==0){
+        // <statements>  -->  <statement> <statements> 
+        temp = temp->child;
+        while(temp!=NULL){
+            // printf("Statements Check %s\n",temp->name); 
+            constructST2(temp);
+            temp = temp->next;
+        }
+    }
+    else if(strcmp(root->name,"ioStmt1")==0){
+            temp = temp->child; // ID 
+            if(strcmp(temp->name,"ID")==0){
+                return;
+            }
+        }
+    else if(strcmp(root->name,"ioStmt2")==0){
+        return;
+    }
+    else if(strcmp(root->name,"simpleStmt")==0){
+        root = root->child;
+        temp = root;
+        if(strcmp(root->name,"assignmentStmt")==0){
+            return;
+        }else if(strcmp(root->name,"moduleReuseStmt")==0){
+            // Second Pass Checks
+            // <moduleReuseStmt>  -->  <optional> USE MODULE ID WITH PARAMETERS <idList> SEMICOL
+            temp = temp->child; // optional
+            //  TODO : Check if func parameters size and type are correct! 
+
+            temp = temp->next;  // Function ID
+            functionTableEntry* ftemp ;
+
+            if(searchInFunTable(globalFuncTable,temp->name)){
+                    ftemp = retrieveFunTable(globalFuncTable,temp->name);
+            }else{
+                // Function Not Found 
+                printf("Second Pass Unexpected Function %s not Declared\n",temp->name);
+                return;
+            }
+
+            // temp is at Function ID
+            temp = temp->next;  //  <idList>
+            temp = temp->child; // ID->ID->ID....
+
+            // Check Parameter type of idList matches or not
+
+            if(ftemp->isDefined){
+                parameter* inputList = ftemp->inputList;
+
+                while(temp!=NULL && inputList!=NULL){
+                    variableTableEntry* idEntry;
+                    if(searchNested(currentVarTable,temp->name)==0){
+                        idEntry =  searchNestedRetrieve(currentVarTable,temp->name);
+                    }else{
+                        printf("ERROR : Identifier %s is not declared in Function Call %s\n",idEntry->key,ftemp->key);
+                        return;
+                    }
+
+                    if(inputList->tag==idEntry->tag){
+                        if(inputList->isArray == idEntry->isArray){
+                            // Bound Check if array
+                            if(inputList->isArray){
+                                if(!(inputList->isArrayStatic)){
+                                    // Input array parameter has dynamic index
+                                    char* low_indexId = inputList->lowerBoundID;
+                                    char* high_indexId = inputList->upperBoundID;
+
+                                    variableTableEntry* indexEntry;
+
+                                    // Lower Bound Check 
+                                    if(searchNested(currentVarTable,low_indexId)){
+                                        indexEntry = searchNestedRetrieve(currentVarTable,temp->val.s);
+                                        if(indexEntry->tag!=1){
+                                            printf("Error : Lower Bound of Function %s - %s is not an Integer type\n",ftemp->key,low_indexId);
+                                        }
+
+                                    }else{
+                                        printf("Error : Lower Bound of Function %s - %s is undeclared\n",ftemp->key,low_indexId);
+                                    }
+
+                                    // Higher Bound Check 
+                                    if(searchNested(currentVarTable,high_indexId)){
+                                        indexEntry = searchNestedRetrieve(currentVarTable,temp->val.s);
+                                        if(indexEntry->tag!=1){
+                                            printf("Error : Higher Bound of Function %s - %s is not an Integer type\n",ftemp->key,high_indexId);
+                                        }
+
+                                    }else{
+                                        printf("Error : Higher Bound of Function %s - %s is undeclared\n",ftemp->key,high_indexId);
+                                        return;
+                                    }
+
+                                }
+                            }
+
+                            if(!(idEntry->isArrayStatic))
+                            continue;
+
+                            if(inputList->lowerBound!=idEntry->lowerBound || inputList->upperBound!=idEntry->upperBound){
+                                // Bounds of parameter array doesn't match
+                                printf("ERROR : Bounds of parameter array %s of function %s are not correct\n",idEntry->key,ftemp->key);
+                                return;
+                            }
+
+                            }else{
+                                // Correct Parameter Type
+                            }
+                        }else{
+                            printf("ERROR : Call Function %s with the correct parameters\n",ftemp->key);
+                            return;
+                        }
+                    }
+                    temp = temp->next;
+                    inputList = inputList->next;
+                }else{
+                    // Function is not defined!
+                    printf("ERROR : Function %s was never defined\n",ftemp->key);
+                }
+
+            }
+            else{
+                printf("Unexpected simpleStmt\n");
+            }
+    }
+    else{
+        return;
+    }
+
 }
 
 
@@ -778,50 +970,23 @@ void constructST(struct astNode* root){
         if(strcmp(root->name,"moduleReuseStmt")==0){
             // <moduleReuseStmt>  -->  <optional> USE MODULE ID WITH PARAMETERS <idList> SEMICOL
 
-            temp = temp->child; // optional
+                temp = temp->child; // optional
                 //  TODO : Check if func parameters size and type are correct! 
 
-            if(temp->child==NULL){
-                // <optional>  -->  ε
-                temp = temp->next;  // ID
+                temp = temp->next;  // Function ID
+                functionTableEntry* ftemp;
                 // TODO : This is the function ID
-
-                temp = temp->next;  //  <idList>
-                temp = temp->child; // ID->ID->ID....
-
-                while(temp!=NULL){
-                    // temp has an ID(parameter of function)
-                    // TODO : Function Parameters
-                    temp = temp->next;
+                // Function Calling statement
+                if(searchInFunTable(globalFuncTable,temp->name)){
+                    ftemp = retrieveFunTable(globalFuncTable,temp->name);
+                }else{
+                    // Function Not Found 
+                    printf("ERROR : %s is not declared\n",temp->name);
+                    return;
                 }
-                return;
-            }
-            else{
-                // TODO : Return type of MODULE(ID) matches with L.H.S if optional isn't ε
-                // <optional>  -->  SQBO <idList> SQBC ASSIGNOP
-                temp = temp->child; // <idList>
-                temp = temp->child; // ID->ID->ID....
-                while(temp!=NULL){
-                    // temp has an IDs where return value of function is stored
-                    // TODO : Return Storing Parameters
-                    temp = temp->next;
-                }
-            }
-
-                temp = root->child;  //moduleReuseStmt
-                temp = temp->child->next;   // ID
-                // TODO : This is the function ID
-
-                temp = temp->next;  //  <idList>
-                temp = temp->child; // ID->ID->ID....
-                while(temp!=NULL){
-                    // temp has an ID(parameter of function)
-                    // TODO : Function Parameters
-                    temp = temp->next;
-                }
-            }
-
+                // We are not sure at this point that function was ever defined!
         }
+    }
 
 
         if(strcmp(root->name,"declareStmt")==0){
@@ -1051,6 +1216,7 @@ void constructST(struct astNode* root){
             globalNestingLevel--;
         } // iterativeStmt Ends
 
+    return;
 }
 
 void runConstructST(FILE* testFile, FILE* parseTreeFile){
@@ -1123,6 +1289,7 @@ void runConstructST(FILE* testFile, FILE* parseTreeFile){
     printf("\nGenerating Symbol Table\n");
     
     constructST(rootAstNode);
+    constructST2(rootAstNode);
 
     printAllTables(globalFuncTable, driverVarTable);
 

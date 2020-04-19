@@ -40,6 +40,7 @@ typedef struct variableTable {
 
 typedef struct parameter{
 	char key[30];
+	int offset;
 	int tag;
 	bool isArray;
 	bool isArrayStatic;
