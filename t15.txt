@@ -1,0 +1,11 @@
+<<<driver program>>>
+start
+declare a,b :integer;
+declare k :boolean;
+declare A: array[2..20] of integer;
+declare u, y,c:real;
+
+k:= 5+(2<7);
+A[1]:= 5;
+k := k AND 5<=A[11] OR false;
+end

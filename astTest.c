@@ -554,7 +554,7 @@ struct astNode* generateAST(struct treeNode* root){
     // <var_id_num>  -->  NUM
     else if(strcmp(root->tnt,"var_id_num")==0 && strcmp(root->child->tnt,"NUM")==0){
         valAstNode.i = root->child->val.i;
-        strcpy(tempName,"var_id_num");
+        strcpy(tempName,"NUM");
         gLineNo = root->child->lineno;
         return(makeAstNode(tempName,valAstNode,1,NULL));
     }
@@ -562,7 +562,7 @@ struct astNode* generateAST(struct treeNode* root){
     // <var_id_num>  -->  RNUM
     else if(strcmp(root->tnt,"var_id_num")==0 && strcmp(root->child->tnt,"RNUM")==0){
         valAstNode.f = root->child->val.f;
-        strcpy(tempName,"var_id_num");
+        strcpy(tempName,"RNUM");
         gLineNo = root->child->lineno;
         return(makeAstNode(tempName,valAstNode,2,NULL));
     }
@@ -634,7 +634,11 @@ struct astNode* generateAST(struct treeNode* root){
         printLevelOrderExp(childAstNode->next);   // PRINT Expression
         printf("EXPRESSION END1\n");
 
-        return childAstNode;
+        strcpy(tempName,"lvalueIDStmt");
+        gLineNo = root->lineno;
+        return(makeAstNode(tempName,valAstNode,0,childAstNode));
+
+        // return childAstNode;
     }
     // <lvalueARRStmt>  -->  SQBO <index> SQBC ASSIGNOP <expression> SEMICOL
     else if(strcmp(root->tnt,"lvalueARRStmt")==0){

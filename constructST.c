@@ -16,27 +16,129 @@ arr_index tempArrIndex;
 
 int otherModPos;
 
-// int getType(struct astNode* root){  // initially root is expression!
-    
-//     if(root==NULL)
-//         return 0;
-//     if(root->left==NULL && root->right==NULL){
+int getType(struct astNode* root){  // initially root is expression!
+    // 0,1,2,3,4 all good
+    //type mismatch
+    //array operation illegal
+    //undeclared variable being used
+    //means non array can't be accessed by index
+    //array index is non integer
+    //bounds incorrect
+    if(root==NULL)
+        return 0;
         
-//     }
-//     int l=getType(root->left);
-//     int r=getType(root->right);
+    if(root->left==NULL && root->right==NULL){
+        if(strcmp(root->name,"NUM")==0){
+            return 1;
+        }
+        else if(strcmp(root->name,"RNUM")==0){
+            return 2;
+        }
+        else if(strcmp(root->name,"boolConstt")==0){
+            return 3;
+        }
+        else if(strcmp(root->name,"ID")==0){
+            if(searchNested(currentVarTable,root->val.s)){
+                variableTableEntry* idEntry = searchNestedRetrieve(currentVarTable,root->val.s);
 
-//     // TODO : ARRAY index
+                if(idEntry->isArray){
+                    return 3+idEntry->tag;
+                    // 4 -Integer Array
+                    // 5 - Float Array
+                    // 6 - Boolean Array
+                }
 
-//     if(l==-1 || r==-1){
-//         return -1;
-//     }
-//     if(r!=0 && l!=r){
-//         return -1;
-//     }
-//     return l;
+                return(idEntry->tag);
+            }
+            else{
+                printf("Error: Variable %s not declared before use\n",root->val.s);
+                return -1;
+            }
+        }
+        else{
+            printf("Unexpected %s\n",root->name);
+        }
+    }
+    int l=getType(root->left);
+    int r=getType(root->right);
 
-// }
+    // TODO : ARRAY index
+    if(strcmp(root->name,"ARRAY_ELE")==0){
+        if(searchNested(currentVarTable,root->left->val.s)){
+            variableTableEntry* arrIdEntry = searchNestedRetrieve(currentVarTable,root->left->val.s);
+            if(arrIdEntry->isArray){
+                // Check Bounds for the given index
+                    if(root->right->tag==1){// index is NUM
+                        int index = root->right->val.i;
+                        if(arrIdEntry->isArrayStatic){
+                            if(index>(arrIdEntry->lowerBound) && index<(arrIdEntry->upperBound)){  // Within Bounds
+                                printf("ARRAY Element %s[%d] within bounds\n",root->left->val.s,index);
+                                return arrIdEntry->tag;
+                            }else{
+                                printf("Error: Index %d out of Bounds for Array %s\n",index,root->left->val.s);
+                                return -1;
+                            }
+                        }else{
+                            // if dynamic created
+                            return arrIdEntry->tag;
+                        }
+                    }else{
+                        // A[b] - index is ID
+                        char* indexId = root->val.s;
+                        if(searchNested(currentVarTable,indexId)){
+                            variableTableEntry* indexIdEntry = searchNestedRetrieve(currentVarTable,indexId);
+
+                            if(indexIdEntry->isArray){
+                                // A[B] - both A and B are array
+                                printf("Error: Index %s cannot be an Array\n",indexId);
+                                return -1;
+                            }
+
+                            if(indexIdEntry->tag==1){   // Index is Valid - Integer
+                                return arrIdEntry->tag; // return array type
+                            }else{// A[b] - b is not an integer type
+                                printf("Error: Index %s is not an Integer Type\n",indexId);
+                                return -1;
+                            }
+                        }
+                        else{// A[b] - b not declared!
+                            printf("Error: Index %s is not Declared\n",indexId);
+                            return -1;
+                        }
+                    }
+            }else{
+                // Non array accessed by index, A[b], A is not array
+                printf("Error: Non-Array %s cannot be accessed by an index\n",root->left->val.s);
+                return -1;
+            }
+        }else{
+            // if searchNested didn't found the Array ID
+            printf("Error: ID %s is not declared\n",root->left->val.s);
+            return -1;            
+        }
+    }
+
+    if(l==-1 || r==-1){
+        return -1;
+    }
+    if(r!=0 && l!=r){
+        return -1;
+    }
+    if(l>=4 && r!=0){
+        printf("Error: Array operations aren't permitted\n");
+        return -1;
+    }
+    if(r>=4){
+        printf("Error: Array operations aren't permitted\n");
+        return -1;
+    }
+    if(l==r){
+        if(strcmp(root->name,"relationalOp")==0){
+            return 3;
+        }
+    }
+    return l;
+}
 
 void printExpression(struct expNode* root){
 
@@ -522,7 +624,6 @@ void constructST(struct astNode* root){
 
         if(strcmp(root->name,"statements")==0){
             // <statements>  -->  <statement> <statements> 
-            
             temp = temp->child;
             while(temp!=NULL){
                 // printf("Statements Check %s\n",temp->name); 
@@ -552,67 +653,174 @@ void constructST(struct astNode* root){
             return;
         }
 
-
         if(strcmp(root->name,"simpleStmt")==0){
-            // <simpleStmt>   -->  <assignmentStmt>
-            // <simpleStmt>   -->  <moduleReuseStmt>
-
-            temp = temp->child;
-            if(strcmp(temp->name,"assignmentStmt")==0){
+            root = root->child;
+            temp = root;
+            if(strcmp(root->name,"assignmentStmt")==0){
                 // <assignmentStmt>   -->   ID <whichStmt>
-                // TODO : Check if the ID type on RHS matches! 
-                // printf("Check1 : %s\n",temp->name);
-                // struct expNode* exp = generateExpression(temp);
-                // printExpression(exp);
+                
+                temp = temp->child; // ID - type aur exp match !
 
-            }
-            
-            if(strcmp(temp->name,"moduleReuseStmt")==0){
-                // <moduleReuseStmt>  -->  <optional> USE MODULE ID WITH PARAMETERS <idList> SEMICOL
+                variableTableEntry* idEntry;
 
-                temp = temp->child; // optional
-                 //  TODO : Check if func parameters size and type are correct! 
-
-                if(temp->child==NULL){
-                    // <optional>  -->  ε
-                    temp = temp->next;  // ID
-                    // TODO : This is the function ID
-
-                    temp = temp->next;  //  <idList>
-                    temp = temp->child; // ID->ID->ID....
-
-                    while(temp!=NULL){
-                        // temp has an ID(parameter of function)
-                        // TODO : Function Parameters
-                        temp = temp->next;
-                    }
+                // Not-Declared Error Check 
+                if(searchNested(currentVarTable,temp->val.s)){
+                    idEntry = searchNestedRetrieve(currentVarTable,temp->val.s);
+                }else{
+                    printf("Error : Identifier %s undeclared\n",temp->val.s);
                     return;
                 }
-                else{
-                    // TODO : Return type of MODULE(ID) matches with L.H.S if optional isn't ε
-                    // <optional>  -->  SQBO <idList> SQBC ASSIGNOP
-                    temp = temp->child; // <idList>
-                    temp = temp->child; // ID->ID->ID....
-                    while(temp!=NULL){
-                        // temp has an IDs where return value of function is stored
-                        // TODO : Return Storing Parameters
-                        temp = temp->next;
+
+                // <whichStmt>  -->  <lvalueIDStmt>
+                // <whichStmt>  -->  <lvalueARRStmt>
+                temp = temp->next;  // either of these two            
+
+                if(strcmp(temp->name,"lvalueIDStmt")==0){
+                    temp = temp->child; // ASSIGNOP
+                    temp = temp->next;  // expression
+                    int expType = getType(temp);
+                    if(expType==-1){
+                        printf("Error: RHS Types don't match\n"); 
+                        return;
                     }
+
+                    if(idEntry->isArray){
+                        if(expType>=4){
+                            // RHS ID is an Array of type = (expType-3)
+                            // A = B - both are arrays
+                            if(idEntry->tag==(expType-3)){
+                                // Type of Array A and B are same
+                                // Bound checking
+                                // Here A = B
+                                if(idEntry->isArrayStatic){
+
+                                    if(searchNested(currentVarTable,temp->child->val.s)){
+                                        variableTableEntry* idRHSEntry = searchNestedRetrieve(currentVarTable,temp->child->val.s);
+                                        if(idRHSEntry->isArrayStatic){
+                                            if(idEntry->lowerBound!=idRHSEntry->lowerBound || idEntry->upperBound!=idRHSEntry->upperBound){
+                                                // Bounds of Static Arrays doesn't match
+                                                printf("Error : Bounds of Array %s doesn't match with Array %s\n",idEntry->key,idRHSEntry->key);
+                                                return;
+                                            }
+                                        }
+                                    }
+                                    return;
+                                }
+                            }
+                            else{
+                                // Type of Array A and B are not same
+                                printf("Error : ARRAY %s cannot be assigned to a different type\n",idEntry->key);
+                                return;
+                            }        
+                        }
+                        else{
+                            // RHS ID is not an array type
+                            printf("Error : ARRAY %s can only perform assignment operation with an ARRAY of same type\n",idEntry->key);
+                            return;
+                        }
+                    }else{
+                        // Normal Type Checking between Ids!
+                        if(expType!=idEntry->tag){
+                            // LHS RHS Type Mismatch
+                            printf("Error : %s LHS RHS Type Mismatch\n",idEntry->key);
+                        }
+                        return ;
+                    }
+
+                }else if(strcmp(temp->name,"lvalueARRStmt")==0){
+                    // <lvalueARRStmt>  -->  SQBO <index> SQBC ASSIGNOP <expression> SEMICOL
+                    temp = temp->child; // index
+
+                    if(temp->tag==1){
+                        // Check Bounds if array static
+                        if(idEntry->isArrayStatic){
+                            if(temp->val.i<idEntry->lowerBound || temp->val.i>idEntry->upperBound){
+                                // Out of Bounds
+                                printf("Array Index Out of Bounds for %s\n",idEntry->key);
+                                return;
+                            }
+                        }
+                    }else if(temp->tag==4){
+                        // Dynamic index!
+                        if(searchNested(currentVarTable,temp->val.s)){
+                            variableTableEntry* indexEntry = searchNestedRetrieve(currentVarTable,temp->val.s);
+                            if(indexEntry->tag!=1){
+                                printf("Array index %s is not an Integer type\n",temp->val.s);
+                                return;
+                            }
+                        }else{
+                            printf("Index %s not declared\n",temp->val.s);
+                            return;
+                        }
+                    }else{
+                        printf("Unexpected index type\n");
+                    }
+
+                    temp = temp->next;  // ASSIGNOP
+                    temp = temp->next;  // expression
+                    int expType = getType(temp);
+
+                    // A[i] = expression!
+                    if(idEntry->tag!=expType){
+                        // LHS RHS Type Mismatch
+                        printf("Error : %s LHS RHS Type Mismatch\n",idEntry->key);
+                    }
+                    return;
+                }else{
+                    printf("Unexpected Error at whichStmt\n");
+                    return;
                 }
 
-                    temp = root->child;  //moduleReuseStmt
-                    temp = temp->child->next;   // ID
-                    // TODO : This is the function ID
+        }
+            
+        if(strcmp(root->name,"moduleReuseStmt")==0){
+            // <moduleReuseStmt>  -->  <optional> USE MODULE ID WITH PARAMETERS <idList> SEMICOL
 
-                    temp = temp->next;  //  <idList>
-                    temp = temp->child; // ID->ID->ID....
-                    while(temp!=NULL){
-                        // temp has an ID(parameter of function)
-                        // TODO : Function Parameters
-                        temp = temp->next;
-                    }
+            temp = temp->child; // optional
+                //  TODO : Check if func parameters size and type are correct! 
+
+            if(temp->child==NULL){
+                // <optional>  -->  ε
+                temp = temp->next;  // ID
+                // TODO : This is the function ID
+
+                temp = temp->next;  //  <idList>
+                temp = temp->child; // ID->ID->ID....
+
+                while(temp!=NULL){
+                    // temp has an ID(parameter of function)
+                    // TODO : Function Parameters
+                    temp = temp->next;
+                }
+                return;
             }
-        } // simpleStmt Ends
+            else{
+                // TODO : Return type of MODULE(ID) matches with L.H.S if optional isn't ε
+                // <optional>  -->  SQBO <idList> SQBC ASSIGNOP
+                temp = temp->child; // <idList>
+                temp = temp->child; // ID->ID->ID....
+                while(temp!=NULL){
+                    // temp has an IDs where return value of function is stored
+                    // TODO : Return Storing Parameters
+                    temp = temp->next;
+                }
+            }
+
+                temp = root->child;  //moduleReuseStmt
+                temp = temp->child->next;   // ID
+                // TODO : This is the function ID
+
+                temp = temp->next;  //  <idList>
+                temp = temp->child; // ID->ID->ID....
+                while(temp!=NULL){
+                    // temp has an ID(parameter of function)
+                    // TODO : Function Parameters
+                    temp = temp->next;
+                }
+            }
+
+        }
+
 
         if(strcmp(root->name,"declareStmt")==0){
             // return;
@@ -675,9 +883,9 @@ void constructST(struct astNode* root){
                 }
                 
                 if(high_tag==1){
-                    high = temp->val.i;
+                    high = temp->next->val.i;
                 }else{
-                    strcpy(highId,temp->val.s);
+                    strcpy(highId,temp->next->val.s);
                 }
 
                 // TODO : How to handle dynamic and static arrays?

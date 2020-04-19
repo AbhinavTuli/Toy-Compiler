@@ -341,6 +341,17 @@ token* checkEQ(){
     }
 }
 
+token* checkNE(){
+    if(buff[buffPtr]=='='){
+        buffPtr++;
+        return retTokenSTR("!=",NE);
+    }
+    else {
+        error = true;
+        return prevToken;
+    }
+}
+
 token* checkGT(){
     if(buff[buffPtr] == '='){
         buffPtr++;
@@ -415,6 +426,7 @@ int isDigit(char c)
 void removeComments(FILE* fptr)
 {   
     char curr = fgetc(fptr);
+    //printf("%c",curr);
     char next = fgetc(fptr);;
     int flag = 0;
 
@@ -499,6 +511,7 @@ void getNextToken()
 
     currentToken = head;
     char curr = buff[buffPtr];
+    //printf("%c",curr);
     buffPtr++;
         
     bool tokenGet = false;
@@ -509,7 +522,7 @@ void getNextToken()
         case ':' :  currentToken = checkASSIGNOP();
                     tokenGet = true;
                     break;
-                    
+
         case '=' :  ;token* ttoken = checkEQ();
                     if(error)
                     {
