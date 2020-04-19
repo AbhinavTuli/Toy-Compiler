@@ -553,6 +553,38 @@ void getNextToken()
                         tokenGet = true;
                         break;
                     }
+        case '!' :  ;token* ttoken2 = checkNE();
+                    //printf("WOOOOLOOOO\n");
+                    if(error)
+                    {
+                        //printf("IN NE\n");
+                        if(printFlag)
+                        printf("Line %d: Lexical Error due to just a single exclamation mark (!).\n",lineNumber);
+
+                        lexicalErrors[numLexicalErrors++] = lineNumber;
+
+                        char tempChar=buff[buffPtr];
+                        
+                        while(tempChar!='\n' && tempChar!='$')
+                        {    
+                            buffPtr++;
+                            if(buffPtr > BUFFER_MAX - 20)
+                            programFile = getStream(programFile);
+                            tempChar=buff[buffPtr];
+                        }
+                            
+                        curr = tempChar;
+                        buffPtr++;
+                        error = false;
+                        break;   
+                    }
+                    
+                    else
+                    {
+                        currentToken = ttoken2;
+                        tokenGet = true;
+                        break;
+                    }
 
         case '>' :  currentToken = checkGT();
                     tokenGet = true;

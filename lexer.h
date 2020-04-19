@@ -28,6 +28,7 @@ token* retTokenBOOL(bool value,term t);
 token* retTokenSTR(char value[],term t);
 token* checkASSIGNOP();
 token* checkEQ();
+token* checkNE();
 token* checkGT();
 token* checkLT();
 token* checkRANGEOP();

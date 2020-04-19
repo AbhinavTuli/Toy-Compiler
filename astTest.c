@@ -2,18 +2,49 @@
 #include "parserDef.h"
 #include "ast.h"
 #include "lexerDef.h"
-#include "expTree.c"
+// #include "expTree.c"
+
 
 int noAstNodes = 0;
 int makeCount = 0;
 int gLineNo = -1;
 
-void printGivenLevel(struct astNode* root, int level); 
-int height(struct astNode* node); 
+void printExpression(struct astNode* root){
+    if(root==NULL){
+        return;
+    }
+    printExpression(root->left);
+    printf("%s ",root->name);
+    printExpression(root->right);
+}
+void printInOrderAst(struct astNode* root){ //prints child, parent, then siblings
+    if(root==NULL){
+        return;
+    }
+    if(strcmp(root->name,"expression")==0){
+        printExpression(root);
+        return;
+    }
+    struct astNode* ch=root->child;
+    printInOrderAst(ch);
 
+    if(strcmp(root->val.s,"ε")==0)
+    return;
+
+    printf("%s ",root->name);
+    if(ch!=NULL){
+        ch=ch->next;
+    }
+    while(ch!=NULL){
+        printInOrderAst(ch);
+        ch=ch->next;
+    }
+}
+
+
+void printGivenLevel(struct astNode* root, int level); 
 void printLevelOrder(struct astNode* root) 
 { 
-    //printf("Level order Called\n");
     int h = 25;
     int i; 
     for (i=1; i<=h; i++) {
@@ -25,7 +56,6 @@ void printLevelOrder(struct astNode* root)
 /* Print nodes at a given level */
 void printGivenLevel(struct astNode* root, int level) 
 { 
-    // printf("level is %d\n", level);
     if (root == NULL) 
         return; 
 
@@ -38,9 +68,6 @@ void printGivenLevel(struct astNode* root, int level)
 
     }
 
-    // if(root->tag==4)
-    // printf("(Tag%s)",root->val.s);
-
     else if (level > 1) 
     {   
         struct astNode* temp = root->child;
@@ -50,33 +77,7 @@ void printGivenLevel(struct astNode* root, int level)
         } 
         printf("|");
     }
-} 
-  
-/* Compute the "height" of a tree -- the number of 
-    nodes along the longest path from the root node 
-    down to the farthest leaf node.*/
-int height(struct astNode* node) 
-{   
-    return 50;
-    if (node==NULL) 
-        return 0;
-    int maxh=1;
-    struct astNode* temp=node;
-    struct astNode* temp2=node;
-    if(temp->child!=NULL){
-        maxh=1+height(temp->child);
-        //temp=temp->child;
-    }
-    /* compute the height of each subtree */
-    while(temp2!=NULL){
-        temp2=temp2->next;
-        int t=height(temp2);
-        if(t>maxh){
-                maxh=t;
-        }
-    } 
-    return maxh;
-} 
+}  
 
 struct astNode* makeAstNode(char* name, value val,int tag,struct astNode* child){
 
@@ -87,9 +88,8 @@ struct astNode* makeAstNode(char* name, value val,int tag,struct astNode* child)
     newNode->tag = tag;
     newNode->next = NULL;
     newNode->lineno = gLineNo;
-    //printf("Check!! : %s\n",name);
+
     strcpy(newNode->name,name);
-    // printf("Check!! : %s\n",newNode->name);
     switch (tag)
     {
         case 1:     newNode->val.i = val.i;
@@ -117,7 +117,7 @@ struct astNode* generateAST(struct treeNode* root){
         return NULL;
     }
     // printf("AST: %s\n",root->tnt);
-    // tRoot - TreeNode , aRoot - astNode
+
     struct treeNode* temp;
 
     struct astNode* tempAstNode;
@@ -384,7 +384,6 @@ struct astNode* generateAST(struct treeNode* root){
     }
     // <dataType>  -->   ARRAY SQBO <range_arrays> SQBC OF <type>
     else if(strcmp(root->tnt,"dataType")==0 && strcmp(root->child->tnt,"ARRAY")==0){
-        // printf("Datatype ARRAY\n");
         temp=root->child; //ARRAY
         temp = temp->next; //SQBO
         temp = temp->next; //<range_arrays>
@@ -630,9 +629,9 @@ struct astNode* generateAST(struct treeNode* root){
 
         childAstNode->next=generateAST(root->child->next);
 
-        printf("EXPRESSION START1\n");
-        printLevelOrderExp(childAstNode->next);   // PRINT Expression
-        printf("EXPRESSION END1\n");
+        // printf("EXPRESSION START1\n");
+        // printLevelOrderExp(childAstNode->next);   // PRINT Expression
+        // printf("EXPRESSION END1\n");
 
         strcpy(tempName,"lvalueIDStmt");
         gLineNo = root->lineno;
@@ -656,9 +655,9 @@ struct astNode* generateAST(struct treeNode* root){
         temp=temp->next; //<expression>
         childAstNode->next->next=generateAST(temp);
 
-        printf("EXPRESSION START2\n");
-        printLevelOrderExp(childAstNode->next->next);   // PRINT Expression
-        printf("EXPRESSION END2\n");
+        // printf("EXPRESSION START2\n");
+        // printLevelOrderExp(childAstNode->next->next);   // PRINT Expression
+        // printf("EXPRESSION END2\n");
 
         strcpy(tempName,"lvalueARRStmt");
         gLineNo = root->lineno;
@@ -691,7 +690,7 @@ struct astNode* generateAST(struct treeNode* root){
         temp=temp->next; // MODULE
         temp=temp->next; // ID
         
-        strcpy(valAstNode.s,root->child->val.s);
+        strcpy(valAstNode.s,temp->val.s);
         strcpy(tempName,"ID");
         gLineNo = temp->lineno;
         tempAstNode->next = makeAstNode(tempName,valAstNode,4,NULL);
@@ -1093,15 +1092,11 @@ struct astNode* generateAST(struct treeNode* root){
     // <declareStmt>  -->  DECLARE <idList> COLON <dataType> SEMICOL
     else if(strcmp(root->tnt,"declareStmt")==0){
         temp = root->child; // DECLARE
-        // printf("DeclareStmt0 : %s\n",temp->tnt);
         temp = temp->next;  // <idList>
-        // printf("DeclareStmt1 : %s\n",temp->tnt);
         childAstNode = generateAST(temp);
 
         temp = temp->next;  // COLON
-        // printf("DeclareStmt2 : %s\n",temp->tnt);
         temp = temp->next;  // <dataType>
-        // printf("DeclareStmt3 : %s , %s\n",temp->tnt,temp->child->tnt);
         childAstNode->next = generateAST(temp);
 
       
@@ -1338,13 +1333,12 @@ void runAST(FILE* testFile, FILE* parseTreeFile){
 
     struct treeNode* rootParseTree = parseInputSourceCode(head->next, Table, grammar, firstFollowSets,parseTreeFile);
     
-    inOrderParseTree(rootParseTree,parseTreeFile);    
+    // inOrderParseTree(rootParseTree,parseTreeFile);    
 
     printf("\nParseTreeComputed\n");
 
-    printLevelOrder(generateAST(rootParseTree));
     //printLevelOrder(generateAST(rootParseTree));
-    //generateAST(rootParseTree);
+    printInOrderAst(generateAST(rootParseTree));
     if(printFlag)
     printf("\nAST Complete\n");
     printf("ASTNodes : %d\n",noAstNodes);

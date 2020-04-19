@@ -18,6 +18,8 @@ int otherModPos;
 
 int pass = 1;
 
+int global_offset=0;
+
 
 int getType(struct astNode* root){  // initially root is expression!
     // 0,1,2,3,4 all good
@@ -74,10 +76,10 @@ int getType(struct astNode* root){  // initially root is expression!
                         int index = root->right->val.i;
                         if(arrIdEntry->isArrayStatic){
                             if(index>(arrIdEntry->lowerBound) && index<(arrIdEntry->upperBound)){  // Within Bounds
-                                printf("ARRAY Element %s[%d] within bounds\n",root->left->val.s,index);
+                                //printf("ARRAY Element %s[%d] within bounds\n",root->left->val.s,index);
                                 return arrIdEntry->tag;
                             }else{
-                                printf("Error: Index %d out of Bounds for Array %s\n",index,root->left->val.s);
+                                printf("ERROR at line no. %d: element of array %s is out of bound\n",root->lineno,root->left->val.s);
                                 return -1;
                             }
                         }else{
@@ -127,14 +129,15 @@ int getType(struct astNode* root){  // initially root is expression!
         return -1;
     }
     if(r!=0 && l!=r){
+        printf("ERROR at line no. %d: type mismatch \n",root->lineno);
         return -1;
     }
     if(l>=4 && r!=0){
-        printf("Error: Array operations aren't permitted\n");
+       printf("ERROR at lineno %d: Array operations aren't permitted\n",root->lineno);
         return -1;
     }
     if(r>=4){
-        printf("Error: Array operations aren't permitted\n");
+        printf("ERROR at lineno %d: Array operations aren't permitted\n",root->lineno);
         return -1;
     }
     if(l==r){
@@ -143,54 +146,6 @@ int getType(struct astNode* root){  // initially root is expression!
         }
     }
     return l;
-}
-
-void printExpression(struct expNode* root){
-
-    printf("Expression : \t");
-
-    while(root!=NULL){
-
-        switch (root->tag)
-        {
-        case 0:
-            printf("%s ",root->name);
-            break;
-        
-        case 1:
-            printf("NUM ");
-            break;
-
-        case 2:
-            printf("RNUM ");
-            break;
-
-        case 3:
-            printf("BOOL ");
-            break;
-
-
-        case 4:
-            printf("%s ",root->name);
-            break;
-
-        case 5:
-            if(root->isDynamic)
-            printf("%s[%s] ",root->name,root->index.s);
-            else
-            printf("%s[%d] ",root->name,root->index.i);
-            break;
-
-        default:
-            break;
-        }
-
-
-        root = root->next;
-    }
-
-
-    printf("\n\n");
 }
 
 bool checkIfArrayType(struct astNode* node){
@@ -296,7 +251,7 @@ void constructST2(struct astNode* root){
             if(strcmp(temp->name,"ID")==0){
                 return;
             }
-        }
+    }
     else if(strcmp(root->name,"ioStmt2")==0){
         return;
     }
@@ -312,13 +267,12 @@ void constructST2(struct astNode* root){
             //  TODO : Check if func parameters size and type are correct! 
 
             temp = temp->next;  // Function ID
-            functionTableEntry* ftemp ;
-
-            if(searchInFunTable(globalFuncTable,temp->name)){
-                    ftemp = retrieveFunTable(globalFuncTable,temp->name);
+            functionTableEntry* ftemp;
+            if(searchInFunTable(globalFuncTable,temp->val.s)){
+                    ftemp = retrieveFunTable(globalFuncTable,temp->val.s);
             }else{
                 // Function Not Found 
-                printf("Second Pass Unexpected Function %s not Declared\n",temp->name);
+                printf("Second Pass Unexpected Function %s not Declared\n",temp->val.s);
                 return;
             }
 
@@ -330,13 +284,12 @@ void constructST2(struct astNode* root){
 
             if(ftemp->isDefined){
                 parameter* inputList = ftemp->inputList;
-
                 while(temp!=NULL && inputList!=NULL){
                     variableTableEntry* idEntry;
-                    if(searchNested(currentVarTable,temp->name)==0){
-                        idEntry =  searchNestedRetrieve(currentVarTable,temp->name);
+                    if(searchNested(currentVarTable,temp->val.s)){
+                        idEntry =  searchNestedRetrieve(currentVarTable,temp->val.s);
                     }else{
-                        printf("ERROR : Identifier %s is not declared in Function Call %s\n",idEntry->key,ftemp->key);
+                        printf("ERROR at line no %d : Identifier %s is not declared in Function Call %s\n",temp->lineno,temp->val.s,ftemp->key);
                         return;
                     }
 
@@ -344,58 +297,23 @@ void constructST2(struct astNode* root){
                         if(inputList->isArray == idEntry->isArray){
                             // Bound Check if array
                             if(inputList->isArray){
-                                if(!(inputList->isArrayStatic)){
-                                    // Input array parameter has dynamic index
-                                    char* low_indexId = inputList->lowerBoundID;
-                                    char* high_indexId = inputList->upperBoundID;
-
-                                    variableTableEntry* indexEntry;
-
-                                    // Lower Bound Check 
-                                    if(searchNested(currentVarTable,low_indexId)){
-                                        indexEntry = searchNestedRetrieve(currentVarTable,temp->val.s);
-                                        if(indexEntry->tag!=1){
-                                            printf("Error : Lower Bound of Function %s - %s is not an Integer type\n",ftemp->key,low_indexId);
-                                        }
-
-                                    }else{
-                                        printf("Error : Lower Bound of Function %s - %s is undeclared\n",ftemp->key,low_indexId);
-                                    }
-
-                                    // Higher Bound Check 
-                                    if(searchNested(currentVarTable,high_indexId)){
-                                        indexEntry = searchNestedRetrieve(currentVarTable,temp->val.s);
-                                        if(indexEntry->tag!=1){
-                                            printf("Error : Higher Bound of Function %s - %s is not an Integer type\n",ftemp->key,high_indexId);
-                                        }
-
-                                    }else{
-                                        printf("Error : Higher Bound of Function %s - %s is undeclared\n",ftemp->key,high_indexId);
+                                if(inputList->isArrayStatic && idEntry->isArrayStatic){
+                                    if(inputList->lowerBound!=idEntry->lowerBound || inputList->upperBound!=idEntry->upperBound){
+                                        // Bounds of parameter array doesn't match
+                                        printf("ERROR : Bounds of parameter array %s of function %s are not correct\n",idEntry->key,ftemp->key);
                                         return;
-                                    }
-
+                                    } 
                                 }
                             }
-
-                            if(!(idEntry->isArrayStatic))
-                            continue;
-
-                            if(inputList->lowerBound!=idEntry->lowerBound || inputList->upperBound!=idEntry->upperBound){
-                                // Bounds of parameter array doesn't match
-                                printf("ERROR : Bounds of parameter array %s of function %s are not correct\n",idEntry->key,ftemp->key);
-                                return;
-                            }
-
-                            }else{
-                                // Correct Parameter Type
-                            }
+                        }
                         }else{
                             printf("ERROR : Call Function %s with the correct parameters\n",ftemp->key);
                             return;
                         }
+                        temp = temp->next;
+                        inputList = inputList->next;
                     }
-                    temp = temp->next;
-                    inputList = inputList->next;
+                    
                 }else{
                     // Function is not defined!
                     printf("ERROR : Function %s was never defined\n",ftemp->key);
@@ -442,8 +360,7 @@ void constructST(struct astNode* root){
 
             return; // Not necessary!!
         }   
-
-        if(strcmp(root->name,"moduleDeclarations")==0){
+        else if(strcmp(root->name,"moduleDeclarations")==0){
            // <moduleDeclarations>  -->  <moduleDeclaration><moduleDeclarations> 
            // <moduleDeclaration>  -->  DECLARE MODULE ID SEMICOL 
            // <moduleDeclarations>  -->  ε
@@ -473,8 +390,7 @@ void constructST(struct astNode* root){
             //printFunTable(globalFuncTable);
             return;
         }
-
-        if(strcmp(root->name,"driverModule")==0){
+        else if(strcmp(root->name,"driverModule")==0){
             temp = temp->child; // <moduleDef>
             // <driverModule> -->  DRIVERDEF DRIVER PROGRAM DRIVERENDDEF <moduleDef>
             // <moduleDef>   -->  START <statements> END
@@ -482,12 +398,12 @@ void constructST(struct astNode* root){
             // ...
 
             //DONE
+            //global_offset = 0;
             currentVarTable = driverVarTable;
             constructST(temp); // if for moduleDef written below!
         }
 
-
-        if(strcmp(root->name,"otherModules")==0){
+        else if(strcmp(root->name,"otherModules")==0){
             // <otherModules>   -->  ε
             // <otherModules>   -->  <module> <otherModules>
             while(temp->child!=NULL){ 
@@ -495,10 +411,9 @@ void constructST(struct astNode* root){
                 temp = temp->child->next; // otherModules
             }
         }
-
-        if(strcmp(root->name,"module")==0){
+        else if(strcmp(root->name,"module")==0){
             // <module> -->  DEF MODULE ID ENDDEF TAKES INPUT SQBO <input_plist> SQBC SEMICOL <ret> <moduleDef>
-        
+
             temp = temp->child; // ID
             char funcName[40];
             strcpy(funcName,temp->val.s);
@@ -558,7 +473,7 @@ void constructST(struct astNode* root){
             // DONE: currentVarTable = current var table of curr Function!
             currentVarTable = (retrieveFunTable(globalFuncTable,funcName))->localVarTable;
             //printVarTable(currentVarTable);
-
+            global_offset = 0;
             temp = temp->next; // <input_plist>
             // Code for input_plist
             // <input_plist>  -->  ID COLON <dataType><N1>
@@ -575,6 +490,11 @@ void constructST(struct astNode* root){
             if(!checkIfArrayType(temp)){//NON ARRAY
                 // temp->tag;
                 insertInVarTable(currentVarTable,idName,false,temp->tag,0); // doing for function, nesting level will always be zero. // TODO - check for errors
+                updateIsInput(currentVarTable,idName,true);
+                // DONE : Insert Offset
+                updateOffset(currentVarTable, idName, global_offset);
+                global_offset += retrieveWidth(currentVarTable,idName);
+
                 functionTableEntry* ft = retrieveFunTable(globalFuncTable,funcName);
                 ft->inputList = initializeParameter(idName,false,temp->tag);
                 //printParameterList(ft->inputList);
@@ -598,10 +518,14 @@ void constructST(struct astNode* root){
                     //printf("low = %d , high = %d \n",low,high);
                     insertInVarTable(currentVarTable,idName,true,type,0);
                     updateArrayVarStatic(currentVarTable,idName,low,high);
+                    updateIsInput(currentVarTable,idName,true);
 
                     functionTableEntry* ft = retrieveFunTable(globalFuncTable,funcName);
-                    ft->inputList = initializeParameter(idName,true,temp2->tag);
+                    ft->inputList = initializeParameter(idName,true,type);
                     updateParameterArrayStatic(ft->inputList,low,high);
+
+                    updateOffset(currentVarTable, idName, global_offset);
+                    global_offset += retrieveWidth(currentVarTable,idName);
                 
                 }else{ //dynamic
                     strcpy(lowId,temp2->val.s);
@@ -609,10 +533,14 @@ void constructST(struct astNode* root){
 
                     insertInVarTable(currentVarTable,idName,true,type,0);
                     updateArrayVarDynamic(currentVarTable,idName,lowId,highId);
+                    updateIsInput(currentVarTable,idName,true);
 
                     functionTableEntry* ft = retrieveFunTable(globalFuncTable,funcName);
-                    ft->inputList = initializeParameter(idName,true,temp2->tag);
+                    ft->inputList = initializeParameter(idName,true,type);
                     updateParameterArrayDynamic(ft->inputList,lowId,highId);
+
+                    updateOffset(currentVarTable, idName, global_offset);
+                    global_offset += retrieveWidth(currentVarTable,idName);
                 }
             }
 
@@ -640,9 +568,14 @@ void constructST(struct astNode* root){
                 if(!checkIfArrayType(temp)){
                     // temp->tag;
                     insertInVarTable(currentVarTable,idName,false,temp->tag,0); // doing for function, nesting level will always be zero. // TODO - check for errors
+                    updateIsInput(currentVarTable,idName,true);
+                    // TODO : Insert Offset
                     functionTableEntry* ft = retrieveFunTable(globalFuncTable,funcName);
                     parameter* ptemp = initializeParameter(idName,false,temp->tag);
                     addParametertoList(ft->inputList,ptemp);
+
+                    updateOffset(currentVarTable, idName, global_offset);
+                    global_offset += retrieveWidth(currentVarTable,idName);
                     //printVarTable(currentVarTable);
                 }
                 else{
@@ -662,12 +595,17 @@ void constructST(struct astNode* root){
                         high = temp2->next->val.i;
                         //printf("low = %d , high = %d \n",low,high);
                         insertInVarTable(currentVarTable,idName,true,type,0);
+                        // TODO : Insert Offset
                         updateArrayVarStatic(currentVarTable,idName,low,high);
+                        updateIsInput(currentVarTable,idName,true);
 
                         functionTableEntry* ft = retrieveFunTable(globalFuncTable,funcName);
-                        parameter* ptemp = initializeParameter(idName,true,temp2->tag);
+                        parameter* ptemp = initializeParameter(idName,true,type);
                         updateParameterArrayStatic(ptemp,low,high);
                         addParametertoList(ft->inputList,ptemp);
+
+                        updateOffset(currentVarTable, idName, global_offset);
+                        global_offset += retrieveWidth(currentVarTable,idName);
                     }
                     else
                     {
@@ -675,12 +613,17 @@ void constructST(struct astNode* root){
                         strcpy(highId,temp2->next->val.s);
 
                         insertInVarTable(currentVarTable,idName,true,type,0);
+                        // TODO : Insert Offset
                         updateArrayVarDynamic(currentVarTable,idName,lowId,highId);
+                        updateIsInput(currentVarTable,idName,true);
 
                         functionTableEntry* ft = retrieveFunTable(globalFuncTable,funcName);
-                        parameter* ptemp = initializeParameter(idName,true,temp2->tag);
+                        parameter* ptemp = initializeParameter(idName,true,type);
                         updateParameterArrayDynamic(ptemp,lowId,highId);
                         addParametertoList(ft->inputList,ptemp);
+
+                        updateOffset(currentVarTable, idName, global_offset);
+                        global_offset += retrieveWidth(currentVarTable,idName);
                     }
                 }  
                 temp = temp->next; // N1 or NULL
@@ -693,12 +636,6 @@ void constructST(struct astNode* root){
             temp = root->child; // ID
             temp = temp->next->next;    // <ret>
 
-            // constructST(temp);
-            // temp = temp->next; // <ret> = <output_plist>
-            // Code for output_plist starts
-            // <output_plist>  -->  ID COLON <type><N2>
-            // ID type ID type .....
-            // <ret>  = <output_plist> -->  ε
 
                 if(temp->child!=NULL){
                 
@@ -706,6 +643,10 @@ void constructST(struct astNode* root){
                 char idName[40];
                 strcpy(idName,temp->val.s);
 
+                if(searchInVarTable(currentVarTable,idName))
+                {
+                    printf("Error: On line number-%d, Variable Name %s has already been used in input list.",temp->lineno,idName);
+                }
                 
                 //printf("OUTPUT VAR - %s\n",temp->val.s);
                 
@@ -717,6 +658,13 @@ void constructST(struct astNode* root){
                 if(!checkIfArrayType(temp))
                 {
                     insertInVarTable(currentVarTable,idName,false,temp->tag,0); 
+
+                    functionTableEntry* ft = retrieveFunTable(globalFuncTable,funcName);
+                    ft->outputList = initializeParameter(idName,false,temp->tag);
+
+                    updateOffset(currentVarTable, idName, global_offset);
+                    global_offset += retrieveWidth(currentVarTable,idName);
+                    // TODO : Insert Offset
                     // doing for function, nesting level will always be zero. // TODO - check for errors
                 }
                 else
@@ -737,7 +685,12 @@ void constructST(struct astNode* root){
                         high = temp2->next->val.i;
                         //printf("low = %d , high = %d \n",low,high);
                         insertInVarTable(currentVarTable,idName,true,type,0);
+                        // TODO : Insert Offset
                         updateArrayVarStatic(currentVarTable,idName,low,high);
+
+                        functionTableEntry* ft = retrieveFunTable(globalFuncTable,funcName);
+                        ft->outputList = initializeParameter(idName,true,type);
+                        updateParameterArrayStatic(ft->outputList,low,high);
                     }
 
                     else
@@ -746,10 +699,15 @@ void constructST(struct astNode* root){
                         strcpy(highId,temp2->next->val.s);
 
                         insertInVarTable(currentVarTable,idName,true,type,0);
+                        // TODO : Insert Offset
                         updateArrayVarDynamic(currentVarTable,idName,lowId,highId);
+                        
+                        functionTableEntry* ft = retrieveFunTable(globalFuncTable,funcName);
+                        ft->outputList = initializeParameter(idName,true,type);
+                        updateParameterArrayDynamic(ft->outputList,lowId,highId);
                     }
                 }
-                // printf("Check10 : %s\n",temp->name);
+
                 temp = temp->next; // <N2> = ID <type> ID <type> ...
                 while(temp!=NULL){
                     // TODO:  Add this ID = temp->child to function table (output)  with type at temp->next
@@ -758,9 +716,24 @@ void constructST(struct astNode* root){
                     temp = temp->next; // <type>
                     temp2 = temp;
 
+                    if(searchInVarTable(currentVarTable,idName))
+                    {
+                        printf("Error: On line number-%d, Variable Name %s has already been used in input list.",temp->lineno,idName);
+                        temp = temp->next->next;
+                        continue;
+                    }
+                    
                     if(!checkIfArrayType(temp))
                     {
                         insertInVarTable(currentVarTable,idName,false,temp->tag,0); 
+
+                        functionTableEntry* ft = retrieveFunTable(globalFuncTable,funcName);
+                        parameter* ptemp = initializeParameter(idName,false,temp->tag);
+                        addParametertoList(ft->outputList,ptemp);
+
+                        updateOffset(currentVarTable, idName, global_offset);
+                        global_offset += retrieveWidth(currentVarTable,idName);
+                        // TODO : Insert Offset
                         // doing for function, nesting level will always be zero. // TODO - check for errors
                     }
                     
@@ -781,7 +754,13 @@ void constructST(struct astNode* root){
                             high = temp2->next->val.i;
                             //printf("low = %d , high = %d \n",low,high);
                             insertInVarTable(currentVarTable,idName,true,type,0);
+                            // TODO : Insert Offset
                             updateArrayVarStatic(currentVarTable,idName,low,high);
+
+                            functionTableEntry* ft = retrieveFunTable(globalFuncTable,funcName);
+                            parameter* ptemp = initializeParameter(idName,true,type);
+                            updateParameterArrayStatic(ptemp,low,high);
+                            addParametertoList(ft->outputList,ptemp);
                         }
 
                         else
@@ -790,7 +769,13 @@ void constructST(struct astNode* root){
                             strcpy(highId,temp2->next->val.s);
 
                             insertInVarTable(currentVarTable,idName,true,type,0);
+                            // TODO : Insert Offset
                             updateArrayVarDynamic(currentVarTable,idName,lowId,highId);
+
+                            functionTableEntry* ft = retrieveFunTable(globalFuncTable,funcName);
+                            parameter* ptemp = initializeParameter(idName,true,type);
+                            updateParameterArrayDynamic(ptemp,lowId,highId);
+                            addParametertoList(ft->outputList,ptemp);
                         }
                     }
 
@@ -805,18 +790,17 @@ void constructST(struct astNode* root){
             temp = temp->next->next->next; // <moduleDef>  
             constructST(temp);
         }
-
-        if(strcmp(root->name,"moduleDef")==0){
+        else if(strcmp(root->name,"moduleDef")==0){
             // <moduleDef>   -->  START <statements> END
             temp = temp->child; // <statement>
+            global_offset = 0;
             while(temp!=NULL){
                 // TODO : Start Different Scope!
                 constructST(temp);
                 temp = temp->next;
             }
         }
-
-        if(strcmp(root->name,"statements")==0){
+        else if(strcmp(root->name,"statements")==0){
             // <statements>  -->  <statement> <statements> 
             temp = temp->child;
             while(temp!=NULL){
@@ -825,9 +809,7 @@ void constructST(struct astNode* root){
                 temp = temp->next;
             }
         }
-
-
-        if(strcmp(root->name,"ioStmt1")==0){
+        else if(strcmp(root->name,"ioStmt1")==0){
             // Input Stmt
             // Nothing much with Symbol Table
 
@@ -839,20 +821,19 @@ void constructST(struct astNode* root){
                 return;
             }
         }
-
-        if(strcmp(root->name,"ioStmt2")==0){
+        else if(strcmp(root->name,"ioStmt2")==0){
             // Output Stmt
             // Nothing much with Symbol Table
 
             return;
         }
+        else if(strcmp(root->name,"simpleStmt")==0){
 
-        if(strcmp(root->name,"simpleStmt")==0){
-            root = root->child;
+            root = root->child; // assignmentStmt or moduleReuseStmt
             temp = root;
             if(strcmp(root->name,"assignmentStmt")==0){
                 // <assignmentStmt>   -->   ID <whichStmt>
-                
+
                 temp = temp->child; // ID - type aur exp match !
 
                 variableTableEntry* idEntry;
@@ -864,7 +845,6 @@ void constructST(struct astNode* root){
                     printf("Error : Identifier %s undeclared\n",temp->val.s);
                     return;
                 }
-
                 // <whichStmt>  -->  <lvalueIDStmt>
                 // <whichStmt>  -->  <lvalueARRStmt>
                 temp = temp->next;  // either of these two            
@@ -887,9 +867,8 @@ void constructST(struct astNode* root){
                                 // Bound checking
                                 // Here A = B
                                 if(idEntry->isArrayStatic){
-
-                                    if(searchNested(currentVarTable,temp->child->val.s)){
-                                        variableTableEntry* idRHSEntry = searchNestedRetrieve(currentVarTable,temp->child->val.s);
+                                    if(searchNested(currentVarTable,idEntry->key)){
+                                        variableTableEntry* idRHSEntry = searchNestedRetrieve(currentVarTable,idEntry->key);
                                         if(idRHSEntry->isArrayStatic){
                                             if(idEntry->lowerBound!=idRHSEntry->lowerBound || idEntry->upperBound!=idRHSEntry->upperBound){
                                                 // Bounds of Static Arrays doesn't match
@@ -916,7 +895,7 @@ void constructST(struct astNode* root){
                         // Normal Type Checking between Ids!
                         if(expType!=idEntry->tag){
                             // LHS RHS Type Mismatch
-                            printf("Error : %s LHS RHS Type Mismatch\n",idEntry->key);
+                            printf("ERROR at line no %d: %s LHS RHS Type Mismatch\n",idEntry->key);
                         }
                         return ;
                     }
@@ -961,7 +940,7 @@ void constructST(struct astNode* root){
                     }
                     return;
                 }else{
-                    printf("Unexpected Error at whichStmt\n");
+                    printf("Unexpected Error at whichStmt : %s\n",temp->name);
                     return;
                 }
 
@@ -989,234 +968,242 @@ void constructST(struct astNode* root){
     }
 
 
-        if(strcmp(root->name,"declareStmt")==0){
-            // return;
-            // <declareStmt>  -->  DECLARE <idList> COLON <dataType> SEMICOL
-            // TODO : Get dataType from right <dataType> and set Ids type to that! ADD to Symbol Table(Nothing to add here)
+    else if(strcmp(root->name,"declareStmt")==0){
+        // return;
+        // <declareStmt>  -->  DECLARE <idList> COLON <dataType> SEMICOL
+        // TODO : Get dataType from right <dataType> and set Ids type to that! ADD to Symbol Table(Nothing to add here)
 
-            temp = temp->child; // <idList>
-            temp = temp->next; // <dataType>
-            int datatype;
+        temp = temp->child; // <idList>
+        temp = temp->next; // <dataType>
+        int datatype;
 
-            // printf("Check1\n");
-
-            if(temp->child==NULL){
-                // Not an Array 
-                // printf("Check2\n");
-                datatype = temp->tag; 
-                //printf(" DECLARE - %d\n",datatype);
-                /*
-                    1 - INTEGER
-                    2 - REAL/FLOAT
-                    3 - BOOLEAN
-                */
-                temp = root->child; // <idList>
-                //<idList>  -->  ID <N3>
-                temp = temp->child; // ID
-                // printf("Check22\n");
-                while(temp!=NULL){
-                    
-                    // DONE: Now temp is a linked list of IDs - Add them to Symbol Table
-                    //printf("DECLARE - IDS - %s\n",temp->val.s);
-                    char varName[40];
-                    strcpy(varName,temp->val.s);
-
-                    insertInVarTable(currentVarTable,varName,false,datatype,globalNestingLevel); // TODO - Check for errors
-                    temp = temp->next;
-                }
-
-            }else{
-                // printf("Check3\n");
-                // <dataType>  -->   ARRAY SQBO <range_arrays> SQBC OF <type>
-                // <range_arrays>  -->  <index> RANGEOP <index>
-                temp = temp->child; // <range_arrays>  -->  <index> RANGEOP <index>
-
-                datatype = temp->next->tag; // <type> -> Array datatype
-
-                temp = temp->child; // <index>
-                int low_tag,high_tag;
-                int low,high;
-                char lowId[40],highId[40];
-
-                low_tag = temp->tag; // 1 or 4
-                high_tag =  temp->next->tag;
-                
-                // If 4, it's an ID 
-                // If 1, it's an Integer
-                if(low_tag==1){
-                    low = temp->val.i;
-                }else{
-                    strcpy(lowId,temp->val.s);
-                }
-                
-                if(high_tag==1){
-                    high = temp->next->val.i;
-                }else{
-                    strcpy(highId,temp->next->val.s);
-                }
-
-                // TODO : How to handle dynamic and static arrays?
-
-
-                temp = root->child; // <idList>
-                //<idList>  -->  ID <N3>
-                temp = temp->child; // ID
-
-                while(temp!=NULL){
-
-                    // DONE: Now temp is a linked list of IDs - Add them to Symbol Table
-                    char varName[40];
-                    strcpy(varName,temp->val.s);
-
-                    if(low_tag==1) // STATIC ARRAY
-                    {
-                        insertInVarTable(currentVarTable,varName,true,datatype,globalNestingLevel);
-                        updateArrayVarStatic(currentVarTable,varName,low,high);
-                    }
-
-                    if(low_tag==4)
-                    {
-                        insertInVarTable(currentVarTable,varName,true,datatype,globalNestingLevel);
-                        updateArrayVarDynamic(currentVarTable,varName,lowId,highId);
-                    }
-                    temp = temp->next;
-                }
-
-                // <type>  -->  INTEGER
-                // <type>  -->  REAL
-                // <type>  -->  BOOLEAN
-            }
-
-            //printVarTable(currentVarTable);
-
-        } // declareStmt Ends
-
-        if(strcmp(root->name,"conditionalStmt")==0){
-            // <conditionalStmt>  -->  SWITCH BO ID BC START <caseStmts> <default> END
-            // DONE : Create another var table for conditionalStmt
-
-            variableTable* tempTable = currentVarTable;
-            globalNestingLevel++;
-            if(tempTable->child == NULL)
-            {
-
-                variableTable* newTable = initializeVarTable();
-                newTable->parent = tempTable;
-                tempTable->child = newTable;
-                currentVarTable = newTable;
-            }
-            else
-            {
-
-                variableTable* traverse = tempTable->child;
-
-                while(traverse->next != NULL)
-                    traverse = traverse->next;
-
-                variableTable* newTable = initializeVarTable();
-                traverse->next = newTable;
-                newTable->parent = tempTable;
-                currentVarTable = newTable;
-            }
-            // <caseStmts>  -->  CASE <value> COLON <statements> BREAK SEMICOL <N9>
-            
-            temp = temp->child; 
-            temp = temp->next;  // <caseStmts>
-            
+        if(temp->child==NULL){
+            // Not an Array 
+            datatype = temp->tag; 
+            //printf(" DECLARE - %d\n",datatype);
+            /*
+                1 - INTEGER
+                2 - REAL/FLOAT
+                3 - BOOLEAN
+            */
+            temp = root->child; // <idList>
+            //<idList>  -->  ID <N3>
+            temp = temp->child; // ID
             while(temp!=NULL){
-                temp = temp->child; // <value>
-                // <value>  -->  NUM
-                // <value>  -->  TRUE
-                // <value>  -->  FALSE
-                // TODO : Check on Value Type Consistent - NUM/Boolean
-                // TODO : Check if Boolean Value Type then no Default Stmt?
-                temp = temp->next; // <statements>
-                constructST(temp);
+                
+                // DONE: Now temp is a linked list of IDs - Add them to Symbol Table
+                //printf("DECLARE - IDS - %s\n",temp->val.s);
+                char varName[40];
+                strcpy(varName,temp->val.s);
 
-                temp = temp->next; // N9
-                // <N9>  -->  CASE <value> COLON <statements> BREAK SEMICOL <N9>
-                // <N9>  -->  ε
+                insertInVarTable(currentVarTable,varName,false,datatype,globalNestingLevel); // TODO - Check for errors
+                // TODO : Insert Offset
+                temp = temp->next;
             }
 
-            temp = root->child->next;  // <default> = <statements>
+        }else{
+            // <dataType>  -->   ARRAY SQBO <range_arrays> SQBC OF <type>
+            // <range_arrays>  -->  <index> RANGEOP <index>
+            temp = temp->child; // <range_arrays>  -->  <index> RANGEOP <index>
 
+            datatype = temp->next->tag; // <type> -> Array datatype
+
+            temp = temp->child; // <index>
+            int low_tag,high_tag;
+            int low,high;
+            char lowId[40],highId[40];
+
+            low_tag = temp->tag; // 1 or 4
+            high_tag =  temp->next->tag;
+            
+            // If 4, it's an ID 
+            // If 1, it's an Integer
+            if(low_tag==1){
+                low = temp->val.i;
+            }else{
+                strcpy(lowId,temp->val.s);
+            }
+            
+            if(high_tag==1){
+                high = temp->next->val.i;
+            }else{
+                strcpy(highId,temp->next->val.s);
+            }
+
+            // TODO : How to handle dynamic and static arrays?
+
+
+            temp = root->child; // <idList>
+            //<idList>  -->  ID <N3>
+            temp = temp->child; // ID
+
+            while(temp!=NULL){
+
+                // DONE: Now temp is a linked list of IDs - Add them to Symbol Table
+                char varName[40];
+                strcpy(varName,temp->val.s);
+
+                if(low_tag==1) // STATIC ARRAY
+                {
+                    insertInVarTable(currentVarTable,varName,true,datatype,globalNestingLevel);
+                    // TODO : Insert Offset
+                    updateArrayVarStatic(currentVarTable,varName,low,high);
+                }
+
+                if(low_tag==4)
+                {
+                    insertInVarTable(currentVarTable,varName,true,datatype,globalNestingLevel);
+                    // TODO : Insert Offset
+                    updateArrayVarDynamic(currentVarTable,varName,lowId,highId);
+                }
+                temp = temp->next;
+            }
+
+            // <type>  -->  INTEGER
+            // <type>  -->  REAL
+            // <type>  -->  BOOLEAN
+        }
+
+        //printVarTable(currentVarTable);
+
+    } // declareStmt Ends
+
+    else if(strcmp(root->name,"conditionalStmt")==0){
+        // <conditionalStmt>  -->  SWITCH BO ID BC START <caseStmts> <default> END
+        // DONE : Create another var table for conditionalStmt
+
+        variableTable* tempTable = currentVarTable;
+        globalNestingLevel++;
+        if(tempTable->child == NULL)
+        {
+
+            variableTable* newTable = initializeVarTable();
+            newTable->parent = tempTable;
+            tempTable->child = newTable;
+            currentVarTable = newTable;
+        }
+        else
+        {
+
+            variableTable* traverse = tempTable->child;
+
+            while(traverse->next != NULL)
+                traverse = traverse->next;
+
+            variableTable* newTable = initializeVarTable();
+            traverse->next = newTable;
+            newTable->parent = tempTable;
+            currentVarTable = newTable;
+        }
+        // <caseStmts>  -->  CASE <value> COLON <statements> BREAK SEMICOL <N9>
+        
+        temp = temp->child; 
+        temp = temp->next;  // <caseStmts>
+        
+        while(temp!=NULL){
+            temp = temp->child; // <value>
+            // <value>  -->  NUM
+            // <value>  -->  TRUE
+            // <value>  -->  FALSE
+            // TODO : Check on Value Type Consistent - NUM/Boolean
+            // TODO : Check if Boolean Value Type then no Default Stmt?
+            temp = temp->next; // <statements>
             constructST(temp);
-             // <default>  -->  DEFAULT COLON <statements> BREAK SEMICOL
-             // <default>  -->  ε 
 
-            // DONE : Change Scope!
-            currentVarTable = tempTable;
-            globalNestingLevel--;
-        } // conditionalStmt Ends
+            temp = temp->next; // N9
+            // <N9>  -->  CASE <value> COLON <statements> BREAK SEMICOL <N9>
+            // <N9>  -->  ε
+        }
 
-        if(strcmp(root->name,"iterativeStmt")==0){
+        temp = root->child->next;  // <default> = <statements>
 
-            // <iterativeStmt>  -->  FOR BO ID IN <range> BC START <statements> END
+        constructST(temp);
+            // <default>  -->  DEFAULT COLON <statements> BREAK SEMICOL
+            // <default>  -->  ε 
+
+        // DONE : Change Scope!
+        currentVarTable = tempTable;
+        globalNestingLevel--;
+    } // conditionalStmt Ends
+
+    else if(strcmp(root->name,"iterativeStmt")==0){
+
+        // <iterativeStmt>  -->  FOR BO ID IN <range> BC START <statements> END
+        // <iterativeStmt>  -->  WHILE BO <arithmeticOrBooleanExpr> BC START <statements> END
+
+        variableTable* tempTable = currentVarTable;
+        globalNestingLevel++;
+        if(tempTable->child == NULL)
+        {
+            variableTable* newTable = initializeVarTable();
+            newTable->parent = tempTable;
+            tempTable->child = newTable;
+            currentVarTable = newTable;
+        }
+        else
+        {
+            variableTable* traverse = tempTable->child;
+
+            while(traverse->next != NULL)
+                traverse = traverse->next;
+
+            variableTable* newTable = initializeVarTable();
+            traverse->next = newTable;
+            newTable->parent = tempTable;
+            currentVarTable = newTable;
+        }
+
+        if(strcmp(root->val.s,"FOR")==0){
+
+            printf("FOR STARTS\n");
+            temp = temp->child; // <ID>
+
+            if(searchNested(currentVarTable,temp->val.s)){
+                variableTableEntry* idEntry = searchNestedRetrieve(currentVarTable,temp->val.s);
+                if(idEntry->tag!=1 || idEntry->isArray){
+                    printf("ERROR at line %d : Identifier %s is not an Integer(For Loop Variable) \n",temp->lineno,temp->val.s);
+                }
+            }else{
+                printf("ERROR at line %d : Identifier %s not declared\n",temp->lineno,temp->val.s);
+            }
+
+            // TODO : ID for iterativeStmt 
+            temp = temp->next; // <range>
+            // <range>  -->  NUM1 RANGEOP NUM2
+            int low,high;
+            temp = temp->child; 
+
+            low = temp->val.i;  // NUM1
+            high = temp->next->val.i; // NUM2
+
+            temp = root->child; // <ID>
+            temp = temp->next;  // <range>
+            temp = temp->next;  // <statements>
+            
+            constructST(temp);
+        }
+
+        else if(strcmp(root->val.s,"WHILE")==0){
+            temp = temp->child; // <arithmeticOrBooleanExpr>
             // <iterativeStmt>  -->  WHILE BO <arithmeticOrBooleanExpr> BC START <statements> END
+            
+            int condType = getType(temp);
 
-            variableTable* tempTable = currentVarTable;
-            globalNestingLevel++;
-            if(tempTable->child == NULL)
-            {
-                variableTable* newTable = initializeVarTable();
-                newTable->parent = tempTable;
-                tempTable->child = newTable;
-                currentVarTable = newTable;
-            }
-            else
-            {
-                variableTable* traverse = tempTable->child;
-
-                while(traverse->next != NULL)
-                    traverse = traverse->next;
-
-                variableTable* newTable = initializeVarTable();
-                traverse->next = newTable;
-                newTable->parent = tempTable;
-                currentVarTable = newTable;
+            if(condType!=3){
+                printf("ERROR at line %d : WHILE Loop Condition should consist of boolean expression",temp->lineno);
             }
 
-            if(strcmp(root->val.s,"FOR")==0){
+            temp = temp->next;  // <statements>
+            constructST(temp);
+        }else{
+            printf("Unexpected iterativeStmt Error\n");
+        }
 
-                printf("FOR STARTS\n");
-                temp = temp->child; // <ID>
-                // TODO : ID for iterativeStmt 
-                temp = temp->next; // <range>
-                // <range>  -->  NUM1 RANGEOP NUM2
-                int low,high;
-                temp = temp->child; 
-
-                low = temp->val.i;  // NUM1
-                high = temp->next->val.i; // NUM2
-
-                temp = root->child; // <ID>
-                temp = temp->next;  // <range>
-                temp = temp->next;  // <statements>
-
-                // printf("Check1 : %s\n",temp->name);
-
-                constructST(temp);
-                printf("FOR ENDS\n");
-            }
-
-            else if(strcmp(root->val.s,"WHILE")==0){
-                printf("WHILE STARTS\n");
-                temp = temp->child; // <arithmeticOrBooleanExpr>
-                // struct expNode* exp = generateExpression(temp);
-                // printExpression(exp);
-                // TODO : Type Checking!
-                temp = temp->next;  // <statements>
-                constructST(temp);
-                printf("WHILE ENDS\n");
-            }
-
-            // DONE : Change Scope!
-            printVarTable(currentVarTable);
-            currentVarTable = tempTable;
-            globalNestingLevel--;
-        } // iterativeStmt Ends
-
-    return;
+        // DONE : Change Scope!
+        printVarTable(currentVarTable);
+        currentVarTable = tempTable;
+        globalNestingLevel--;
+    } // iterativeStmt Ends
 }
 
 void runConstructST(FILE* testFile, FILE* parseTreeFile){
@@ -1272,7 +1259,7 @@ void runConstructST(FILE* testFile, FILE* parseTreeFile){
     if(printFlag)
     printf("Parsing Input Source Started\n");    
 
-    struct treeNode* rootParseTree = parseInputSourceCode(head->next, Table, grammar, firstFollowSets,parseTreeFile);
+    struct treeNode* rootParseTree = parseInputSourceCode(head->next, Table, grammar, firstFollowSets);
     
     // inOrderParseTree(rootParseTree,parseTreeFile);    
 

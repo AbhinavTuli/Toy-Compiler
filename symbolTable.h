@@ -43,6 +43,8 @@ void updateParameterArrayStatic(parameter* p, int low, int high);
 
 void updateParameterArrayDynamic(parameter* p, char* low, char* high);
 
+void updateOffset(variableTable* ptr, char* varname, int offset);
+
 void addParametertoList(parameter* head, parameter* node);
 
 void printParameterList(parameter* head);
@@ -54,5 +56,9 @@ bool searchNested(variableTable* ptr, char* varname);
 variableTableEntry* searchNestedRetrieve(variableTable* ptr, char* varname);
 
 void updateDefineBool(functionTable* ptr, char* funcName, bool isDefined);
+
+void updateIsInput(variableTable* ptr, char* varname, bool isInput);
+
+int retrieveWidth(variableTable* ptr, char* varname);
 
 #endif

@@ -1,10 +1,8 @@
 <<<driver program>>>
 start
 declare num, k:integer;
-declare A:array [1..10] of integer; num:=5;
-for( k in 1..10)
-start
-A[k]:=(num - k)*(num-k);
 num := (5+6)<7;
-print(A[k]); end
+print(A[k]);
 end
+
+

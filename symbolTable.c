@@ -27,7 +27,7 @@ void printVarTable(variableTable* ptr)
 {
 	int len = ptr->size;
 	int allempty = 0;
-	printf("index \tvarname \twidth \tis_array \tstatic/dynamic \trangevars \ttype \tnesting_level\n\n");
+	printf("index \tvarname \twidth \tis_array \tstatic/dynamic \trangevars \ttype \tnesting_level\tOffset\n\n");
 	for(int i = 0; i<len;i++)
 	{
 		if(ptr->table[i].isEmpty)
@@ -55,7 +55,7 @@ void printVarTable(variableTable* ptr)
 				if(ptr->table[i].tag==3)
 					printf("\tBool\t");
 
-				printf("\t%d\n",ptr->table[i].nestingLevel);
+				printf("\t%d\t",ptr->table[i].nestingLevel);
 			}
 			else
 			{
@@ -68,8 +68,9 @@ void printVarTable(variableTable* ptr)
 				if(ptr->table[i].tag==3)
 					printf("\tBool\t");
 
-				printf("\t%d\n",ptr->table[i].nestingLevel);
+				printf("\t%d\t",ptr->table[i].nestingLevel);
 			}
+			printf("%d\n",ptr->table[i].offset);
 		}
 	}
 
@@ -100,12 +101,13 @@ void insertInVarTable(variableTable *ptr, char* var, bool isArray, int tag, int 
 		ptr->table[index].isArray = isArray;
 		ptr->table[index].tag = tag;
 		ptr->table[index].nestingLevel = nestingLevel;
+		ptr->table[index].isInput = false;
 
-		if(tag==1)
+		if(tag==1) // integer
 			ptr->table[index].width = 2;
-		else if(tag==2)
+		else if(tag==2) // real
 			ptr->table[index].width = 4;
-		else if(tag==3)
+		else if(tag==3) // boolean
 			ptr->table[index].width = 1;				
 	}
 	else
@@ -119,6 +121,7 @@ void insertInVarTable(variableTable *ptr, char* var, bool isArray, int tag, int 
 		ptr->table[index].isArray = isArray;
 		ptr->table[index].tag = tag;
 		ptr->table[index].nestingLevel = nestingLevel;
+		ptr->table[index].isInput = false;
 
 		if(tag==1)
 			ptr->table[index].width = 2;
@@ -144,7 +147,7 @@ void updateArrayVarStatic(variableTable *ptr, char* var, int lB, int uB)
 		ptr->table[index].lowerBound = lB;
 		ptr->table[index].upperBound = uB;
 
-		ptr->table[index].width = ptr->table[index].width*(uB-lB+1);
+		ptr->table[index].width = ptr->table[index].width*(uB-lB+1) + 1;
 }
 
 void updateArrayVarDynamic(variableTable *ptr, char* var, char* lB, char* uB)
@@ -162,7 +165,7 @@ void updateArrayVarDynamic(variableTable *ptr, char* var, char* lB, char* uB)
 		strcpy(ptr->table[index].lowerBoundID,lB);
 		strcpy(ptr->table[index].upperBoundID,uB);
 
-		ptr->table[index].width = -1;
+		ptr->table[index].width = 1;
 }
 
 bool searchInVarTable(variableTable *ptr, char* var)
@@ -484,6 +487,27 @@ void updateDefineBool(functionTable* ptr, char* funcName, bool isDefined)
 {
 	functionTableEntry* ftemp = retrieveFunTable(ptr,funcName);
 	ftemp->isDefined = isDefined;
+}
+
+void updateOffset(variableTable* ptr, char* varname, int offset)
+{
+	variableTableEntry* vtemp = retrieveVarTable(ptr,varname);
+	vtemp->offset = offset;
+}
+
+void updateIsInput(variableTable* ptr, char* varname, bool isInput)
+{
+	variableTableEntry* vtemp = retrieveVarTable(ptr,varname);
+	vtemp->isInput = isInput;
+
+	if(vtemp->isArray)
+		vtemp->width = 5;
+}
+
+int retrieveWidth(variableTable* ptr, char* varname)
+{
+	variableTableEntry* vtemp = retrieveVarTable(ptr,varname);
+	return vtemp->width;
 }
 /*
 void main()

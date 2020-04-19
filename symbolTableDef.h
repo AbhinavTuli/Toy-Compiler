@@ -21,7 +21,7 @@ typedef struct variableTableEntry{
 	int width;					// size
 	int offset; 				// offset of variable within scope of this table
 	int nestingLevel;
-	
+	bool isInput;
 } variableTableEntry;
 
 typedef struct variableTable {

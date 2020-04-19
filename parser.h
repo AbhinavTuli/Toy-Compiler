@@ -89,12 +89,12 @@ void createParseTable();
 void addDollarToParseTable();
 
 // Parsing Input from Lexer to Parser to check for syntax verification
-struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINALS],struct ntRules grammar[MAX_NON_TERMINALS], struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS],FILE* parseTreeFile);
+struct treeNode* parseInputSourceCode(token* HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINALS],struct ntRules grammar[MAX_NON_TERMINALS], struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS]);
 
 struct treeNode* findLeftMostWithoutChild(struct treeNode* root);
 
 // Printing InOrder Traversal of Parse Tree
-void inOrderParseTree(struct treeNode* root,FILE* parseTreeFile);
+void inOrderParseTree(struct treeNode* root);
 
 token* createToken();
 

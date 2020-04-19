@@ -28,6 +28,8 @@
 #define MAX_FIRST 15
 #define MAX_FOLLOW 15
 
+int numParseNodes=0;
+
 char buffer[BUFF_SIZE];
 
 char tempFirsts[MAX_FIRST][TSIZE]; // Contains Firsts

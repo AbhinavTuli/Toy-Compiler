@@ -1,9 +1,9 @@
-/*
+ /*
     Group Number            -        26
     Abhinav Tuli            -   2017A7PS0048P
     Kushagra Raina          -   2017A7PS0161P
     Tanmay Moghe            -   2017A7PS0184P
-    Amratanshu Shrivastava  -   2017A7PS0225P
+    Amratanshu Shrivastava  -   2017A7PS0224P
     Rohit Bohra             -   2017A7PS0225P
 */
 
@@ -16,7 +16,8 @@
 #include <errno.h>
 #include "parser.c"
 #include "ast.c"
-
+#include "symbolTable.c"
+#include "constructST.c"
 
 #define FILELEN 10000
 
@@ -29,28 +30,17 @@ int main(int argc, char *argv[]){
     FILE* fp2;
 
     printf("Work Status\n");
-    printf("1. Generate Token List!\n");
-    printf("2. Generate Parse Tree!\n");
-    printf("3. Generate AST!\n");
-    printf("4. Display Allocated Memory! \n");
-    printf("5. Generate Symbol Table!\n");
-    printf("6. Display Record Size!\n");
+    printf("0. Exit\n");
+    printf("1. Print Token List\n");
+    printf("2. Print Parse Tree\n");
+    printf("3. Print Abstract Syntax Tree(InOrderTraversal)\n");
+    printf("4. Display Allocated Memory\n");
+    printf("5. Printing the Symbol Table\n");
+    printf("6. Printing the Total Memory Requirement\n");
     printf("7. Display all Static and Dynamic Arrays!\n");
     printf("8. Generate Error Report and Compile Time\n");
     printf("9. Generate Assembly Code!");
-
-    printf(" Enter 0 to exit!!!");
-    // printf("1. FIRST and FOLLOW set automated. Function is computeFirstAndFollow() in parser.c\n");
-    // printf("2. Both Lexical and Syntax analysis modules implemented. \n");                              // token list?
-    // printf("3. Modules compile and work with all test cases.\n");
-    // printf("4. Parse Tree Constructed for all syntactically correct cases.\n");                          // case 2 now
-    // printf("5. Both lexical and syntactical errors are printed with line numbers.\n");
-    // printf("6. Error Recovery is working");
     printf("\n\n");
-    // case 3-ast
-    // case 4-memory allocated in parse tree and ast respectively
-    // case 5-printing symbol table 
-
 
     int choice,i=0;
 
@@ -70,10 +60,11 @@ int main(int argc, char *argv[]){
             exit(0);
         }
 
-        removeComments(fp1);                            // removing comments
+        printFlag = true;
+
         switch(choice)
         {
-             case 1:  ;
+             case 1:    ;
                         token* traverse = lexerRun(fp1);
                         traverse = traverse->next;
 
@@ -97,39 +88,39 @@ int main(int argc, char *argv[]){
                         break;
             
             case 2:     ;               // parsing to verify the syntactic correctness of the input source code and to produce parse tree 
-                        printFlag = true;           
-                        
+                        printf("\n\nParse Tree : \n\n");             
                         // return  number of nodes and allocated memory, not void!!!         
-                        runParser(fp1,fp2);         
+                        runParser(fp1);         
                         // only display parse tree here!!!
-
                         lexerFree(); 
                         break;
 
             case 3:     ;               // For printing the Abstract Syntax Tree 
-                        printFlag = true;
-
+                        printf("\n\nAST Tree : \n\n"); 
                         // return  number of nodes and allocated memory, not void!!!
-                        runAST(fp1,fp2);
-                        // only display AST here!!!
-
+                        printFlag = true;
+                        runAST(fp1);
                         lexerFree();      
                         break;  
                                     
-            case 4:     ;               // For displaying the amount of allocated memory and number of nodes to each of parse tree and abstract syntax tree
-                        printf("Parse Tree Number Of Nodes = %d \t Allocated Memory = %d", , );
-                        printf("AST Number Of Nodes = %d \t Allocated Memory = %d", ,); 
-                        // printFlag = false;
-                        // ticks = clock();
-                        // runParser(fp1,fp2);
-                        // lexerFree();
-                        // ticks = clock() - ticks; 
-                        // double time_taken = ((double)ticks)/CLOCKS_PER_SEC;
-                        // printf("Total Clock ticks : %ld\n",ticks);
-                        // printf("Total time taken by parser : %f seconds\n", time_taken);
-                        // break;
+            case 4:     ;              // For displaying the amount of allocated memory and number of nodes to each of parse tree and abstract syntax tree
+                        printFlag = false;
+                        int AstNodes = runAST(fp1);
+                        lexerFree();    
+                        int parseTreeMemory = numParseNodes*sizeof(struct treeNode);
+                        printf("\nParse Tree Number Of Nodes = %d \t Allocated Memory = %d bytes\n\n",numParseNodes , parseTreeMemory);
+                        int astTreeMemory = AstNodes*sizeof(struct astNode);
+                        printf("AST Number Of Nodes = %d \t Allocated Memory = %d bytes\n\n",AstNodes ,astTreeMemory); 
+                        
+                        printf("Compression percentage : %f\n\n",((float)(parseTreeMemory-astTreeMemory)/(parseTreeMemory)*100));
 
-            case 5:     
+                        break;
+
+            case 5:     ;
+                        printFlag = true;
+                        runConstructST(fp1,fp2);
+                        lexerFree();
+                        break;
                         
                         break;  
 

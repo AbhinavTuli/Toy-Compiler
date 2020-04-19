@@ -12,15 +12,15 @@ start
 	a:= m[5]+3;				   **Not an error: array index within bounds**
 	p:= m;					   **Not an error: type expressions of array variables p and m are same and assignment is a valid operation**
 	k:=true;	
-	p:= m + p;                                 **ERROR: array variables m and p cannot be added**
+	p:= m + p;                                 **ERROR: array variables m and p cannot be added        done**
 	p[10]:= a*b-20*h;                          **Not an error: array index within bounds**			 
-	while(k AND a<=m[11] OR false)
+	(k AND a<=m[11] OR false)
 	start
 		declare p, u:integer;
 		declare b: array[2..20] of integer;
 		b:= m;
-		b[2]:= u+m[25];			   **ERROR: element of array m is out of bound** 
-		a:= b[18]*18.56E+2;		   **ERROR: type mismatch **
+		b[2]:= u+m[25];			   **ERROR: element of array m is out of bound    done** 
+		a:= b[18]*18.56E+2;		   **ERROR: type mismatch     done**
 	end
         n:= a - p*b;				   **ERROR: types of p and b are different**
 	b:= b+3;
@@ -91,7 +91,7 @@ start
 	get_value(v_1_2_3);							 		
 	declare B, C: array [2..20] of integer;
 	declare L, H:integer;
-	declare M:array[L..H] of integer;
+	declare M:array[L..H] of real;
 	get_value(L);
 	get_value(H);
 	get_value(M);

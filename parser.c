@@ -7,7 +7,7 @@
     Abhinav Tuli            -   2017A7PS0048P
     Kushagra Raina          -   2017A7PS0161P
     Tanmay Moghe            -   2017A7PS0184P
-    Amratanshu Shrivastava  -   2017A7PS0225P
+    Amratanshu Shrivastava  -   2017A7PS0224P
     Rohit Bohra             -   2017A7PS0225P
 */
 
@@ -659,8 +659,8 @@ void readGrammerTextFile(FILE *fp)
 
         bool alternateLine = 1;
 
-        if (printFlag)
-            printf("Reading Grammer...\n\n");
+        // if (printFlag)
+        //     printf("Reading Grammer...\n\n");
 
         while (fgets(buffer, BUFF_SIZE, fp))
         {
@@ -851,6 +851,8 @@ void printFirstFollowsToFile()
 
 struct treeNode *createTreeNode()
 {
+    numParseNodes++;
+
     struct treeNode *temp;
     temp = (struct treeNode *)malloc(sizeof(struct treeNode));
     temp->next = NULL;
@@ -913,7 +915,7 @@ bool checkIfLexicalErrorLine(int line)
     return false;
 }
 
-struct treeNode *parseInputSourceCode(token *HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINALS], struct ntRules grammar[MAX_NON_TERMINALS], struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS], FILE *parseTreeFile)
+struct treeNode *parseInputSourceCode(token *HEAD, int Table[MAX_NON_TERMINALS][MAX_TERMINALS], struct ntRules grammar[MAX_NON_TERMINALS], struct ntfirstFollow firstFollowSets[MAX_NON_TERMINALS])
 {
     struct treeNode *root = createTreeNode();
     root->next = NULL;
@@ -957,8 +959,6 @@ struct treeNode *parseInputSourceCode(token *HEAD, int Table[MAX_NON_TERMINALS][
 
             // inOrderParseTree(root,parseTreeFile);
 
-            if (printFlag)
-                printf("\n\nParseTreeFile Generated\n");
             return root;
         }
 
@@ -1188,6 +1188,7 @@ struct treeNode *parseInputSourceCode(token *HEAD, int Table[MAX_NON_TERMINALS][
         printf("Error in parsing! Stack isn't empty at the end! Parse Tree Not generated!\n");
         return NULL;
     }
+
 }
 
 // Stack Functions
@@ -1241,7 +1242,7 @@ int peek(lex *root)
     return root->tag;
 }
 
-void inOrderParseTree(struct treeNode *root, FILE *parseTreeFile)
+void inOrderParseTree(struct treeNode *root)
 {
     if (root == NULL)
         return;
@@ -1249,36 +1250,19 @@ void inOrderParseTree(struct treeNode *root, FILE *parseTreeFile)
     // Total children count
 
     // Print leftmost child
-    inOrderParseTree(temp, parseTreeFile);
+    inOrderParseTree(temp);
     if (temp != NULL)
         temp = temp->next;
 
     // Print the current node's data
-    if (root->tag == 1)
-        printf("%s#%d ", root->tnt, root->lineno);
-    else
+    // if (root->tag == 1)
+    //     printf("%s#%d ", root->tnt, root->lineno);
+    // else
         printf("%s ", root->tnt);
-    // printf("%d ",root->tagUnion);
-    // if(root->tagUnion==1){
-    //     printf("tag %d\n",root->val.i);
-    // }
-    // else if(root->tagUnion==2){
-    //     printf("tag %f\n",root->val.f);
-    // }
-    // else if(root->tagUnion==3){
-    //     printf(root->val.b ? "tag true \n" : "tag false\n");
-    // }
-    // else if(root->tagUnion==4){
-    //     printf("tag %s \n",root->val.s);
-    // }
-
-    fprintf(parseTreeFile, "%s ", root->tnt);
-    fflush(parseTreeFile);
-
-    // Print all other children
+    
     while (temp != NULL)
     {
-        inOrderParseTree(temp, parseTreeFile);
+        inOrderParseTree(temp);
         temp = temp->next;
     }
 }
@@ -1360,7 +1344,7 @@ bool checkForValueToken(char *str)
     return false;
 }
 
-void runParser(FILE *testFile, FILE *parseTreeFile)
+void runParser(FILE *testFile)
 {
 
     parserFree();
@@ -1369,23 +1353,9 @@ void runParser(FILE *testFile, FILE *parseTreeFile)
 
     readGrammerTextFile(fp);
 
-    // printAllGrammar();
-
-    if (printFlag)
-        printf("\nComputing Firsts And Follows Started\n");
-
     computeFirstAndFollow();
 
-    if (printFlag)
-        printf("\nComputing Firsts And Follows Ended\n\n");
-
-    if (printFlag)
-        printf("\nComputing Parse Table Started\n");
-
     createParseTable();
-
-    if (printFlag)
-        printf("\nComputing Parse Table Ended\n\n");
 
     populateKeywordTable();
 
@@ -1405,15 +1375,9 @@ void runParser(FILE *testFile, FILE *parseTreeFile)
             break;
     }
 
-    if (printFlag)
-        printf("Parsing Input Source Started\n");
+    struct treeNode *rootParseTree = parseInputSourceCode(head->next, Table, grammar, firstFollowSets);
 
-    struct treeNode *rootParseTree = parseInputSourceCode(head->next, Table, grammar, firstFollowSets, parseTreeFile);
-
-    if (printFlag)
-        printf("\nParser Complete\n");
-
-    inOrderParseTree(rootParseTree, parseTreeFile);
+    inOrderParseTree(rootParseTree);
 
     /*
         To generate Files : ParseTable.txt
