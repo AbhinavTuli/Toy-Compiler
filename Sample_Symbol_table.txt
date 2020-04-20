@@ -12,15 +12,15 @@ start
 	a:= m[5]+3;				   **Not an error: array index within bounds**
 	p:= m;					   **Not an error: type expressions of array variables p and m are same and assignment is a valid operation**
 	k:=true;	
-	p:= m + p;                                 **ERROR: array variables m and p cannot be added        done**
+	p:= m + p;                                 **ERROR: array variables m and p cannot be added**
 	p[10]:= a*b-20*h;                          **Not an error: array index within bounds**			 
-	(k AND a<=m[11] OR false)
+	while(k AND a<=m[11] OR false)
 	start
 		declare p, u:integer;
 		declare b: array[2..20] of integer;
 		b:= m;
-		b[2]:= u+m[25];			   **ERROR: element of array m is out of bound    done** 
-		a:= b[18]*18.56E+2;		   **ERROR: type mismatch     done**
+		b[2]:= u+m[25];			   **ERROR: element of array m is out of bound** 
+		a:= b[18]*18.56E+2;		   **ERROR: type mismatch **
 	end
         n:= a - p*b;				   **ERROR: types of p and b are different**
 	b:= b+3;
@@ -91,7 +91,7 @@ start
 	get_value(v_1_2_3);							 		
 	declare B, C: array [2..20] of integer;
 	declare L, H:integer;
-	declare M:array[L..H] of real;
+	declare M:array[L..H] of integer;
 	get_value(L);
 	get_value(H);
 	get_value(M);
@@ -115,7 +115,6 @@ start
 	B:= C;
 	C:= D;				        **ERROR: type mismatch error**        
 end
-
 
 **
 variable_name	scope(module_name)	scope(line_numbers)	width	isArray	static_or_dynamic	range_lexemes	type_of_element	offset	nesting_level
@@ -175,3 +174,4 @@ w 		driver			85-117			2	no	---			---		integer		109	1
 D		driver			85-117			43	yes	static			[20,40]		integer		111	1
 
 **
+
