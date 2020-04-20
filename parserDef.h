@@ -3,7 +3,7 @@
     Abhinav Tuli            -   2017A7PS0048P
     Kushagra Raina          -   2017A7PS0161P
     Tanmay Moghe            -   2017A7PS0184P
-    Amratanshu Shrivastava  -   2017A7PS0225P
+    Amratanshu Shrivastava  -   2017A7PS0224P
     Rohit Bohra             -   2017A7PS0225P
 */
 

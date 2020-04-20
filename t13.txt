@@ -1,9 +1,0 @@
-<<<driver program>>>
-start
-declare num, k:integer;
-**k:=((3*5<8+2)<(8+7))==(5*5/7<3);**
-**k:= true AND false OR num;**
-**j:=(2*3+5<8) OR (17>0) AND ((67 == 23) == false);**
-b:= a*25+100*C[1];
-E[7]:= k+12 - Q*10+u;
-end

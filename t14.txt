@@ -1,7 +1,0 @@
-<<<driver program>>>
-start
-declare a,b :integer;
-
-a:= b!=5;
-
-end

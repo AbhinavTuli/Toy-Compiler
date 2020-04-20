@@ -64,7 +64,10 @@ int main(int argc, char *argv[]){
 
         switch(choice)
         {
-             case 1:    ;
+            case 0:     ;
+                        exit(0);
+
+            case 1:    ;
                         token* traverse = lexerRun(fp1);
                         traverse = traverse->next;
 
@@ -119,19 +122,48 @@ int main(int argc, char *argv[]){
             case 5:     ;
                         printFlag = true;
                         runConstructST(fp1,fp2);
+                        printAllTables(globalFuncTable,driverVarTable);
                         lexerFree();
+                        freeSymbolTable();
                         break;
                         
                         break;  
 
-            case 6:
+            case 6:     ;
+                        printFlag = false;
+                        runConstructST(fp1,fp2);
+                        printWidth(globalFuncTable);
+                        lexerFree();
+                        freeSymbolTable();
+                        // Free Function
+                        // Print Function
                         break;
 
-            case 7:
+            case 7:     ;
+                        printFlag = false;
+                        runConstructST(fp1,fp2);
+                        printArray(globalFuncTable);
+                        lexerFree();
+                        freeSymbolTable();
+                        // Free Function
+                        // Print Function
                         break;
 
             case 8:     ;   
+                        printFlag = false;
+                        ticks = clock();
 
+                        printFlag = false;
+                        runConstructST(fp1,fp2);
+                        lexerFree();
+                        // Free Function
+                        // Print Function
+
+                        ticks = clock() - ticks; 
+                        double time_taken = ((double)ticks)/CLOCKS_PER_SEC;
+                        printf("Total Clock ticks : %ld\n",ticks);
+                        printf("Total time taken by Compiler : %f seconds\n", time_taken);
+                        break;
 
                             //  For compiling to verify the syntactic and semantic correctness of the input source code 
                             // If the code is syntactically incorrect, report all syntax errors only. If the code is syntactically correct, 

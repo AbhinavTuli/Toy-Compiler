@@ -1,5 +1,0 @@
-<<<driver program>>>
-start
-declare a,b :integer;
-k:= (5+2<7) == (false);
-end

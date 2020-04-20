@@ -1,3 +1,12 @@
+/*
+    Group Number            -        26
+    Abhinav Tuli            -   2017A7PS0048P
+    Kushagra Raina          -   2017A7PS0161P
+    Tanmay Moghe            -   2017A7PS0184P
+    Amratanshu Shrivastava  -   2017A7PS0224P
+    Rohit Bohra             -   2017A7PS0225P
+*/
+
 #ifndef SYMBOLTABLE_H
 #define SYMBOLTABLE_H
 
@@ -62,5 +71,7 @@ void updateIsInput(variableTable* ptr, char* varname, bool isInput);
 int retrieveWidth(variableTable* ptr, char* varname);
 
 void printWidth(functionTable* ptr);
+
+void printArray(functionTable* ptr);
 
 #endif

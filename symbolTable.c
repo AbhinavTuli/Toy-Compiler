@@ -1,3 +1,12 @@
+/*
+    Group Number            -        26
+    Abhinav Tuli            -   2017A7PS0048P
+    Kushagra Raina          -   2017A7PS0161P
+    Tanmay Moghe            -   2017A7PS0184P
+    Amratanshu Shrivastava  -   2017A7PS0224P
+    Rohit Bohra             -   2017A7PS0225P
+*/
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
@@ -27,7 +36,11 @@ void printVarTable(variableTable* ptr)
 {
 	int len = ptr->size;
 	int allempty = 0;
-	printf("index \tvarname \twidth \tis_array \tstatic/dynamic \trangevars \ttype \tnesting_level\tOffset\n\n");
+
+	char tt5[30];
+	strcpy(tt5, ptr->funcName);
+
+	printf("function name \t [start,end] \t index \tvarname \twidth \tis_array \tstatic/dynamic \trangevars \ttype \tnesting_level\tOffset\n\n");
 	for(int i = 0; i<len;i++)
 	{
 		if(ptr->table[i].isEmpty)
@@ -35,9 +48,9 @@ void printVarTable(variableTable* ptr)
 		else
 		{
 			if(ptr->table[i].isInput)
-				printf("%d\t%s(input) \t%d\t",i,ptr->table[i].key,ptr->table[i].width);	
+				printf("%s\t [%d,%d] \t%s(input) \t%d\t",tt5, ptr->scopeStart, ptr->scopeEnd, ptr->table[i].key,ptr->table[i].width);	
 			else
-				printf("%d\t%s       \t%d\t",i,ptr->table[i].key,ptr->table[i].width);
+				printf("%s\t [%d,%d] \t%s       \t%d\t",tt5, ptr->scopeStart, ptr->scopeEnd,ptr->table[i].key,ptr->table[i].width);
 			if(ptr->table[i].isArray)
 			{
 				printf("YES\t\t");
@@ -423,9 +436,11 @@ void printAllTables(functionTable *ptr, variableTable* driver)
 	{
 		if(!ptr->table[i].isEmpty)
 		{
-			printf("\nMODULE name is %s\n\n",ptr->table[i].key);
-			printParameterList(ptr->table[i].inputList);
-			printParameterList(ptr->table[i].outputList);
+			char tt2[20];
+			strcpy(tt2,ptr->table[i].key);
+			//printf("\nMODULE name is %s\n\n",ptr->table[i].key);
+			//printParameterList(ptr->table[i].inputList);
+			//printParameterList(ptr->table[i].outputList);
 
 			variableTable* temp = ptr->table[i].localVarTable;
 			while(temp!=NULL)
@@ -434,7 +449,7 @@ void printAllTables(functionTable *ptr, variableTable* driver)
 				
 				while(traverse!=NULL)
 				{
-					printf("LOCAL VAR TABLE of %s, start = %d, end = %d\n",temp->funcName,temp->scopeStart,temp->scopeEnd);
+					//printf("\n\nLOCAL VAR TABLE of %s, start = %d, end = %d\n",temp->funcName,temp->scopeStart,temp->scopeEnd);
 					printVarTable(traverse);
 					traverse = traverse->next;
 				}
@@ -443,11 +458,35 @@ void printAllTables(functionTable *ptr, variableTable* driver)
 			}
 
 			parameter* listI = ptr->table[i].inputList;
+			temp = ptr->table[i].localVarTable;
 			while(listI!=NULL)
 			{
 				if(listI->isRedifined)
 				{
-					printf(" %s (input) \n",listI->key);
+					printf("%s\t [%d,%d]\t %s (input)\t%d \t",tt2, temp->scopeStart, temp->scopeEnd, listI->key,listI->width);
+
+					if(listI->isArray)
+					{
+						printf(" YES \t");
+
+						if(listI->isArrayStatic)
+						{
+							printf("STATIC \t [%d,%d]\t",listI->lowerBound,listI->upperBound);
+						}
+						else
+							printf("DYNAMIC \t [%d,%d]\t",listI->lowerBound,listI->upperBound);
+					}
+					else
+						printf(" NO \t\t\t\t\t");
+
+					if(listI->tag == 1)
+						printf("Integer\t");
+					if(listI->tag == 2)
+						printf("Real\t");
+					if(listI->tag == 3)
+						printf("Boolean\t");
+
+					printf("%d\n",listI->offset);
 				}
 
 				listI = listI->next;
@@ -455,7 +494,7 @@ void printAllTables(functionTable *ptr, variableTable* driver)
 		}
 	}
 
-	printf(" DRIVER MODULE \n");
+	//printf(" DRIVER MODULE \n");
 	variableTable* temp = driver;
 		
 		while(temp!=NULL)
@@ -464,7 +503,7 @@ void printAllTables(functionTable *ptr, variableTable* driver)
 				
 			while(traverse!=NULL)
 			{
-				printf("LOCAL VAR TABLE of %s, start = %d, end = %d\n",temp->funcName,temp->scopeStart,temp->scopeEnd);
+				//printf("\n\nLOCAL VAR TABLE of %s, start = %d, end = %d\n",temp->funcName,temp->scopeStart,temp->scopeEnd);
 				printVarTable(traverse);
 				traverse = traverse->next;
 			}
@@ -575,6 +614,84 @@ void printWidth(functionTable* ptr)
 		}
 	}
 }
+
+void printArray(functionTable* ptr)
+{
+	int len = ptr->size;
+	//printf(" Function Name \t Activation Width \n");
+	for(int i = 0; i<len; i++)
+	{
+		if(!ptr->table[i].isEmpty)
+		{
+			char fname[20];
+			strcpy(fname,ptr->table[i].key);
+			//printf(" %s\t\t",ptr->table[i].key);
+			//int width = 0;
+
+			variableTable* temp = ptr->table[i].localVarTable;
+			//printVarTable(temp);
+			while(temp!=NULL)
+			{
+				variableTable* traverse = temp;
+				
+				while(traverse!=NULL)
+				{
+					int len1 = traverse->size;
+					for(int j = 0; j<len1; j++)
+					{
+						if(!traverse->table[j].isEmpty)
+						{
+							if(traverse->table[j].isArray)
+							{
+								printf(" %s    \t %d,%d\t %s \t",fname,traverse->scopeStart,traverse->scopeEnd,traverse->table[j].key);
+
+								if(traverse->table[j].isArrayStatic)
+								{
+									printf( "STATIC \t [%d,%d]\n",traverse->table[j].lowerBound,traverse->table[j].upperBound);
+								}
+								else
+								{
+									printf( "DYNAMIC \t [%s,%s]\n",traverse->table[j].lowerBoundID,traverse->table[j].upperBoundID);	
+								}
+							}
+
+						}
+					}
+					traverse = traverse->next;
+				}
+
+				temp = temp->child;
+			}
+
+			parameter* ptemp = ptr->table[i].inputList;
+			temp = ptr->table[i].localVarTable;
+			while(ptemp!=NULL)
+			{
+				if(ptemp->isRedifined)
+				{
+					if(ptemp->isArray)
+					{
+						printf(" %s    \t %d,%d\t %s \t",fname,temp->scopeStart,temp->scopeEnd,ptemp->key);
+
+						if(ptemp->isArrayStatic)
+						{
+							printf( "STATIC \t [%d,%d]\n",ptemp->lowerBound,ptemp->upperBound);
+						}
+						else
+						{
+							printf( "DYNAMIC \t [%s,%s]\n",ptemp->lowerBoundID,ptemp->upperBoundID);	
+						}
+					}
+				}
+
+				ptemp = ptemp->next;
+			}
+
+			//printf(" %d \n", width);
+		}
+	}
+}
+
 /*
 void main()
 {

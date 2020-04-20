@@ -1714,13 +1714,17 @@ void runConstructST(FILE *testFile, FILE *parseTreeFile)
 
     // runAst()
 
-    printf("\nGenerating Symbol Table\n");
+    if(printFlag)
+    printf("\nGenerating Symbol Table : \n\n");
 
     constructST(rootAstNode);
     constructST2(rootAstNode);
 
-    printWidth(globalFuncTable);
+    printf("\n\n");
+
+    //printAllTables(globalFuncTable,driverVarTable);
 }
+
 
 void freeSymbolTable()
 {
