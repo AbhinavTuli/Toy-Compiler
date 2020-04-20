@@ -888,11 +888,12 @@ void constructST(struct astNode *root)
     else if (strcmp(root->name, "moduleDef") == 0)
     {
         // <moduleDef>   -->  START <statements> END
+        currentVarTable->scopeStart = temp->lineno;
+        currentVarTable->scopeEnd = temp->lineno;
         temp = temp->child; // <statement>
         global_offset = 0;
         while (temp != NULL)
         {
-            // TODO : Start Different Scope!
             constructST(temp);
             temp = temp->next;
         }
@@ -904,6 +905,7 @@ void constructST(struct astNode *root)
         while (temp != NULL)
         {
             // printf("Statements Check %s\n",temp->name);
+            currentVarTable->scopeEnd = temp->lineno;
             constructST(temp);
             temp = temp->next;
         }
@@ -1137,8 +1139,38 @@ void constructST(struct astNode *root)
                 char varName[40];
                 strcpy(varName, temp->val.s);
 
+                if(searchInVarTable(currentVarTable,varName))
+                {
+                    variableTableEntry* vptr = retrieveVarTable(currentVarTable,varName);
+                    if(vptr->isInput)
+                    {
+                        vptr->isEmpty = true;
+                        functionTableEntry* fptr = retrieveFunTable(globalFuncTable, currentVarTable->funcName);
+                        parameter* traverse1 = fptr->inputList;
+                        while(traverse1!=NULL)
+                        {
+                            if(strcmp(traverse1->key,varName)==0)
+                            {
+                                traverse1->isRedifined = true;
+                                traverse1->offset = vptr->offset;
+                                break;
+                            }
+
+                            traverse1 = traverse1->next;
+                        }
+                    }
+                    else
+                    {
+                        printf("Error at line no. %d: Redeclaration of variable %s\n", temp->lineno, varName);
+                        continue;
+                    }
+                }
+                
                 insertInVarTable(currentVarTable, varName, false, datatype, globalNestingLevel); // TODO - Check for errors
-                // TODO : Insert Offset
+                
+                updateOffset(currentVarTable, varName, global_offset);
+                global_offset += retrieveWidth(currentVarTable, varName);
+
                 temp = temp->next;
             }
         }
@@ -1191,18 +1223,50 @@ void constructST(struct astNode *root)
                 char varName[40];
                 strcpy(varName, temp->val.s);
 
+                if(searchInVarTable(currentVarTable,varName))
+                {
+                    variableTableEntry* vptr = retrieveVarTable(currentVarTable,varName);
+                    if(vptr->isInput)
+                    {
+                        vptr->isEmpty = true;
+
+                        functionTableEntry* fptr = retrieveFunTable(globalFuncTable, currentVarTable->funcName);
+                        parameter* traverse1 = fptr->inputList;
+                        while(traverse1!=NULL)
+                        {
+                            if(strcmp(traverse1->key,varName)==0)
+                            {
+                                traverse1->isRedifined = true;
+                                traverse1->offset = vptr->offset;
+                                break;
+                            }
+
+                            traverse1 = traverse1->next;
+                        }
+                    }
+                    else
+                    {
+                        printf("Error at line no. %d: Redeclaration of variable %s\n", temp->lineno, varName);
+                        continue;
+                    }
+                }
+
                 if (low_tag == 1) // STATIC ARRAY
                 {
                     insertInVarTable(currentVarTable, varName, true, datatype, globalNestingLevel);
-                    // TODO : Insert Offset
                     updateArrayVarStatic(currentVarTable, varName, low, high);
+
+                    updateOffset(currentVarTable, varName, global_offset);
+                    global_offset += retrieveWidth(currentVarTable, varName);
                 }
 
                 if (low_tag == 4)
                 {
                     insertInVarTable(currentVarTable, varName, true, datatype, globalNestingLevel);
-                    // TODO : Insert Offset
                     updateArrayVarDynamic(currentVarTable, varName, lowId, highId);
+
+                    updateOffset(currentVarTable, varName, global_offset);
+                    global_offset += retrieveWidth(currentVarTable, varName);
                 }
                 temp = temp->next;
             }
@@ -1229,6 +1293,7 @@ void constructST(struct astNode *root)
             variableTable *newTable = initializeVarTable();
             newTable->parent = tempTable;
             tempTable->child = newTable;
+            strcpy(newTable->funcName,tempTable->funcName);
             currentVarTable = newTable;
         }
         else
@@ -1242,13 +1307,15 @@ void constructST(struct astNode *root)
             variableTable *newTable = initializeVarTable();
             traverse->next = newTable;
             newTable->parent = tempTable;
+            strcpy(newTable->funcName,tempTable->funcName);
             currentVarTable = newTable;
         }
         // <caseStmts>  -->  CASE <value> COLON <statements> BREAK SEMICOL <N9>
 
         temp = temp->child;
         temp = temp->next; // <caseStmts>
-
+        currentVarTable->scopeStart = temp->lineno;
+        currentVarTable->scopeEnd = temp->lineno;
         while (temp != NULL)
         {
             temp = temp->child; // <value>
@@ -1289,6 +1356,7 @@ void constructST(struct astNode *root)
             variableTable *newTable = initializeVarTable();
             newTable->parent = tempTable;
             tempTable->child = newTable;
+            strcpy(newTable->funcName,tempTable->funcName);
             currentVarTable = newTable;
         }
         else
@@ -1301,6 +1369,7 @@ void constructST(struct astNode *root)
             variableTable *newTable = initializeVarTable();
             traverse->next = newTable;
             newTable->parent = tempTable;
+            strcpy(newTable->funcName,tempTable->funcName);
             currentVarTable = newTable;
         }
 
@@ -1324,6 +1393,8 @@ void constructST(struct astNode *root)
             }
 
             // TODO : ID for iterativeStmt
+            currentVarTable->scopeStart = temp->lineno;
+            currentVarTable->scopeEnd = temp->lineno;
             temp = temp->next; // <range>
             // <range>  -->  NUM1 RANGEOP NUM2
             int low, high;
@@ -1351,7 +1422,11 @@ void constructST(struct astNode *root)
                 printf("ERROR at line %d : WHILE Loop Condition should consist of boolean expression", temp->lineno);
             }
 
+            currentVarTable->scopeStart = temp->lineno;
+            currentVarTable->scopeEnd = temp->lineno;
+
             temp = temp->next; // <statements>
+
             constructST(temp);
         }
         else
@@ -1369,6 +1444,8 @@ void constructST(struct astNode *root)
 void runConstructST(FILE *testFile, FILE *parseTreeFile)
 {
     driverVarTable = initializeVarTable();
+    char ttemp[30] = "driver";
+    strcpy(driverVarTable->funcName,ttemp);
     globalFuncTable = initializeFunTable();
     currentVarTable = driverVarTable;
     printFunTable(globalFuncTable);

@@ -47,6 +47,9 @@ typedef struct parameter{
 	int lowerBound, upperBound;
 	char lowerBoundID[30], upperBoundID[30];
 	struct parameter* next;
+
+	bool isRedifined;    	// To be only used when input 
+	//int offset;				// To be only used when input
 }parameter;
 
 typedef struct functionTableEntry {

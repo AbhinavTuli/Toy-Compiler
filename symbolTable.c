@@ -34,7 +34,10 @@ void printVarTable(variableTable* ptr)
 			allempty++;
 		else
 		{
-			printf("%d\t%s       \t%d\t",i,ptr->table[i].key,ptr->table[i].width);
+			if(ptr->table[i].isInput)
+				printf("%d\t%s(input) \t%d\t",i,ptr->table[i].key,ptr->table[i].width);	
+			else
+				printf("%d\t%s       \t%d\t",i,ptr->table[i].key,ptr->table[i].width);
 			if(ptr->table[i].isArray)
 			{
 				printf("YES\t\t");
@@ -260,6 +263,7 @@ void insertInFunTable(functionTable *ptr, char* func, parameter* inputL, paramet
 	ptr->table[index].outputList = outputL;
 	// Have to add the sizes of the input and output lists here
 	ptr->table[index].localVarTable = initializeVarTable();
+	strcpy((ptr->table[index].localVarTable)->funcName,func);
 }
 
 bool searchInFunTable(functionTable *ptr, char* func)
@@ -430,12 +434,23 @@ void printAllTables(functionTable *ptr, variableTable* driver)
 				
 				while(traverse!=NULL)
 				{
-					printf("LOCAL VAR TABLE\n");
+					printf("LOCAL VAR TABLE of %s, start = %d, end = %d\n",temp->funcName,temp->scopeStart,temp->scopeEnd);
 					printVarTable(traverse);
 					traverse = traverse->next;
 				}
 
 				temp = temp->child;
+			}
+
+			parameter* listI = ptr->table[i].inputList;
+			while(listI!=NULL)
+			{
+				if(listI->isRedifined)
+				{
+					printf(" %s (input) \n",listI->key);
+				}
+
+				listI = listI->next;
 			}
 		}
 	}
@@ -449,7 +464,7 @@ void printAllTables(functionTable *ptr, variableTable* driver)
 				
 			while(traverse!=NULL)
 			{
-				printf("LOCAL VAR TABLE\n");
+				printf("LOCAL VAR TABLE of %s, start = %d, end = %d\n",temp->funcName,temp->scopeStart,temp->scopeEnd);
 				printVarTable(traverse);
 				traverse = traverse->next;
 			}
