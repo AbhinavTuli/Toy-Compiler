@@ -524,6 +524,52 @@ int retrieveWidth(variableTable* ptr, char* varname)
 	variableTableEntry* vtemp = retrieveVarTable(ptr,varname);
 	return vtemp->width;
 }
+
+void printWidth(functionTable* ptr)
+{
+	int len = ptr->size;
+	printf(" Function Name \t Activation Width \n");
+	for(int i = 0; i<len; i++)
+	{
+		if(!ptr->table[i].isEmpty)
+		{
+			printf(" %s\t",ptr->table[i].key);
+			int width = 0;
+
+			variableTable* temp = ptr->table[i].localVarTable;
+			while(temp!=NULL)
+			{
+				variableTable* traverse = temp;
+				
+				while(traverse!=NULL)
+				{
+					int len1 = traverse->size;
+					for(int j = 0; j<len1; j++)
+					{
+						if(!traverse->table[i].isEmpty)
+						{
+							width = width + traverse->table[i].width;
+						}
+					}
+					traverse = traverse->next;
+				}
+
+				temp = temp->child;
+			}
+
+			parameter* ptemp = ptr->table[i].inputList;
+			while(ptemp!=NULL)
+			{
+				if(ptemp->isRedifined)
+					width = width + ptemp->width;
+
+				ptemp = ptemp->next;
+			}
+
+			printf(" %d \n", width);
+		}
+	}
+}
 /*
 void main()
 {

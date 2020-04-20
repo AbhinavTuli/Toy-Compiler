@@ -233,9 +233,9 @@ struct expNode *makeExpNode(int tag, char *name, bool isDynamic, arr_index index
 void constructST2(struct astNode *root)
 {
 
-    // printf("constructST2 : %s\n", root->name);
+    // printf("constructST2 : %s line%d\n", root->name,root->lineno);
 
-    if (root == NULL)
+    if (root == NULL) 
     {
         return;
         // Report ERROR!
@@ -283,6 +283,9 @@ void constructST2(struct astNode *root)
     {
         // <module> -->  DEF MODULE ID ENDDEF TAKES INPUT SQBO <input_plist> SQBC SEMICOL <ret> <moduleDef>
         temp = temp->child; // ID
+
+        // printf("MODULE CHECK : %s\n",temp->val.s);
+
         currentVarTable = (retrieveFunTable(globalFuncTable, temp->val.s))->localVarTable;
         temp = temp->next; // <input_plist>
         temp = temp->next; // <ret>
@@ -331,7 +334,7 @@ void constructST2(struct astNode *root)
         {
             // Second Pass Checks
             // <moduleReuseStmt>  -->  <optional> USE MODULE ID WITH PARAMETERS <idList> SEMICOL
-            temp = temp->child; // optional
+            temp = temp->child; // <optional>
             //  TODO : Check if func parameters size and type are correct!
 
             temp = temp->next; // Function ID
@@ -396,17 +399,145 @@ void constructST2(struct astNode *root)
                     temp = temp->next;
                     inputList = inputList->next;
                 }
+
+                if(temp!=NULL || inputList!=NULL ){
+                    printf("ERROR at line no. %d: Call Function %s with the correct number of Input parameters\n", temp->lineno, ftemp->key);
+                    return;
+                }
+
+                parameter *outputList = ftemp->outputList;
+                temp = root->child->child;
+                temp = temp->child;
+                
+                // printf("Check1 line%d %s\n",temp->lineno,temp->name);
+
+                if(outputList==NULL)
+                return;
+
+                int tempLineNo = temp->lineno;
+
+                while(temp != NULL && outputList != NULL){
+                    // printf("Check2 : line%d %s\n",temp->lineno,temp->val.s);
+                    // printf("Check3 : %s %s\n",outputList->key,temp->val.s);
+                    variableTableEntry *idEntry;
+                    if (searchNested(currentVarTable, temp->val.s))
+                    {
+                        idEntry = searchNestedRetrieve(currentVarTable, temp->val.s);
+                    }
+                    else
+                    {
+                        printf("ERROR at line no %d : Identifier %s is not declared in Function Call %s\n", temp->lineno, temp->val.s, ftemp->key);
+                        return;
+                    }
+
+                    if (outputList->tag == idEntry->tag)
+                    {
+                        if (outputList->isArray == idEntry->isArray)
+                        {
+                            // Bound Check if array
+                            if (outputList->isArray)
+                            {
+                                if (outputList->isArrayStatic && idEntry->isArrayStatic)
+                                {
+                                    if (outputList->lowerBound != idEntry->lowerBound || outputList->upperBound != idEntry->upperBound)
+                                    {
+                                        // Bounds of parameter array doesn't match
+                                        printf("ERROR at line no. %d: Bounds of parameter array %s of function %s are not correct\n", temp->lineno, idEntry->key, ftemp->key);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        printf("ERROR at line no. %d: Call Function %s with the correct Output parameters\n", temp->lineno, ftemp->key);
+                        return;
+                    }
+                    temp = temp->next;
+                    outputList = outputList->next;
+                }
+                // printf("Check4 \n");
+
+                if(temp!=NULL || outputList!=NULL ){
+                    printf("ERROR at line no. %d: Call Function %s with the correct number of Output parameters\n", tempLineNo, ftemp->key);
+                    return;
+                }
+
             }
             else
             {
                 // Function is not defined!
                 printf("ERROR at line no. %d: Function %s was never defined\n", temp->lineno, ftemp->key);
             }
+
         }
         else
         {
             printf("Unexpected simpleStmt\n");
         }
+    }
+    else if(strcmp(root->name, "iterativeStmt") == 0)
+    {
+        // temp = root
+        variableTable* tempTable = currentVarTable;
+        currentVarTable = currentVarTable->child;
+        while(currentVarTable->done==true){
+
+            if(currentVarTable==NULL){
+                printf("Unexpected Error ConstructST2\n");
+            }
+
+            currentVarTable = currentVarTable->next;
+        }
+
+        if (strcmp(root->val.s, "FOR") == 0){
+            // <iterativeStmt>  -->  FOR BO ID IN <range> BC START <statements> END
+            temp = temp->child; // ID
+            temp = temp->next;  // range
+            temp = temp->next; // <statements>
+            constructST2(temp);
+        }
+        else if (strcmp(root->val.s, "WHILE") == 0){
+            // <iterativeStmt>  -->  WHILE BO <arithmeticOrBooleanExpr> BC START <statements> END
+            temp = temp->child; // arithmeticOrBooleanExpr
+            temp = temp->next; // <statements>
+            constructST2(temp);
+        }else{
+            printf("Unexpected Error ConstructST2\n");
+        }
+        currentVarTable->done = true;
+        currentVarTable = tempTable;
+
+    }
+    else if(strcmp(root->name, "conditionalStmt") == 0)
+    {
+
+        variableTable* tempTable = currentVarTable;
+        currentVarTable = currentVarTable->child;
+        while(currentVarTable->done==true){
+            currentVarTable = currentVarTable->next;
+        }
+
+        temp = temp->child;
+        temp = temp->next; // <caseStmts>
+        currentVarTable->scopeStart = temp->lineno;
+        currentVarTable->scopeEnd = temp->lineno;
+        while (temp != NULL)
+        {
+            temp = temp->child; // <value>
+            temp = temp->next; // <statements>
+            constructST2(temp);
+
+            temp = temp->next; // N9
+        }
+
+        temp = root->child->next->next; // <default> = <statements>
+
+        if(temp!=NULL)
+        constructST2(temp);
+        currentVarTable->done = true;
+        currentVarTable = tempTable;
     }
     else if (strcmp(root->name, "expression") == 0)
     {
@@ -547,7 +678,6 @@ void constructST(struct astNode *root)
         else if (otherModPos == 2)
         {
             // DONE - Check if definition was prev there or not! If not, then error will be printed!
-            printf("Check - function name %s\n",funcName);
             if (!searchInFunTable(globalFuncTable, funcName))
             {
                 printf("ERROR at line no. %d: Function %s Not Declared Before Driver.\n", temp->lineno, funcName);
@@ -1226,6 +1356,7 @@ void constructST(struct astNode *root)
                             {
                                 traverse1->isRedifined = true;
                                 traverse1->offset = vptr->offset;
+                                traverse1->width = vptr->width;
                                 break;
                             }
 
@@ -1312,6 +1443,7 @@ void constructST(struct astNode *root)
                             {
                                 traverse1->isRedifined = true;
                                 traverse1->offset = vptr->offset;
+                                traverse1->width = vptr->width;
                                 break;
                             }
 
@@ -1393,6 +1525,7 @@ void constructST(struct astNode *root)
         currentVarTable->scopeEnd = temp->lineno;
         while (temp != NULL)
         {
+            // printf("Case Check %s\n",temp->name);
             temp = temp->child; // <value>
             // <value>  -->  NUM
             // <value>  -->  TRUE
@@ -1400,6 +1533,7 @@ void constructST(struct astNode *root)
             // TODO : Check on Value Type Consistent - NUM/Boolean
             // TODO : Check if Boolean Value Type then no Default Stmt?
             temp = temp->next; // <statements>
+            currentVarTable->scopeEnd = temp->lineno;
             constructST(temp);
 
             temp = temp->next; // N9
@@ -1407,9 +1541,15 @@ void constructST(struct astNode *root)
             // <N9>  -->  ε
         }
 
-        temp = root->child->next; // <default> = <statements>
+        temp = root->child->next->next; // <default> = <statements>
 
+        // printf("Check default : %d %s\n",temp->lineno,temp->name);
+
+        if(temp!=NULL)
+        {
         constructST(temp);
+        currentVarTable->scopeEnd = temp->lineno;
+        }
         // <default>  -->  DEFAULT COLON <statements> BREAK SEMICOL
         // <default>  -->  ε
 
@@ -1570,7 +1710,7 @@ void runConstructST(FILE *testFile, FILE *parseTreeFile)
     constructST(rootAstNode);
     constructST2(rootAstNode);
 
-    //printAllTables(globalFuncTable, driverVarTable);
+    printWidth(globalFuncTable);
 }
 
 void freeSymbolTable()

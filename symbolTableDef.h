@@ -36,6 +36,7 @@ typedef struct variableTable {
 	struct variableTable* parent;
 	struct variableTable* child;
 	struct variableTable* next;
+	bool done;
 } variableTable;
 
 typedef struct parameter{
@@ -49,7 +50,7 @@ typedef struct parameter{
 	struct parameter* next;
 
 	bool isRedifined;    	// To be only used when input 
-	//int offset;				// To be only used when input
+	int width;				// To be only used when input
 }parameter;
 
 typedef struct functionTableEntry {

@@ -1320,7 +1320,9 @@ int runAST(FILE* testFile){
         break;
     } 
     struct treeNode* rootParseTree = parseInputSourceCode(head->next, Table, grammar, firstFollowSets);   
-
+    if (rootParseTree==NULL){
+        return 0;
+    }
     //printLevelOrder(generateAST(rootParseTree));
 
     struct astNode* rootAstTree=generateAST(rootParseTree);

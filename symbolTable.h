@@ -61,4 +61,6 @@ void updateIsInput(variableTable* ptr, char* varname, bool isInput);
 
 int retrieveWidth(variableTable* ptr, char* varname);
 
+void printWidth(functionTable* ptr);
+
 #endif
