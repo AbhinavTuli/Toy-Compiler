@@ -1,3 +1,12 @@
+/*
+    Group Number            -        26
+    Abhinav Tuli            -   2017A7PS0048P
+    Kushagra Raina          -   2017A7PS0161P
+    Tanmay Moghe            -   2017A7PS0184P
+    Amratanshu Shrivastava  -   2017A7PS0224P
+    Rohit Bohra             -   2017A7PS0225P
+*/
+
 #include "ast.h"
 #include "symbolTableDef.h"
 #include "symbolTable.h"
@@ -64,8 +73,8 @@ int getType(struct astNode *root)
             }
             else
             {
-                printf("Error at line no. %d: Variable %s not declared before use\n", root->lineno, root->val.s);
-                return -1;
+                printf("ERROR at line no. %d: Variable %s not declared before use\n", root->lineno, root->val.s);
+                return -11;
             }
         }
         else
@@ -95,8 +104,8 @@ int getType(struct astNode *root)
                         }
                         else
                         {
-                            printf("ERROR at line no. %d: element of array %s is out of bound\n", root->lineno, root->left->val.s);
-                            return -1;
+                            printf("ERROR at line no. %d: Element of array %s[%d] is Out of bounds\n", root->lineno, root->left->val.s,index);
+                            return -5;
                         }
                     }
                     else
@@ -116,8 +125,8 @@ int getType(struct astNode *root)
                         if (indexIdEntry->isArray)
                         {
                             // A[B] - both A and B are array
-                            printf("Error at line no. %d: Index %s cannot be an Array\n", root->lineno, indexId);
-                            return -1;
+                            printf("ERROR at line no. %d: Index %s cannot be an Array\n", root->lineno, indexId);
+                            return -6;
                         }
 
                         if (indexIdEntry->tag == 1)
@@ -126,34 +135,37 @@ int getType(struct astNode *root)
                         }
                         else
                         { // A[b] - b is not an integer type
-                            printf("Error at line no. %d: Index %s is not an Integer Type\n", root->lineno, indexId);
-                            return -1;
+                            printf("ERROR at line no. %d: Index %s is not an Integer Type\n", root->lineno, indexId);
+                            return -7;
                         }
                     }
                     else
                     { // A[b] - b not declared!
-                        printf("Error at line no. %d: Index %s is not Declared\n", root->lineno, indexId);
-                        return -1;
+                        printf("ERROR at line no. %d: Index %s is not declared\n", root->lineno, indexId);
+                        return -8;
                     }
                 }
             }
             else
             {
                 // Non array accessed by index, A[b], A is not array
-                printf("Error at line no. %d: Non-Array %s cannot be accessed by an index\n", root->lineno, root->left->val.s);
-                return -1;
+                printf("ERROR at line no. %d: Non-Array %s cannot be accessed by an index\n", root->lineno, root->left->val.s);
+                return -9;
             }
         }
         else
         {
             // if searchNested didn't found the Array ID
-            printf("Error at line no. %d: ID %s is not declared\n", root->lineno, root->left->val.s);
-            return -1;
+            printf("ERROR at line no. %d: ID %s is not declared\n", root->lineno, root->left->val.s);
+            return -10;
         }
     }
 
     int l = getType(root->left);
     int r = getType(root->right);
+
+    if(l<-1 || r<-1)
+    return -12;
 
     if (l == -1 || r == -1)
     {
@@ -161,18 +173,18 @@ int getType(struct astNode *root)
     }
     if (r != 0 && l != r)
     {
-        printf("ERROR at line no. %d: type mismatch \n", root->lineno);
-        return -1;
+        printf("ERROR at line no. %d: Type Mismatch \n", root->lineno);
+        return -2;
     }
     if (l >= 4 && r != 0)
     {
-        printf("ERROR at lineno %d: Array operations aren't permitted\n", root->lineno);
-        return -1;
+        printf("ERROR at lineno. %d: These Array operations aren't permitted\n", root->lineno);
+        return -3;
     }
     if (r >= 4)
     {
-        printf("ERROR at lineno %d: Array operations aren't permitted\n", root->lineno);
-        return -1;
+        printf("ERROR at lineno. %d: These Array operations aren't permitted\n", root->lineno);
+        return -4;
     }
     if (l == r)
     {
@@ -221,12 +233,12 @@ struct expNode *makeExpNode(int tag, char *name, bool isDynamic, arr_index index
 void constructST2(struct astNode *root)
 {
 
-    printf("constructST2 : %s\n", root->name);
+    // printf("constructST2 : %s\n", root->name);
 
     if (root == NULL)
     {
         return;
-        // Report Error!
+        // Report ERROR!
         //doubt error line
         printf("ConstructST2 : Root is NULL");
         exit(0);
@@ -301,11 +313,7 @@ void constructST2(struct astNode *root)
     }
     else if (strcmp(root->name, "ioStmt1") == 0)
     {
-        temp = temp->child; // ID
-        if (strcmp(temp->name, "ID") == 0)
-        {
-            return;
-        }
+        return;
     }
     else if (strcmp(root->name, "ioStmt2") == 0)
     {
@@ -400,6 +408,10 @@ void constructST2(struct astNode *root)
             printf("Unexpected simpleStmt\n");
         }
     }
+    else if (strcmp(root->name, "expression") == 0)
+    {
+        constructST2(root->child);
+    }
     else
     {
         return;
@@ -409,12 +421,12 @@ void constructST2(struct astNode *root)
 void constructST(struct astNode *root)
 {
 
-    printf("constructST : %s\n", root->name);
+    // printf("constructST : %s\n", root->name);
 
     if (root == NULL)
     {
         return;
-        // Report Error!
+        // Report ERROR!
         printf("Root is NULL");
         exit(0);
     }
@@ -455,7 +467,7 @@ void constructST(struct astNode *root)
             if (strcmp("ε", funcName) != 0)
             {
                 if (searchInFunTable(globalFuncTable, funcName))
-                    printf("Error at line no. %d: Redeclaration of function %s\n", temp->lineno, funcName);
+                    printf("ERROR at line no. %d: Redeclaration of function %s\n", temp->lineno, funcName);
                 else
                 {
                     insertInFunTable(globalFuncTable, funcName, NULL, NULL);
@@ -511,7 +523,7 @@ void constructST(struct astNode *root)
                 functionTableEntry *ftemp = retrieveFunTable(globalFuncTable, funcName);
                 if (ftemp->isDefined)
                 {
-                    printf("Error at line no. %d: Redefinition of function %s\n", temp->lineno, funcName);
+                    printf("ERROR at line no. %d: Redefinition of function %s\n", temp->lineno, funcName);
                     return; // Re-defined Function Skipped
                 }
                 else
@@ -535,11 +547,10 @@ void constructST(struct astNode *root)
         else if (otherModPos == 2)
         {
             // DONE - Check if definition was prev there or not! If not, then error will be printed!
-
+            printf("Check - function name %s\n",funcName);
             if (!searchInFunTable(globalFuncTable, funcName))
             {
-
-                printf("Error at line no. %d: Function %s Not Declared Before Driver.\n", temp->lineno, funcName);
+                printf("ERROR at line no. %d: Function %s Not Declared Before Driver.\n", temp->lineno, funcName);
                 insertInFunTable(globalFuncTable, funcName, NULL, NULL);
                 updateDefineBool(globalFuncTable, funcName, true);
             }
@@ -548,7 +559,7 @@ void constructST(struct astNode *root)
                 functionTableEntry *ftemp = retrieveFunTable(globalFuncTable, funcName);
                 if (ftemp->isDefined)
                 {
-                    printf("Error: On line number %d , Redefinition of function %s\n", temp->lineno, funcName);
+                    printf("ERROR: On line number %d , Redefinition of function %s\n", temp->lineno, funcName);
                     return; // Re-defined Function Skipped
                 }
                 else
@@ -650,11 +661,11 @@ void constructST(struct astNode *root)
 
             if (searchInVarTable(currentVarTable, idName))
             {
-                printf("Error: On line number-%d, Variable Name %s has already been used in input list.", temp->lineno, idName);
+                printf("ERROR: On line number-%d, Variable Name %s has already been used in input list.", temp->lineno, idName);
                 temp = temp->next->next;
                 continue;
             }
-            // Redeclaration Error - Variable already defined!
+            // Redeclaration ERROR - Variable already defined!
 
             // DONE:  Add this ID = temp->child to function table (input)  with type at temp->next
             temp = temp->next; // <dataType>
@@ -741,7 +752,7 @@ void constructST(struct astNode *root)
 
             if (searchInVarTable(currentVarTable, idName))
             {
-                printf("Error at line no. %d: Variable Name %s has already been used in input list.", temp->lineno, idName);
+                printf("ERROR at line no. %d: Variable Name %s has already been used in input list.", temp->lineno, idName);
             }
 
             //printf("OUTPUT VAR - %s\n",temp->val.s);
@@ -814,7 +825,7 @@ void constructST(struct astNode *root)
 
                 if (searchInVarTable(currentVarTable, idName))
                 {
-                    printf("Error at line no. %d: Variable Name %s has already been used in input list.", temp->lineno, idName);
+                    printf("ERROR at line no. %d: Variable Name %s has already been used in input list.", temp->lineno, idName);
                     temp = temp->next->next;
                     continue;
                 }
@@ -898,6 +909,10 @@ void constructST(struct astNode *root)
             temp = temp->next;
         }
     }
+    else if (strcmp(root->name, "expression") == 0)
+    {
+        constructST(root->child);
+    }
     else if (strcmp(root->name, "statements") == 0)
     {
         // <statements>  -->  <statement> <statements>
@@ -918,11 +933,15 @@ void constructST(struct astNode *root)
         temp = temp->child; // ID
         if (strcmp(temp->name, "ID") == 0)
         {
+            if(!searchNested(currentVarTable,temp->val.s))
+            printf("ERROR at line no. %d : Identifier %s not declared\n",temp->lineno, temp->val.s);
+
+            return;
+        }
             // TODO:  Check if ID exists in var table! If not, give error!
             // <ioStmt>  -->  GET_VALUE BO ID BC SEMICOL
             // ID will already be there in symbol table!
             return;
-        }
     }
     else if (strcmp(root->name, "ioStmt2") == 0)
     {
@@ -941,19 +960,22 @@ void constructST(struct astNode *root)
             // <assignmentStmt>   -->   ID <whichStmt>
 
             temp = temp->child; // ID - type aur exp match !
+            
 
             variableTableEntry *idEntry;
 
-            // Not-Declared Error Check
+            // Not-Declared ERROR Check
             if (searchNested(currentVarTable, temp->val.s))
             {
                 idEntry = searchNestedRetrieve(currentVarTable, temp->val.s);
             }
             else
             {
-                printf("Error at line no. %d: Identifier %s undeclared\n", temp->lineno, temp->val.s);
+                printf("ERROR at line no. %d: Identifier %s undeclared\n", temp->lineno, temp->val.s);
                 return;
             }
+
+            // printf("Check Assign %s %d - Type %d\n",temp->val.s,temp->lineno,idEntry->tag);
             // <whichStmt>  -->  <lvalueIDStmt>
             // <whichStmt>  -->  <lvalueARRStmt>
             temp = temp->next; // either of these two
@@ -962,10 +984,16 @@ void constructST(struct astNode *root)
             {
                 temp = temp->child; // ASSIGNOP
                 temp = temp->next;  // expression
+                temp = temp->child;
                 int expType = getType(temp);
-                if (expType == -1)
+
+                // printf("Check1 : line%d  - %d , %d\n",temp->lineno,idEntry->tag,expType);
+                
+                if (expType <= -1)
                 {
-                    printf("Error at line no. %d: RHS Types don't match\n", temp->lineno);
+                    if(expType==-1)
+                    printf("ERROR at line no. %d: Type Mismatch\n", temp->lineno);
+
                     return;
                 }
 
@@ -975,6 +1003,7 @@ void constructST(struct astNode *root)
                     {
                         // RHS ID is an Array of type = (expType-3)
                         // A = B - both are arrays
+                        // printf("Check2 : line%d  - %d,%d\n",temp->lineno,expType,idEntry->tag);
                         if (idEntry->tag == (expType - 3))
                         {
                             // Type of Array A and B are same
@@ -982,15 +1011,20 @@ void constructST(struct astNode *root)
                             // Here A = B
                             if (idEntry->isArrayStatic)
                             {
+                                // printf("Check3 : line%d  - %d\n",temp->lineno,expType);
                                 if (searchNested(currentVarTable, idEntry->key))
                                 {
-                                    variableTableEntry *idRHSEntry = searchNestedRetrieve(currentVarTable, idEntry->key);
+                                    // printf("Check4 : line%d  - %d\n",temp->lineno,expType);
+                                    variableTableEntry *idRHSEntry = searchNestedRetrieve(currentVarTable, temp->val.s);
                                     if (idRHSEntry->isArrayStatic)
                                     {
+                                        // printf("Check5 : line%d %d %d\n",temp->lineno,idEntry->lowerBound,idEntry->upperBound);
+                                        // printf("Check5 : line%d %d %d\n",temp->lineno,idRHSEntry->lowerBound,idRHSEntry->upperBound);
+
                                         if (idEntry->lowerBound != idRHSEntry->lowerBound || idEntry->upperBound != idRHSEntry->upperBound)
                                         {
                                             // Bounds of Static Arrays doesn't match
-                                            printf("Error at line no. %d: Bounds of Array %s doesn't match with Array %s\n", temp->lineno, idEntry->key, idRHSEntry->key);
+                                            printf("ERROR at line no. %d: Bounds of Array %s doesn't match with Array %s\n", temp->lineno, idEntry->key, idRHSEntry->key);
                                             return;
                                         }
                                     }
@@ -1001,14 +1035,15 @@ void constructST(struct astNode *root)
                         else
                         {
                             // Type of Array A and B are not same
-                            printf("Error at line no. %d: ARRAY %s cannot be assigned to a different type\n", temp->lineno, idEntry->key);
+                            printf("ERROR at line no. %d: ARRAY %s cannot be assigned to a different type\n", temp->lineno, idEntry->key);
                             return;
                         }
                     }
                     else
                     {
                         // RHS ID is not an array type
-                        printf("Error at line no. %d: ARRAY %s can only perform assignment operation with an ARRAY of same type\n", temp->lineno, idEntry->key);
+                        if(expType>=-1)
+                        printf("ERROR at line no. %d: ARRAY %s can only perform assignment operation with an ARRAY of same type\n", temp->lineno, idEntry->key);
                         return;
                     }
                 }
@@ -1018,7 +1053,8 @@ void constructST(struct astNode *root)
                     if (expType != idEntry->tag)
                     {
                         // LHS RHS Type Mismatch
-                        printf("ERROR at line no %d: %s LHS RHS Type Mismatch\n", temp->lineno, idEntry->key);
+                        if(expType>=-1)
+                        printf("ERROR at line no. %d: Type Mismatch\n", temp->lineno);
                     }
                     return;
                 }
@@ -1036,7 +1072,7 @@ void constructST(struct astNode *root)
                         if (temp->val.i < idEntry->lowerBound || temp->val.i > idEntry->upperBound)
                         {
                             // Out of Bounds
-                            printf("Array Index Out of Bounds for %s\n", idEntry->key);
+                            printf("ERROR at line no. %d: Array Index Out of Bounds for %s\n",root->child->lineno,idEntry->key);
                             return;
                         }
                     }
@@ -1049,13 +1085,13 @@ void constructST(struct astNode *root)
                         variableTableEntry *indexEntry = searchNestedRetrieve(currentVarTable, temp->val.s);
                         if (indexEntry->tag != 1)
                         {
-                            printf("Array index %s is not an Integer type\n", temp->val.s);
+                            printf("ERROR at line no. %d : Array index %s is not an Integer type\n",temp->lineno,temp->val.s);
                             return;
                         }
                     }
                     else
                     {
-                        printf("Index %s not declared\n", temp->val.s);
+                        printf("ERROR at line no. %d : Index %s not declared\n",temp->lineno, temp->val.s);
                         return;
                     }
                 }
@@ -1066,19 +1102,21 @@ void constructST(struct astNode *root)
 
                 temp = temp->next; // ASSIGNOP
                 temp = temp->next; // expression
+                temp = temp->child;
                 int expType = getType(temp);
 
                 // A[i] = expression!
                 if (idEntry->tag != expType)
                 {
                     // LHS RHS Type Mismatch
-                    printf("Error at line no. %d: %s LHS RHS Type Mismatch\n", temp->lineno, idEntry->key);
+                    if(expType>=-1)
+                    printf("ERROR at line no. %d: Type Mismatch\n", temp->lineno);
                 }
                 return;
             }
             else
             {
-                printf("Unexpected Error at line no. %d (at whichStmt) : %s\n", temp->lineno, temp->name);
+                printf("Unexpected ERROR at line no. %d (at whichStmt) : %s\n", temp->lineno, temp->name);
                 return;
             }
         }
@@ -1094,16 +1132,51 @@ void constructST(struct astNode *root)
             functionTableEntry *ftemp;
             // TODO : This is the function ID
             // Function Calling statement
-            if (searchInFunTable(globalFuncTable, temp->name))
+            if (searchInFunTable(globalFuncTable, temp->val.s))
             {
-                ftemp = retrieveFunTable(globalFuncTable, temp->name);
+                ftemp = retrieveFunTable(globalFuncTable, temp->val.s);
             }
             else
             {
                 // Function Not Found
-                printf("ERROR at line no. %d: %s is not declared\n", temp->lineno, temp->name);
+                printf("ERROR at line no. %d: Function %s is not declared\n", temp->lineno, temp->val.s);
                 return;
             }
+
+            // printf("Check1 : %d %s\n",temp->lineno,temp->val.s);
+
+            temp = temp->next;  // idlist
+            temp = temp->child;
+
+            // printf("Check2 : %d %s\n",temp->lineno,temp->val.s);
+
+            while (temp != NULL)
+            {
+                // printf("Check3 : %d %s\n",temp->lineno,temp->val.s);
+                if (!searchNested(currentVarTable, temp->val.s)){
+                    printf("ERROR at line no %d : Identifier %s is not declared in Function Call %s\n", temp->lineno, temp->val.s, ftemp->key);
+                    return;
+                }
+                temp = temp->next;
+            }
+
+            temp = root->child; // optional
+            temp = temp->child; // idlist
+            temp = temp->child;
+
+            // printf("Check3 : %d %s\n",temp->lineno,temp->val.s);
+
+            while (temp != NULL)
+            {
+                // printf("Check3 : %d %s\n",temp->lineno,temp->val.s);
+                variableTableEntry *idEntry;
+                if (!searchNested(currentVarTable, temp->val.s)){
+                    printf("ERROR at line no %d : Identifier %s is not declared in Function Call %s\n", temp->lineno, temp->val.s, ftemp->key);
+                    return;
+                }
+                temp = temp->next;
+            }
+
             // We are not sure at this point that function was ever defined!
         }
     }
@@ -1161,7 +1234,8 @@ void constructST(struct astNode *root)
                     }
                     else
                     {
-                        printf("Error at line no. %d: Redeclaration of variable %s\n", temp->lineno, varName);
+                        printf("ERROR at line no. %d: Redeclaration of variable %s\n", temp->lineno, varName);
+                        temp = temp->next;
                         continue;
                     }
                 }
@@ -1246,7 +1320,8 @@ void constructST(struct astNode *root)
                     }
                     else
                     {
-                        printf("Error at line no. %d: Redeclaration of variable %s\n", temp->lineno, varName);
+                        printf("ERROR at line no. %d: Redeclaration of variable %s\n", temp->lineno, varName);
+                        temp = temp->next;
                         continue;
                     }
                 }
@@ -1376,7 +1451,7 @@ void constructST(struct astNode *root)
         if (strcmp(root->val.s, "FOR") == 0)
         {
 
-            printf("FOR STARTS\n");
+            // printf("FOR STARTS\n");
             temp = temp->child; // <ID>
 
             if (searchNested(currentVarTable, temp->val.s))
@@ -1419,7 +1494,8 @@ void constructST(struct astNode *root)
 
             if (condType != 3)
             {
-                printf("ERROR at line %d : WHILE Loop Condition should consist of boolean expression", temp->lineno);
+                printf("Check Type : %d\n",condType);
+                printf("ERROR at line %d : WHILE Loop Condition should consist of boolean expression\n", temp->lineno);
             }
 
             currentVarTable->scopeStart = temp->lineno;
@@ -1431,11 +1507,11 @@ void constructST(struct astNode *root)
         }
         else
         {
-            printf("Unexpected iterativeStmt Error at line no. %d\n", root->lineno);
+            printf("Unexpected iterativeStmt ERROR at line no. %d\n", root->lineno);
         }
 
         // DONE : Change Scope!
-        printVarTable(currentVarTable);
+        //printVarTable(currentVarTable);
         currentVarTable = tempTable;
         globalNestingLevel--;
     } // iterativeStmt Ends
@@ -1448,10 +1524,9 @@ void runConstructST(FILE *testFile, FILE *parseTreeFile)
     strcpy(driverVarTable->funcName,ttemp);
     globalFuncTable = initializeFunTable();
     currentVarTable = driverVarTable;
-    printFunTable(globalFuncTable);
+    //printFunTable(globalFuncTable);
 
     // Same as runAst
-    printf("Starting runAST\n");
     parserFree();
 
     FILE *fp = fopen("grammar.txt", "r");
@@ -1460,21 +1535,9 @@ void runConstructST(FILE *testFile, FILE *parseTreeFile)
 
     // printAllGrammar();
 
-    if (printFlag)
-        printf("\nComputing Firsts And Follows Started\n");
-
     computeFirstAndFollow();
 
-    if (printFlag)
-        printf("\nComputing Firsts And Follows Ended\n\n");
-
-    if (printFlag)
-        printf("\nComputing Parse Table Started\n");
-
     createParseTable();
-
-    if (printFlag)
-        printf("\nComputing Parse Table Ended\n\n");
 
     populateKeywordTable();
 
@@ -1494,20 +1557,11 @@ void runConstructST(FILE *testFile, FILE *parseTreeFile)
             break;
     }
 
-    if (printFlag)
-        printf("Parsing Input Source Started\n");
-
     struct treeNode *rootParseTree = parseInputSourceCode(head->next, Table, grammar, firstFollowSets);
 
     // inOrderParseTree(rootParseTree,parseTreeFile);
 
-    printf("\nParseTreeComputed\n");
-
     struct astNode *rootAstNode = generateAST(rootParseTree);
-    // printLevelOrder(rootAstNode);
-    //generateAST(rootParseTree);
-    if (printFlag)
-        printf("\nAST Complete\n");
 
     // runAst()
 
@@ -1516,5 +1570,14 @@ void runConstructST(FILE *testFile, FILE *parseTreeFile)
     constructST(rootAstNode);
     constructST2(rootAstNode);
 
-    printAllTables(globalFuncTable, driverVarTable);
+    //printAllTables(globalFuncTable, driverVarTable);
+}
+
+void freeSymbolTable()
+{
+    free(globalFuncTable);
+    free(driverVarTable);
+    
+    global_offset = 0;
+    globalNestingLevel = 0;
 }

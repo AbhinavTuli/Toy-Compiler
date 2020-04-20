@@ -19,7 +19,7 @@ void printInOrderAst(struct astNode* root){ //prints child, parent, then sibling
         return;
     }
     if(strcmp(root->name,"expression")==0){
-        printExpression(root);
+        printExpression(root->child);
         return;
     }
     struct astNode* ch=root->child;
@@ -763,9 +763,9 @@ struct astNode* generateAST(struct treeNode* root){
 
     // <N3> -->  ε
     else if(strcmp(root->tnt,"N3")==0){
-        // strcpy(valAstNode.s,"ε");
-        // strcpy(tempName,"N3");
-        // gLineNo = root->lineno;
+        strcpy(valAstNode.s,"ε");
+        strcpy(tempName,"N3");
+        gLineNo = root->lineno;
         // return(makeAstNode(tempName,valAstNode,4,NULL));
 
         return NULL;
@@ -773,12 +773,19 @@ struct astNode* generateAST(struct treeNode* root){
 
     // <expression>  -->  <arithmeticOrBooleanExpr> 
     else if(strcmp(root->tnt,"expression")==0 && strcmp(root->child->tnt,"arithmeticOrBooleanExpr")==0){
-        return generateAST(root->child); 
+        strcpy(tempName,"expression");
+        gLineNo = root->lineno;
+        childAstNode = makeAstNode(tempName,valAstNode,0,generateAST(root->child));
+        return childAstNode; 
     }
 
     // <expression>  -->  <U>
     else if(strcmp(root->tnt,"expression")==0 && strcmp(root->child->tnt,"U")==0){
-        return generateAST(root->child); 
+        strcpy(tempName,"expression");
+        gLineNo = root->lineno;
+        childAstNode = makeAstNode(tempName,valAstNode,0,generateAST(root->child));
+        return childAstNode; 
+        // return generateAST(root->child); 
     }
 
     // <U>  -->  <unary_op> <new_NT>
@@ -795,8 +802,12 @@ struct astNode* generateAST(struct treeNode* root){
     else if(strcmp(root->tnt,"new_NT")==0 && strcmp(root->child->tnt,"BO")==0){
         strcpy(tempName,"arithmeticExprBracket");
         gLineNo = root->child->lineno;
-        childAstNode = generateAST(root->child->next);
-        return makeAstNode(tempName,valAstNode,0,childAstNode);
+        childAstNode = makeAstNode(tempName,valAstNode,0,childAstNode);
+        childAstNode->left = generateAST(root->child->next);
+        return childAstNode;
+        // childAstNode = generateAST(root->child->next);
+        // childAstNode->
+        // return makeAstNode(tempName,valAstNode,0,childAstNode);
     }
 
     // <new_NT>  -->  <var_id_num>
@@ -806,7 +817,7 @@ struct astNode* generateAST(struct treeNode* root){
 
     // <unary_op>  -->  PLUS
     else if(strcmp(root->tnt,"unary_op")==0 && strcmp(root->child->tnt,"PLUS")==0){
-        strcpy(valAstNode.s,"+");
+        strcpy(valAstNode.s,"++");
         strcpy(tempName,"unary_op");
         gLineNo = root->child->lineno;
         return makeAstNode(tempName,valAstNode,4,NULL);
@@ -814,7 +825,7 @@ struct astNode* generateAST(struct treeNode* root){
 
     // <unary_op>  -->  MINUS
     else if(strcmp(root->tnt,"unary_op")==0 && strcmp(root->child->tnt,"MINUS")==0){
-        strcpy(valAstNode.s,"-");
+        strcpy(valAstNode.s,"--");
         strcpy(tempName,"unary_op");
         gLineNo = root->child->lineno;
         return makeAstNode(tempName,valAstNode,4,NULL);
