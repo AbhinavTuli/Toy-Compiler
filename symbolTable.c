@@ -533,10 +533,11 @@ void printWidth(functionTable* ptr)
 	{
 		if(!ptr->table[i].isEmpty)
 		{
-			printf(" %s\t",ptr->table[i].key);
+			printf(" %s\t\t",ptr->table[i].key);
 			int width = 0;
 
 			variableTable* temp = ptr->table[i].localVarTable;
+			//printVarTable(temp);
 			while(temp!=NULL)
 			{
 				variableTable* traverse = temp;
@@ -546,9 +547,10 @@ void printWidth(functionTable* ptr)
 					int len1 = traverse->size;
 					for(int j = 0; j<len1; j++)
 					{
-						if(!traverse->table[i].isEmpty)
+						if(!traverse->table[j].isEmpty)
 						{
-							width = width + traverse->table[i].width;
+							//printf("%d\n",traverse->table[j].width);
+							width = width + traverse->table[j].width;
 						}
 					}
 					traverse = traverse->next;
@@ -561,7 +563,10 @@ void printWidth(functionTable* ptr)
 			while(ptemp!=NULL)
 			{
 				if(ptemp->isRedifined)
+				{
+					//printf("  %s %d \n", ptr->table[i].key,width);
 					width = width + ptemp->width;
+				}
 
 				ptemp = ptemp->next;
 			}

@@ -1259,6 +1259,15 @@ void constructST(struct astNode *root)
             //  TODO : Check if func parameters size and type are correct!
 
             temp = temp->next; // Function ID
+
+            // To handle Recursion
+
+            if(strcmp(temp->val.s,currentVarTable->funcName)==0){
+                printf("ERROR at line no. %d: Function %s cannot call itself(Recursion Not Allowed)\n",temp->lineno,temp->val.s);
+                return;
+            }
+
+
             functionTableEntry *ftemp;
             // TODO : This is the function ID
             // Function Calling statement

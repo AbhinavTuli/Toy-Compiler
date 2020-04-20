@@ -1,0 +1,17 @@
+<<module var_demo_array>>
+takes input [x:integer, m:array [2..20] of integer, p:real];
+returns [ n:integer, k: boolean];
+start
+    declare v_1_2_3, A:integer;
+	declare u1:boolean;
+    A:=12;
+	declare p: real;
+	p:= 23.56;
+	declare B, C: array [2..20] of integer;
+	[ v_1_2_3, u1]:=use module var_demo_array with parameters A,B,p;
+end
+
+<<<driver program>>>
+start
+	declare v_1_2_3, A:integer;
+end

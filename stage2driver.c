@@ -38,7 +38,7 @@ int main(int argc, char *argv[]){
     printf("5. Printing the Symbol Table\n");
     printf("6. Printing the Total Memory Requirement\n");
     printf("7. Display all Static and Dynamic Arrays!\n");
-    printf("8. Generate Error Report and Compile Time\n");
+    printf("8. Compute Error Report and Compile Time\n");
     printf("9. Generate Assembly Code!");
     printf("\n\n");
 
@@ -130,10 +130,13 @@ int main(int argc, char *argv[]){
             case 7:
                         break;
 
-            case 8:                     //  For compiling to verify the syntactic and semantic correctness of the input source code 
-                                        // If the code is syntactically incorrect, report all syntax errors only. If the code is syntactically correct, 
-                                        //then report all type checking and semantic errors. Also print (on the console) the total time taken by your integrated compiler. 
-                                        //Print both total_CPU_time and total_CPU_time_in_seconds (as mentioned earlier)
+            case 8:     ;   
+
+
+                            //  For compiling to verify the syntactic and semantic correctness of the input source code 
+                            // If the code is syntactically incorrect, report all syntax errors only. If the code is syntactically correct, 
+                            //then report all type checking and semantic errors. Also print (on the console) the total time taken by your integrated compiler. 
+                            //Print both total_CPU_time and total_CPU_time_in_seconds (as mentioned earlier)
                         break;
             
             case 9:                     //Produce Assembly Code
