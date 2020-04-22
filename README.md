@@ -1,4 +1,4 @@
 # Compiler
-Compiler for a custom language created from scratch in C as part of a course project at BITS Pilani.
+Toy Compiler created from scratch for a custom language as part of a course project at BITS Pilani.
 
-Created modules for lexer, parser, abstract syntax tree, semantic analyzer and symbol table.
+The moodules created for the same include lexer, parser, abstract syntax tree generator, semantic analyzer and type checker.
